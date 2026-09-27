@@ -10,125 +10,219 @@
 <title>FORGE — бизнес-тренажёр предпринимателя</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
-<style>
-:root{--bg:#090c11;--panel:#121820;--panel2:#0e141b;--line:rgba(255,255,255,.085);--text:#f1f6fb;--muted:#8f9caf;--green:#7cff9f;--cyan:#65deff;--amber:#ffc86a;--red:#ff8484;--shadow:0 18px 55px rgba(0,0,0,.32)}
-*{box-sizing:border-box}html,body{min-height:100%}html{background:var(--bg)}body{margin:0;color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 8% 0,rgba(101,222,255,.11),transparent 27%),radial-gradient(circle at 88% 0,rgba(124,255,159,.08),transparent 28%),linear-gradient(180deg,#090c11,#0c1117 45%,#090d12)}
-button,input,select{font:inherit}.app{display:grid;grid-template-columns:270px minmax(0,1fr);min-height:100vh}.side{position:sticky;top:0;height:100vh;padding:22px 18px;border-right:1px solid var(--line);background:rgba(8,11,15,.88);backdrop-filter:blur(20px)}.brand{display:flex;align-items:center;gap:12px;padding:6px 9px 20px}.brandmark{width:42px;height:42px;border:1px solid rgba(124,255,159,.2);border-radius:14px;background:linear-gradient(135deg,rgba(124,255,159,.15),rgba(101,222,255,.14));display:grid;place-items:center}.brandname{font-size:24px;font-weight:950;letter-spacing:.14em}.brandtag{font-size:11px;color:var(--muted);margin-top:2px}.nav{display:grid;gap:7px}.nav button,.mobile button{border:0;background:transparent;color:#afbdcd;cursor:pointer}.nav button{display:flex;gap:11px;align-items:center;width:100%;padding:13px 14px;border-radius:15px;text-align:left}.nav button:hover,.nav button.active{background:rgba(255,255,255,.055);color:var(--text)}.sidebox{position:absolute;left:18px;right:18px;bottom:20px;padding:15px;border:1px solid var(--line);border-radius:19px;background:linear-gradient(180deg,#141b24,#0e131a);box-shadow:var(--shadow)}.tiny{font-size:12px;color:var(--muted)}.progress{height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--cyan))}
-.main{padding:24px clamp(15px,2.7vw,34px) calc(96px + env(safe-area-inset-bottom));min-width:0}.shell{max-width:1360px;margin:auto}.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:22px}.eyebrow{font-size:12px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;color:var(--green)}.title{font-size:clamp(30px,4vw,43px);font-weight:950;line-height:1;margin:8px 0}.sub{color:var(--muted);line-height:1.55;max-width:760px}.pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.pill,.label{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:999px}.pill{padding:9px 11px;font-size:12px}.label{padding:7px 10px;font-size:11px;font-weight:850}
-.page{display:none}.page.active{display:block}.grid{display:grid;gap:15px}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.card{border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,rgba(19,25,33,.98),rgba(13,18,24,.98));padding:18px;box-shadow:var(--shadow);min-width:0}.soft{background:rgba(255,255,255,.025)}.metric b{display:block;font-size:30px;margin:5px 0 3px}.hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(290px,.8fr);gap:16px;margin-top:16px}.hero-main{padding:24px;position:relative;overflow:hidden}.hero-main:after{content:"";position:absolute;width:250px;height:250px;right:-65px;top:-65px;border-radius:50%;background:radial-gradient(circle,rgba(124,255,159,.18),transparent 65%)}.hero h2{font-size:clamp(27px,3vw,35px);line-height:1.08;margin:10px 0}.copy{color:var(--muted);line-height:1.65}.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:13px;padding:12px 15px;font-weight:850;cursor:pointer}.primary{background:linear-gradient(90deg,var(--green),#9affb8);color:#061108}.secondary{background:#1a2430;color:var(--text);border:1px solid var(--line)}.ghost{background:transparent;color:#dbe5ef;border:1px solid var(--line)}.section{margin-top:24px}.sectionhead{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:13px}.sectiontitle{font-size:21px;font-weight:900}.sectioncopy{font-size:13px;color:var(--muted)}
-.item{transition:.17s ease}.item:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.14)}.item h3{font-size:18px;margin:10px 0 7px}.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:13px;font-size:12px;color:var(--muted)}.searchbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.search,.select{min-width:220px;flex:1;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:#0e141b;color:var(--text);outline:none}.termhead{display:flex;justify-content:space-between;gap:10px}.termname{font-size:20px;font-weight:900}.star{border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.025);color:#d8e1eb;padding:8px 10px;cursor:pointer}.star.on{color:var(--green)}
-.choice{width:100%;text-align:left;margin-top:9px;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.03);color:var(--text);cursor:pointer}.choice:hover{border-color:rgba(255,255,255,.15)}.choice.good{border-color:rgba(124,255,159,.35);background:rgba(124,255,159,.08)}.choice.bad{border-color:rgba(255,132,132,.35);background:rgba(255,132,132,.08)}.feedback{display:none;margin-top:13px;padding:13px;border-radius:14px;border:1px solid rgba(124,255,159,.2);background:rgba(124,255,159,.07);color:#dffce8;line-height:1.6}.feedback.show{display:block}.simstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:16px 0}.simstat{border:1px solid var(--line);border-radius:16px;background:#0d1319;padding:14px}.simstat b{display:block;font-size:20px;margin-top:5px}.profile{display:grid;grid-template-columns:1fr 1fr;gap:16px}.achievements{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.achievement{padding:14px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}
-.overlay{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,7,9,.86);backdrop-filter:blur(14px)}.overlay.hidden{display:none}.dialog{width:min(850px,100%);max-height:90vh;overflow:auto;padding:25px;border:1px solid var(--line);border-radius:26px;background:linear-gradient(180deg,#141b23,#0d1218);box-shadow:var(--shadow)}.dialog h1{font-size:clamp(31px,4vw,48px);line-height:1.02;margin:12px 0}.goals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}.goal{padding:17px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.03);cursor:pointer}.goal:hover{border-color:rgba(124,255,159,.28)}.goal b{display:block;margin-bottom:5px}.close{float:right;border:1px solid var(--line);background:#19222d;color:#fff;width:38px;height:38px;border-radius:11px;cursor:pointer}.mobile{display:none}
-@media(max-width:1160px){.g4,.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{grid-template-columns:1fr}.g2,.profile{grid-template-columns:1fr}}
-@media(max-width:900px){.app{display:block}.side{display:none}.main{padding:18px 14px calc(92px + env(safe-area-inset-bottom))}.mobile{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:30;padding:9px 10px calc(9px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(8,11,15,.94);backdrop-filter:blur(18px)}.mobile button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 3px;border-radius:13px;font-size:10px}.mobile button.active{background:rgba(255,255,255,.055);color:var(--green)}.top{flex-direction:column}.pills{justify-content:flex-start}.g4,.g3,.g2,.goals,.achievements,.simstats{grid-template-columns:1fr}.card,.hero-main{padding:16px}.dialog{padding:19px}}
-</style>
+<link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-<div id="onboard" class="overlay hidden"><div class="dialog"><div class="label">FORGE • VERSION 2</div><h1>Куй предпринимательское мышление.</h1><div class="copy">Не очередной сборник мотивации. FORGE учит понимать цифры, принимать решения и разбирать бизнес так, как это делает основатель.</div><div id="goalGrid" class="goals"></div></div></div>
-<div id="modal" class="overlay hidden"><div class="dialog"><button class="close" onclick="closeModal()">✕</button><div id="modalBody"></div></div></div>
+<div id="onboard" class="overlay hidden">
+  <div class="dialog">
+    <div class="label">FORGE • VERSION 3</div>
+    <h1>Выбери свою траекторию.</h1>
+    <div class="copy">FORGE адаптирует порядок курсов под твой уровень. Путь можно изменить позже — прогресс не потеряется.</div>
+    <div id="goalGrid" class="goals"></div>
+  </div>
+</div>
+
+<div id="modal" class="overlay hidden">
+  <div id="modalDialog" class="dialog">
+    <button class="close" onclick="closeModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div id="auth" class="overlay hidden">
+  <div class="dialog small">
+    <button class="close" onclick="closeAuth()">✕</button>
+    <div class="label">FORGE ACCOUNT</div>
+    <h2 style="font-size:28px;margin:10px 0">Сохраняй прогресс между устройствами</h2>
+    <div class="copy">Без аккаунта FORGE продолжит работать локально. С аккаунтом прогресс синхронизируется через Supabase между iPhone и ПК.</div>
+    <div class="section">
+      <input id="authName" class="input" placeholder="Имя" autocomplete="name">
+      <div style="height:9px"></div>
+      <input id="authEmail" class="input" type="email" placeholder="Email" autocomplete="email">
+      <div style="height:9px"></div>
+      <input id="authPassword" class="input" type="password" placeholder="Пароль (минимум 6 символов)" autocomplete="current-password">
+      <div id="authStatus" class="auth-status"></div>
+      <div class="btnrow">
+        <button class="btn primary" onclick="signInUser()">Войти</button>
+        <button class="btn secondary" onclick="registerUser()">Создать аккаунт</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="app">
 <aside class="side">
-<div class="brand"><div class="brandmark"><svg width="25" height="25" viewBox="0 0 64 64"><path d="M18 50V14H50V22H27V29H46V37H27V50H18Z" fill="#F1F6FB"/><path d="M46 14 23 37" stroke="#7CFF9F" stroke-width="5" stroke-linecap="round"/></svg></div><div><div class="brandname">FORGE</div><div class="brandtag">Founder Growth Engine</div></div></div>
-<nav id="desktopNav" class="nav"></nav>
-<div class="sidebox"><div class="tiny">Текущий уровень</div><div id="sideLevel" style="font-size:23px;font-weight:900;margin:4px 0 10px">Apprentice</div><div class="progress"><span id="sideProgress"></span></div><div class="meta"><span>XP: <b id="sideXp">0</b></span><span>🔥 <b id="sideStreak">1</b></span></div></div>
+  <div class="brand">
+    <div class="brandmark">
+      <svg width="25" height="25" viewBox="0 0 64 64" aria-hidden="true"><path d="M18 50V14H50V22H27V29H46V37H27V50H18Z" fill="#F1F6FB"/><path d="M46 14 23 37" stroke="#7CFF9F" stroke-width="5" stroke-linecap="round"/></svg>
+    </div>
+    <div><div class="brandname">FORGE</div><div class="brandtag">Founder Growth Engine</div></div>
+  </div>
+  <nav id="desktopNav" class="nav"></nav>
+  <div class="sidebox">
+    <div class="tiny">Текущий уровень</div>
+    <div id="sideLevel" style="font-size:23px;font-weight:900;margin:4px 0 10px">Apprentice</div>
+    <div class="progress"><span id="sideProgress"></span></div>
+    <div class="meta"><span>XP: <b id="sideXp">0</b></span><span>🔥 <b id="sideStreak">1</b></span></div>
+  </div>
 </aside>
+
 <main class="main"><div class="shell">
-<div class="top"><div><div class="eyebrow">Founder learning system</div><div id="pageTitle" class="title">Dashboard</div><div id="pageSub" class="sub">Учёба, кейсы и бизнес-симуляции без лишней воды.</div></div><div class="pills"><div id="hello" class="pill">👋 FORGE v2</div><div id="streak" class="pill">🔥 1 день</div><div id="goalPill" class="pill">🎯 Цель</div></div></div>
+  <div class="top">
+    <div>
+      <div class="eyebrow">Founder learning system</div>
+      <div id="pageTitle" class="title">Dashboard</div>
+      <div id="pageSub" class="sub">Твой ежедневный бизнес-тренажёр.</div>
+    </div>
+    <div class="pills">
+      <div id="hello" class="pill">👋 Гость</div>
+      <div id="streak" class="pill">🔥 1 день</div>
+      <div id="goalPill" class="pill">🎯 Траектория</div>
+      <button id="accountButton" class="pill" style="color:var(--text);cursor:pointer">Войти / синхронизация</button>
+    </div>
+  </div>
 
-<section id="dashboard" class="page active">
-<div id="stats" class="grid g4"></div>
-<div class="hero">
-<div class="card hero-main"><div class="label">TODAY'S CHALLENGE</div><h2>Компания растёт. Почему денег становится меньше?</h2><div class="copy">Разберись в разнице между прибылью, cash flow и оборотным капиталом — именно здесь многие быстрорастущие бизнесы ломаются.</div><div class="btnrow"><button class="btn primary" onclick="go('simulator')">Запустить симулятор</button><button class="btn secondary" onclick="go('learn')">Продолжить обучение</button><button class="btn ghost" onclick="dailyQuestion()">Вопрос дня</button></div></div>
-<div class="card"><div class="tiny">TERM OF THE DAY</div><h2 style="font-size:30px;margin:7px 0">Unit Economics</h2><div class="copy">Пока одна единица бизнеса не работает, масштабирование просто ускоряет сжигание денег.</div><div class="btnrow"><button class="btn ghost" onclick="openTerm('Unit Economics')">Разобрать за минуту</button></div><div class="section"><div class="tiny">QUOTE / INSIGHT</div><h3 style="line-height:1.4;margin:8px 0">“Price is what you pay. Value is what you get.”</h3><div class="tiny">Warren Buffett</div><div class="copy" style="margin-top:8px">Для бизнеса это означает: клиент сравнивает не твою себестоимость, а ценность результата.</div></div></div>
-</div>
-<div class="section"><div class="sectionhead"><div><div class="sectiontitle">Daily Business</div><div class="sectioncopy">Короткие блоки, которые реально меняют понимание бизнеса.</div></div></div><div id="daily" class="grid g3"></div></div>
-</section>
+  <section id="dashboard" class="page active">
+    <div id="stats" class="grid g4"></div>
+    <div class="hero">
+      <div class="card hero-main">
+        <div class="label">FOUNDER CHALLENGE</div>
+        <h2>Учись не запоминать бизнес, а принимать решения.</h2>
+        <div class="copy">FORGE v3 объединяет 56 уроков, 32 бизнес-кейса, четыре симулятора, персональную траекторию и облачное сохранение прогресса.</div>
+        <div class="btnrow">
+          <button class="btn primary" onclick="go('learn')">Продолжить обучение</button>
+          <button class="btn secondary" onclick="go('simulator')">Открыть симулятор</button>
+          <button class="btn ghost" onclick="go('coach')">Business Coach</button>
+        </div>
+      </div>
+      <div id="pathSummary" class="card"></div>
+    </div>
+    <div class="section">
+      <div class="sectionhead"><div><div class="sectiontitle">Рекомендуемые направления</div><div class="sectioncopy">Порядок зависит от выбранного пути.</div></div></div>
+      <div id="recommended" class="grid g3"></div>
+    </div>
+    <div class="section">
+      <div class="sectionhead"><div><div class="sectiontitle">Daily Forge</div><div class="sectioncopy">Четыре коротких действия вместо бесконечного чтения.</div></div></div>
+      <div id="daily" class="grid g4"></div>
+    </div>
+  </section>
 
-<section id="learn" class="page"><div class="sectionhead"><div><div class="sectiontitle">Мини-курсы</div><div class="sectioncopy">3–5 минут на урок: мысль → пример → практический вывод.</div></div></div><div id="lessons" class="grid g3"></div></section>
+  <section id="learn" class="page">
+    <div class="sectionhead"><div><div class="sectiontitle">56 коротких уроков</div><div class="sectioncopy">Финансы, маркетинг, продажи, стратегия, стартапы, менеджмент и экономика.</div></div></div>
+    <div id="moduleBar" class="modulebar"></div>
+    <div id="lessons" class="grid g3"></div>
+  </section>
 
-<section id="dictionary" class="page"><div class="sectionhead"><div><div class="sectiontitle">Business Dictionary</div><div class="sectioncopy">Не зубри термин. Пойми, зачем он тебе нужен.</div></div></div><div class="searchbar"><input id="termSearch" class="search" placeholder="CAC, EBITDA, Burn Rate..."><select id="termFilter" class="select"><option value="all">Все категории</option><option value="finance">Финансы</option><option value="marketing">Маркетинг</option><option value="startup">Стартапы</option></select></div><div id="terms" class="grid g2"></div></section>
+  <section id="dictionary" class="page">
+    <div class="sectionhead"><div><div class="sectiontitle">Business Dictionary</div><div class="sectioncopy">Термин → смысл → зачем нужен → пример.</div></div></div>
+    <div class="searchbar">
+      <input id="termSearch" class="search" placeholder="CAC, EBITDA, Burn Rate...">
+      <select id="termFilter" class="select">
+        <option value="all">Все категории</option>
+        <option value="finance">Финансы</option>
+        <option value="marketing">Маркетинг</option>
+        <option value="startup">Стартапы</option>
+        <option value="strategy">Стратегия</option>
+        <option value="economics">Экономика</option>
+      </select>
+    </div>
+    <div id="terms" class="grid g2"></div>
+  </section>
 
-<section id="cases" class="page"><div class="sectionhead"><div><div class="sectiontitle">Бизнес-кейсы</div><div class="sectioncopy">Смотри на trade-offs и последствия, а не на “правильный ответ”.</div></div></div><div id="caseGrid" class="grid g2"></div></section>
+  <section id="cases" class="page">
+    <div class="sectionhead"><div><div class="sectiontitle">32 бизнес-кейса</div><div class="sectioncopy">Тренировка решений на финансах, маркетинге, продажах, стратегии и команде.</div></div></div>
+    <div class="searchbar"><input id="caseSearch" class="search" placeholder="Найти кейс: cash flow, pricing, retention..."></div>
+    <div id="caseGrid" class="grid g2"></div>
+  </section>
 
-<section id="simulator" class="page"><div class="card"><div class="label">BUSINESS SIMULATOR • COFFEE SHOP</div><h2 style="font-size:30px;margin:10px 0">Управляй кофейней как основатель.</h2><div class="copy">Каждое решение меняет cash, выручку, прибыль и клиентскую базу.</div><div id="simStats" class="simstats"></div><div class="card soft"><div class="meta"><span id="simStep" class="label">Шаг 1</span><span id="simHealth" class="label">Стабильно</span></div><h3 id="simTitle" style="font-size:21px;margin:14px 0 7px"></h3><div id="simText" class="copy"></div><div id="simChoices"></div><div id="simFeedback" class="feedback"></div><div class="btnrow"><button class="btn ghost" onclick="resetSim()">Начать заново</button></div></div></div></section>
+  <section id="simulator" class="page">
+    <div class="sectionhead"><div><div class="sectiontitle">Выбери бизнес</div><div class="sectioncopy">Каждый сценарий — три последовательных решения с изменением метрик.</div></div></div>
+    <div id="simSelect" class="simselect"></div>
+    <div class="card">
+      <div class="label">BUSINESS SIMULATOR</div>
+      <h2 id="simTitleMain" style="font-size:30px;margin:10px 0"></h2>
+      <div class="copy">Смотри не на одну красивую цифру, а на систему: cash, revenue, profit и клиентов.</div>
+      <div id="simStats" class="simstats"></div>
+      <div class="card soft">
+        <div class="meta"><span id="simStep" class="label">Шаг 1</span><span class="label">Decision mode</span></div>
+        <h3 id="simEvent" style="font-size:21px;margin:14px 0 7px"></h3>
+        <div id="simText" class="copy"></div>
+        <div id="simChoices"></div>
+        <div id="simFeedback" class="feedback"></div>
+        <div class="btnrow"><button class="btn ghost" onclick="resetSimulator()">Начать заново</button></div>
+      </div>
+    </div>
+  </section>
 
-<section id="profile" class="page"><div class="profile"><div class="card"><div class="sectiontitle">Профиль</div><div class="copy" style="margin-top:7px">Уровень — это игровая механика FORGE, а не оценка твоего предпринимательского таланта.</div><div class="section"><div class="tiny">LEVEL</div><div id="profileLevel" style="font-size:32px;font-weight:900;margin:5px 0">Apprentice</div><div class="progress"><span id="profileProgress"></span></div></div><div class="grid g2" style="margin-top:15px"><div class="card soft metric"><div class="tiny">XP</div><b id="profileXp">0</b></div><div class="card soft metric"><div class="tiny">STREAK</div><b id="profileStreak">1</b></div><div class="card soft metric"><div class="tiny">УРОКИ</div><b id="profileLessons">0</b></div><div class="card soft metric"><div class="tiny">ТЕРМИНЫ</div><b id="profileTerms">0</b></div></div></div><div class="card"><div class="sectiontitle">Достижения</div><div id="achievements" class="achievements" style="margin-top:14px"></div></div></div></section>
+  <section id="coach" class="page">
+    <div class="sectionhead"><div><div class="sectiontitle">Business Coach</div><div class="sectioncopy">Пока это интерактивный тренажёр, а не фальшивый «AI API». Он задаёт правильные вопросы и заставляет структурировать мысль.</div></div></div>
+    <div class="coach-layout">
+      <div id="coachModes" class="coach-modes"></div>
+      <div class="card chat">
+        <div id="messages" class="messages"></div>
+        <div class="chatinput">
+          <input id="coachInput" class="input" placeholder="Напиши ответ...">
+          <button class="btn primary" onclick="sendCoach()">Отправить</button>
+        </div>
+        <div class="btnrow"><button class="btn ghost" onclick="resetCoach()">Начать сценарий заново</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="profile" class="page">
+    <div class="profile">
+      <div class="card">
+        <div class="sectiontitle">Профиль</div>
+        <div style="font-size:28px;font-weight:900;margin:10px 0 3px" id="profileName">Гость</div>
+        <div class="copy" id="profilePath"></div>
+        <div class="btnrow">
+          <button class="btn ghost" onclick="editName()">Изменить имя</button>
+          <button class="btn secondary" onclick="changePath()">Сменить путь обучения</button>
+        </div>
+        <div class="section">
+          <div class="tiny">LEVEL</div>
+          <div id="profileLevel" style="font-size:32px;font-weight:900;margin:5px 0">Apprentice</div>
+          <div class="progress"><span id="profileProgress"></span></div>
+        </div>
+        <div class="grid g2" style="margin-top:15px">
+          <div class="card soft metric"><div class="tiny">XP</div><b id="profileXp">0</b></div>
+          <div class="card soft metric"><div class="tiny">STREAK</div><b id="profileStreak">1</b></div>
+          <div class="card soft metric"><div class="tiny">УРОКИ</div><b id="profileLessons">0</b></div>
+          <div class="card soft metric"><div class="tiny">ТЕРМИНЫ</div><b id="profileTerms">0</b></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="sectiontitle">Аккаунт и сохранение</div>
+        <div id="accountInfo" style="margin-top:13px"></div>
+        <div class="section">
+          <div class="tiny">СТАТУС</div>
+          <div class="accountbar" style="margin-top:8px"><span id="syncDot" class="syncdot"></span><span id="syncText">Локальный режим</span></div>
+        </div>
+        <div class="section">
+          <div class="sectiontitle" style="font-size:17px">Резервная копия</div>
+          <div class="copy" style="margin-top:6px">Можно сохранить прогресс в JSON и потом импортировать его на другом устройстве.</div>
+          <div class="btnrow">
+            <button class="btn ghost" onclick="exportProgress()">Экспортировать</button>
+            <label class="btn secondary" style="cursor:pointer">Импортировать<input type="file" accept="application/json" onchange="importProgressFile(event)" hidden></label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section card">
+      <div class="sectiontitle">Достижения</div>
+      <div id="achievements" class="achievements" style="margin-top:14px"></div>
+    </div>
+  </section>
 </div></main>
 </div>
+
 <nav id="mobileNav" class="mobile"></nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js" integrity="" crossorigin="anonymous"></script>
+<script src="./content.js"></script>
+<script src="./app.js"></script>
 <script>
-var NAV=[['dashboard','◉','Главная'],['learn','▦','Учёба'],['dictionary','⌕','Словарь'],['cases','◆','Кейсы'],['simulator','▣','Симулятор'],['profile','◎','Профиль']];
-var LEVELS=[['Apprentice',0],['Builder',220],['Operator',520],['Founder',920],['Scaler',1500],['Visionary',2300],['Titan',3400]];
-var GOALS=[['first','Хочу запустить первый бизнес','Нужна база: деньги, гипотезы, первые продажи.'],['run','Уже веду бизнес','Хочу лучше понимать рост, финансы и решения.'],['mind','Прокачать бизнес-мышление','Хочу тренировать логику и разбирать кейсы.'],['curious','Просто интересуюсь','Хочу разбираться в бизнесе без заумной теории.']];
-var LESSONS=[
-['cash','💸','Финансы','Прибыль, cash flow и кассовый разрыв','Почему прибыльный бизнес может умереть без денег на счёте.',70,'Прибыль показывает экономический результат. Cash flow показывает реальные деньги. Если клиент платит через 45 дней, а зарплату надо платить сейчас, прибыль сама тебя не спасёт.','Продал услуг на 700 000 ₽, но оплата через месяц. Зарплаты и аренда уже на этой неделе.','Следи за графиком поступлений, а не только за P&L.'],
-['cac','📈','Маркетинг','CAC против LTV','Когда маркетинг окупается, а когда ты просто покупаешь выручку.',80,'CAC нужно сравнивать не с первой выручкой клиента, а с маржинальной ценностью клиента за всё время.','100 000 ₽ рекламы / 200 клиентов = CAC 500 ₽. Если gross-profit LTV 1 800 ₽, модель выглядит намного здоровее.','Считай окупаемость на уровне клиента, а не красивого ROAS.'],
-['unit','🧠','Стратегия','Unit Economics','Рост на плохой экономике единицы делает проблему больше.',75,'Пока одна единица не приносит положительный вклад, масштабировать опасно.','Заказ приносит 650 ₽ вклада, а переменные затраты составляют 720 ₽. Чем больше заказов, тем быстрее растёт убыток.','Проверь вклад на единицу до масштабирования.'],
-['value','🤝','Продажи','Продавай ценность, а не скидку','Скидка — часто костыль, когда оффер не объясняет результат.',65,'Если клиент не понимает ценность, он сравнивает только цену.','CRM можно продавать как “доступ за 1 999 ₽”, а можно как способ перестать терять лиды и деньги.','Формулируй оффер через проблему и результат.'],
-['mvp','🚀','Стартапы','MVP и Product-Market Fit','Что проверять до масштабирования продукта.',75,'MVP — минимальный способ проверить критичную гипотезу. PMF — уже признак устойчивого спроса.','Вместо платформы запускаешь лендинг, ручной пилот и 30 интервью.','Сначала реальный спрос, потом сложная разработка.'],
-['delegation','⚙️','Менеджмент','Делегирование без хаоса','Если всё держится на тебе, у тебя нет системы.',70,'Делегирование — это результат, критерии качества и границы решений.','Не “делай контент”, а “12 постов в месяц, 3 формата, метрика — заявки”.','Передавай результат, а не список действий.']
-];
-var TERMS=[
-['CAC','marketing','Customer Acquisition Cost','Стоимость привлечения одного нового клиента.','Показывает цену роста.','120 000 ₽ / 240 клиентов = CAC 500 ₽.','LTV'],
-['LTV','marketing','Lifetime Value','Ценность клиента за всё время отношений.','Показывает, сколько можно позволить себе тратить на привлечение.','8 покупок × 1 500 ₽ × 35% валовой маржи ≈ 4 200 ₽ gross-profit LTV.','Retention'],
-['ROAS','marketing','Return on Ad Spend','Выручка с каждого рубля рекламы.','Полезен для канала, но не заменяет юнит-экономику.','50 000 ₽ расходов → 250 000 ₽ выручки = ROAS 5x.','CAC'],
-['EBITDA','finance','Операционный показатель','Прибыль до процентов, налогов и амортизации.','Помогает смотреть на операционную эффективность.','Выручка 10 млн ₽, операционные расходы 7 млн ₽ → EBITDA около 3 млн ₽.','P&L'],
-['P&L','finance','Profit & Loss','Отчёт о прибыли и убытках.','Показывает, где бизнес зарабатывает и теряет.','900 000 ₽ выручки − 740 000 ₽ расходов = 160 000 ₽ результата.','Cash Flow'],
-['Cash Flow','finance','Денежный поток','Фактическое движение денег.','Определяет способность платить по обязательствам.','Продажа сегодня с оплатой через 60 дней даёт выручку раньше cash.','Working Capital'],
-['Margin','finance','Маржа','Доля выручки, остающаяся после определённых затрат.','Показывает запас прочности модели.','Цена 2 000 ₽, переменные затраты 1 100 ₽ → валовая маржа 45%.','Profit'],
-['Burn Rate','startup','Темп сжигания денег','Сколько денег компания теряет в месяц.','Показывает скорость движения к нулю на счёте.','Баланс падает на 350 000 ₽ в месяц → burn rate 350 000 ₽.','Runway'],
-['Runway','startup','Запас времени','На сколько месяцев хватит денег при текущем burn rate.','Нужен для планирования финансирования и сокращений.','2,4 млн ₽ / 300 000 ₽ = около 8 месяцев runway.','Burn Rate'],
-['MVP','startup','Minimum Viable Product','Минимальная версия продукта для проверки гипотезы.','Ускоряет обучение на рынке.','Одна ключевая функция вместо огромной платформы.','PMF'],
-['PMF','startup','Product-Market Fit','Соответствие продукта реальной потребности рынка.','До PMF масштабирование часто преждевременно.','Пользователи возвращаются, платят и рекомендуют.','MVP'],
-['Retention','marketing','Удержание','Доля клиентов, продолжающих пользоваться продуктом.','Слабое удержание убивает рост.','Через месяц возвращаются 42% пользователей.','Churn'],
-['Unit Economics','finance','Экономика единицы','Показывает, выгоден ли один клиент или заказ.','Фильтр перед масштабированием.','Заказ даёт 900 ₽ вклада, привлечение стоит 450 ₽.','CAC'],
-['Break-even Point','finance','Точка безубыточности','Объём продаж, где прибыль равна нулю.','Показывает нижний порог выживания.','180 000 ₽ постоянных расходов / 900 ₽ вклада = 200 продаж.','Margin']
-];
-var CASES=[
-['c1','Cash Flow','Прибыль есть. Денег нет.','Ты продал услуг на 900 000 ₽. Клиенты платят через 45 дней. Зарплаты и аренда — через неделю.',[['Низкая выручка',0,'Нет. Выручка уже есть. Риск в том, когда придут деньги.'],['Кассовый разрыв',1,'Верно. Продажа и поступление cash происходят в разные моменты.'],['Слишком высокая EBITDA',0,'Нет. Здесь проблема не в EBITDA.']],80],
-['c2','Pricing','Снижать цену ради роста?','Конкурент демпингует. Ты думаешь снизить цену на 20%, чтобы вернуть поток.',[['Всегда снижать цену',0,'Так можно убить маржу и позиционирование.'],['Сначала проверить эластичность и маржу',1,'Верно. Считай последствия, а не реагируй паникой.'],['Игнорировать рынок',0,'Бездействие тоже имеет цену.']],85],
-['c3','Marketing','Реклама растит выручку, но бизнес худеет','ROAS красивый, но после логистики, скидок и сервиса денег остаётся мало.',[['Смотреть только CTR',0,'CTR не отвечает на вопрос, зарабатываешь ли ты.'],['Проверить contribution margin и unit economics',1,'Верно. Нужно понять реальный вклад на единицу.'],['Смотреть только выручку',0,'Выручка без расходов легко обманывает.']],90]
-];
-var DAILY=[['Идея дня','Рост хорош только тогда, когда он усиливает здоровую модель.'],['Ошибка дня','Смотреть только на прибыль и игнорировать cash flow.'],['Термин дня','Working Capital — деньги, застрявшие в ежедневной операционке.'],['Кейс дня','Сезонный всплеск спроса — ещё не устойчивый канал роста.'],['Вопрос дня','Если CAC растёт, а retention падает — точно ли пора масштабировать рекламу?']];
-var defaultState={onboarded:false,goal:'',xp:0,streak:1,lastVisit:'',lessons:[],terms:[],saved:[],cases:[],simDone:false,name:'Максим'};
-var saved=localStorage.getItem('forgeState');var old=localStorage.getItem('ventureState');var state;
-try{state=Object.assign({},defaultState,JSON.parse(saved||'{}'));if(!saved&&old){var o=JSON.parse(old);state.xp=o.xp||0;state.streak=o.streak||1;state.onboarded=!!o.onboarded;state.goal=o.goal||'';state.terms=o.terms||[];state.cases=[];}}catch(e){state=Object.assign({},defaultState)}
-var today=new Date().toISOString().slice(0,10);if(state.lastVisit!==today){if(state.lastVisit)state.streak+=1;state.lastVisit=today}
-var sim={cash:1000000,revenue:450000,profit:70000,customers:1200,step:0};
-var SIM=[
-['Конкурент открылся через дорогу','Что делаешь первым?',[['Снизить цены на 20%',[-10000,18000,-32000,120],'Ты вернул часть потока, но сильно ударил по марже.',0],['Запустить программу лояльности',[-25000,35000,14000,150],'Хорошо: усилил повторные покупки и LTV.',1],['Увеличить рекламу без теста',[-70000,42000,-8000,170],'Рост трафика без контроля CAC — опасная игра.',0]]],
-['Сырьё подорожало на 18%','Как реагируешь?',[['Поднять цены на 8%',[0,30000,23000,-35],'Часть спроса ушла, но маржа восстановилась.',1],['Ничего не менять',[0,0,-26000,0],'Ты сохранил цену, но принял удар на прибыль.',0],['Незаметно уменьшить порцию',[0,0,12000,-90],'Краткосрочно легче, долгосрочно страдает доверие.',0]]],
-['Есть 120 000 ₽ на рост','Куда инвестируешь?',[['Тест 3 каналов по 40 000 ₽',[-120000,120000,17000,290],'Сначала тест, потом масштаб — дисциплинированный подход.',1],['Всё в один модный канал',[-120000,90000,-10000,260],'Красивый рост без дисциплины может сжечь деньги.',0],['Не инвестировать вообще',[0,-15000,-6000,-30],'Риск ниже, но opportunity cost тоже реальный.',0]]]
-];
-function save(){localStorage.setItem('forgeState',JSON.stringify(state));renderAll()}
-function level(){var c=LEVELS[0],n=LEVELS[1];for(var i=0;i<LEVELS.length;i++){if(state.xp>=LEVELS[i][1]){c=LEVELS[i];n=LEVELS[i+1]||LEVELS[i]}}var p=n[1]===c[1]?100:Math.max(0,Math.min(100,(state.xp-c[1])/(n[1]-c[1])*100));return{name:c[0],pct:p}}
-function goalName(){for(var i=0;i<GOALS.length;i++)if(GOALS[i][0]===state.goal)return GOALS[i][1];return'Цель не выбрана'}
-function rub(n){return Math.round(n).toLocaleString('ru-RU')+' ₽'}
-function nav(){document.getElementById('desktopNav').innerHTML=NAV.map(function(n,i){return'<button class="'+(i===0?'active':'')+'" data-page="'+n[0]+'"><span>'+n[1]+'</span><span>'+n[2]+'</span></button>'}).join('');document.getElementById('mobileNav').innerHTML=NAV.filter(function(n){return['dashboard','learn','dictionary','simulator','profile'].indexOf(n[0])>=0}).map(function(n,i){return'<button class="'+(i===0?'active':'')+'" data-page="'+n[0]+'"><span>'+n[1]+'</span><span>'+n[2]+'</span></button>'}).join('');document.querySelectorAll('[data-page]').forEach(function(b){b.onclick=function(){go(b.dataset.page)}})}
-function go(p){document.querySelectorAll('.page').forEach(function(x){x.classList.toggle('active',x.id===p)});document.querySelectorAll('[data-page]').forEach(function(x){x.classList.toggle('active',x.dataset.page===p)});var m={dashboard:['Dashboard','Учёба, кейсы и бизнес-симуляции без лишней воды.'],learn:['Обучение','Короткие уроки по ключевым бизнес-навыкам.'],dictionary:['Business Dictionary','Термины, которые нужно понимать, а не просто знать.'],cases:['Кейсы','Практика решений и разбор последствий.'],simulator:['Business Simulator','Управляй цифрами, а не красивыми словами.'],profile:['Профиль','Твой прогресс внутри FORGE.']};document.getElementById('pageTitle').textContent=m[p][0];document.getElementById('pageSub').textContent=m[p][1];scrollTo({top:0,behavior:'smooth'})}
-function onboard(){document.getElementById('goalGrid').innerHTML=GOALS.map(function(g){return'<div class="goal" onclick="pickGoal(\''+g[0]+'\')"><b>'+g[1]+'</b><div class="copy">'+g[2]+'</div></div>'}).join('');document.getElementById('onboard').classList.toggle('hidden',state.onboarded)}
-function pickGoal(g){state.goal=g;state.onboarded=true;state.xp+=25;save();document.getElementById('onboard').classList.add('hidden')}
-function renderStats(){var l=level();document.getElementById('sideLevel').textContent=l.name;document.getElementById('sideProgress').style.width=l.pct+'%';document.getElementById('sideXp').textContent=state.xp;document.getElementById('sideStreak').textContent=state.streak;document.getElementById('hello').textContent='👋 '+state.name+', FORGE v2';document.getElementById('streak').textContent='🔥 '+state.streak+' дн.';document.getElementById('goalPill').textContent='🎯 '+goalName();var arr=[['Level',l.name,'Текущий уровень'],['XP',state.xp,'Игровой прогресс'],['Уроки',state.lessons.length,'Завершено'],['Термины',state.terms.length,'Изучено']];document.getElementById('stats').innerHTML=arr.map(function(s,i){return'<div class="card metric"><div class="tiny">'+s[0]+'</div><b>'+s[1]+'</b><div class="tiny">'+s[2]+'</div>'+(i===0?'<div class="progress" style="margin-top:10px"><span style="width:'+l.pct+'%"></span></div>':'')+'</div>'}).join('')}
-function renderDaily(){document.getElementById('daily').innerHTML=DAILY.map(function(d,i){return'<div class="card item"><div class="tiny">'+d[0].toUpperCase()+'</div><h3>'+d[0]+'</h3><div class="copy">'+d[1]+'</div>'+(i===4?'<div class="btnrow"><button class="btn ghost" onclick="dailyQuestion()">Разобрать</button></div>':'')+'</div>'}).join('')}
-function renderLessons(){document.getElementById('lessons').innerHTML=LESSONS.map(function(l){var done=state.lessons.indexOf(l[0])>=0;return'<div class="card item"><div style="font-size:24px">'+l[1]+'</div><div class="label">'+l[2]+'</div><h3>'+l[3]+'</h3><div class="copy">'+l[4]+'</div><div class="meta"><span>3–5 мин</span><span>'+(done?'✓ завершено':'+'+l[5]+' XP')+'</span></div><div class="btnrow"><button class="btn '+(done?'secondary':'ghost')+'" onclick="openLesson(\''+l[0]+'\')">'+(done?'Открыть ещё раз':'Открыть урок')+'</button></div></div>'}).join('')}
-function openLesson(id){var l=LESSONS.find(function(x){return x[0]===id});var done=state.lessons.indexOf(id)>=0;modal('<div class="label">'+l[2]+'</div><h2 style="font-size:28px;margin:10px 0">'+l[3]+'</h2><div class="copy">'+l[4]+'</div><div class="card soft section"><div class="tiny">КЛЮЧЕВАЯ МЫСЛЬ</div><div class="copy" style="margin-top:7px">'+l[6]+'</div></div><div class="card soft section"><div class="tiny">ПРИМЕР</div><div class="copy" style="margin-top:7px">'+l[7]+'</div></div><div class="card soft section"><div class="tiny">ПРАКТИЧЕСКИ</div><div class="copy" style="margin-top:7px">'+l[8]+'</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson(\''+id+'\')">'+(done?'Уже пройден':'Завершить • +'+l[5]+' XP')+'</button></div>')}
-function completeLesson(id){var l=LESSONS.find(function(x){return x[0]===id});if(state.lessons.indexOf(id)<0){state.lessons.push(id);state.xp+=l[5];save()}closeModal()}
-function renderTerms(){var q=(document.getElementById('termSearch').value||'').toLowerCase(),f=document.getElementById('termFilter').value;var list=TERMS.filter(function(t){return(f==='all'||t[1]===f)&&t.join(' ').toLowerCase().indexOf(q)>=0});document.getElementById('terms').innerHTML=list.map(function(t){var learned=state.terms.indexOf(t[0])>=0,saved=state.saved.indexOf(t[0])>=0;return'<div class="card item"><div class="termhead"><div><div class="termname">'+t[0]+'</div><div class="tiny">'+t[2]+'</div></div><button class="star '+(saved?'on':'')+'" onclick="toggleSave(\''+t[0]+'\')">'+(saved?'★':'☆')+'</button></div><div class="copy" style="margin-top:10px">'+t[3]+'</div><div class="meta"><span>Связано: '+t[6]+'</span><span>'+(learned?'✓ изучено':'+25 XP')+'</span></div><div class="btnrow"><button class="btn ghost" onclick="openTerm(\''+t[0]+'\')">Открыть</button><button class="btn '+(learned?'secondary':'primary')+'" onclick="learnTerm(\''+t[0]+'\')">'+(learned?'Понял':'Понял • +25 XP')+'</button></div></div>'}).join('')}
-function openTerm(n){var t=TERMS.find(function(x){return x[0]===n});modal('<div class="label">'+t[2]+'</div><h2 style="font-size:30px;margin:10px 0">'+t[0]+'</h2><div class="card soft section"><div class="tiny">ПО-ПРОСТОМУ</div><div class="copy" style="margin-top:7px">'+t[3]+'</div></div><div class="card soft section"><div class="tiny">ЗАЧЕМ ПРЕДПРИНИМАТЕЛЮ</div><div class="copy" style="margin-top:7px">'+t[4]+'</div></div><div class="card soft section"><div class="tiny">ПРИМЕР</div><div class="copy" style="margin-top:7px">'+t[5]+'</div></div><div class="btnrow"><button class="btn primary" onclick="learnTerm(\''+t[0]+'\');closeModal()">Понял • +25 XP</button></div>')}
-function learnTerm(n){if(state.terms.indexOf(n)<0){state.terms.push(n);state.xp+=25;save()}}
-function toggleSave(n){state.saved=state.saved.indexOf(n)>=0?state.saved.filter(function(x){return x!==n}):state.saved.concat([n]);save()}
-function renderCases(){document.getElementById('caseGrid').innerHTML=CASES.map(function(c){var done=state.cases.indexOf(c[0])>=0;return'<div class="card item"><div class="label">'+c[1]+'</div><h3>'+c[2]+'</h3><div class="copy">'+c[3]+'</div><div class="btnrow"><button class="btn '+(done?'secondary':'ghost')+'" onclick="openCase(\''+c[0]+'\')">'+(done?'Разобрать ещё раз':'Открыть кейс')+'</button></div></div>'}).join('')}
-function openCase(id){var c=CASES.find(function(x){return x[0]===id});modal('<div class="label">CASE • '+c[1]+'</div><h2 style="font-size:28px;margin:10px 0">'+c[2]+'</h2><div class="copy">'+c[3]+'</div><div id="caseChoices" class="section">'+c[4].map(function(ch,i){return'<button class="choice" onclick="answerCase(\''+id+'\','+i+',this)">'+ch[0]+'</button>'}).join('')+'</div><div id="caseFeedback" class="feedback"></div>')}
-function answerCase(id,i,el){var c=CASES.find(function(x){return x[0]===id}),ch=c[4][i];document.querySelectorAll('#caseChoices .choice').forEach(function(b){b.disabled=true});el.classList.add(ch[1]?'good':'bad');var f=document.getElementById('caseFeedback');f.textContent=ch[2]+(ch[1]?' +'+c[5]+' XP':'');f.classList.add('show');if(ch[1]&&state.cases.indexOf(id)<0){state.cases.push(id);state.xp+=c[5];save()}}
-function dailyQuestion(){modal('<div class="label">DAILY QUESTION</div><h2 style="font-size:28px;margin:10px 0">CAC растёт, retention падает. Масштабировать рекламу?</h2><div class="copy">Скорее нет. Ты льёшь всё более дорогой трафик в продукт, который удерживает всё хуже. Сначала чини продукт, воронку и удержание, потом ускоряй привлечение.</div>')}
-function renderSim(){var st=[['Cash',rub(sim.cash)],['Revenue / мес',rub(sim.revenue)],['Profit / мес',rub(sim.profit)],['Customers',Math.round(sim.customers).toLocaleString('ru-RU')]];document.getElementById('simStats').innerHTML=st.map(function(x){return'<div class="simstat"><div class="tiny">'+x[0]+'</div><b>'+x[1]+'</b></div>'}).join('');document.getElementById('simHealth').textContent=sim.profit>80000?'Сильная экономика':sim.profit>30000?'Стабильно':'Под давлением';var f=document.getElementById('simFeedback');f.classList.remove('show');if(sim.step>=SIM.length){document.getElementById('simStep').textContent='ФИНАЛ';document.getElementById('simTitle').textContent='Сценарий завершён';document.getElementById('simText').textContent='Маленькие решения меняют cash, маржу и удержание. Смотри на систему целиком.';document.getElementById('simChoices').innerHTML='<div class="card soft section"><div class="copy">Итог: '+rub(sim.cash)+' cash • '+rub(sim.revenue)+' revenue • '+rub(sim.profit)+' profit</div></div>';if(!state.simDone){state.simDone=true;state.xp+=120;save()}return}var s=SIM[sim.step];document.getElementById('simStep').textContent='Шаг '+(sim.step+1)+' / '+SIM.length;document.getElementById('simTitle').textContent=s[0];document.getElementById('simText').textContent=s[1];document.getElementById('simChoices').innerHTML=s[2].map(function(o,i){return'<button class="choice" onclick="chooseSim('+i+',this)">'+o[0]+'</button>'}).join('')}
-function chooseSim(i,el){var o=SIM[sim.step][2][i],d=o[1];sim.cash+=d[0];sim.revenue+=d[1];sim.profit+=d[2];sim.customers+=d[3];document.querySelectorAll('#simChoices .choice').forEach(function(b){b.disabled=true});el.classList.add(o[3]?'good':'bad');var f=document.getElementById('simFeedback');f.textContent=o[2]+' +50 XP';f.classList.add('show');state.xp+=50;save();setTimeout(function(){sim.step+=1;renderSim()},950)}
-function resetSim(){sim={cash:1000000,revenue:450000,profit:70000,customers:1200,step:0};renderSim()}
-function renderProfile(){var l=level();document.getElementById('profileLevel').textContent=l.name;document.getElementById('profileProgress').style.width=l.pct+'%';document.getElementById('profileXp').textContent=state.xp;document.getElementById('profileStreak').textContent=state.streak;document.getElementById('profileLessons').textContent=state.lessons.length;document.getElementById('profileTerms').textContent=state.terms.length;var a=[['Первый рывок','100 XP',state.xp>=100],['Терминатор','5 терминов',state.terms.length>=5],['Практик','2 кейса',state.cases.length>=2],['Дисциплина','3 урока',state.lessons.length>=3],['Оператор','пройти симулятор',state.simDone],['Серия','streak 3 дня',state.streak>=3]];document.getElementById('achievements').innerHTML=a.map(function(x){return'<div class="achievement"><b>'+(x[2]?'✅ ':'🔒 ')+x[0]+'</b><div class="tiny" style="margin-top:5px">'+x[1]+'</div></div>'}).join('')}
-function modal(h){document.getElementById('modalBody').innerHTML=h;document.getElementById('modal').classList.remove('hidden')}
-function closeModal(){document.getElementById('modal').classList.add('hidden')}
-function renderAll(){renderStats();renderDaily();renderLessons();renderTerms();renderCases();renderSim();renderProfile();localStorage.setItem('forgeState',JSON.stringify(state))}
-document.getElementById('termSearch').oninput=renderTerms;document.getElementById('termFilter').onchange=renderTerms;nav();onboard();renderAll();if('serviceWorker'in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){})});
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 </script>
 </body>
 </html>
