@@ -143,6 +143,16 @@
     <div id="terms" class="grid g2"></div>
   </section>
 
+  <section id="practice" class="page">
+    <div class="sectionhead"><div><div class="sectiontitle">Практика</div><div class="sectioncopy">Кейсы, симуляторы, Coach и сертификаты — в одном месте.</div></div></div>
+    <div class="practice-grid">
+      <button class="card practice-card" onclick="go('cases')"><span class="practice-icon">◆</span><span><b>Бизнес-кейсы</b><small>32 ситуации и разбор решений</small></span><span class="practice-arrow">→</span></button>
+      <button class="card practice-card" onclick="go('simulator')"><span class="practice-icon">▣</span><span><b>Симуляторы</b><small>Управляй цифрами и последствиями</small></span><span class="practice-arrow">→</span></button>
+      <button class="card practice-card" onclick="go('coach')"><span class="practice-icon">✦</span><span><b>Business Coach</b><small>Структурируй идею и решения</small></span><span class="practice-arrow">→</span></button>
+      <button class="card practice-card" onclick="go('certificates')"><span class="practice-icon">◇</span><span><b>Сертификаты</b><small>Проверяемые достижения BIZONIQ</small></span><span class="practice-arrow">→</span></button>
+    </div>
+  </section>
+
   <section id="cases" class="page">
     <div class="sectionhead"><div><div class="sectiontitle">32 бизнес-кейса</div><div class="sectioncopy">Тренировка решений на финансах, маркетинге, продажах, стратегии и команде.</div></div></div>
     <div class="searchbar"><input id="caseSearch" class="search" placeholder="Найти кейс: cash flow, pricing, retention..."></div>
@@ -205,6 +215,57 @@
     </div>
   </section>
 
+  <section id="pricing" class="page">
+    <div class="sectionhead"><div><div class="sectiontitle">BIZONIQ Pro</div><div class="sectioncopy">Один простой тариф. Без дорогого входа и лишних уровней подписки.</div></div></div>
+    <div id="pricingStatus" class="card pricing-status"></div>
+    <div class="pricing-grid section">
+      <div class="card price-card">
+        <div class="label">FREE</div>
+        <div class="price"><b>0 ₽</b><span>навсегда</span></div>
+        <div class="copy">Чтобы понять продукт и начать учиться без карты.</div>
+        <ul class="feature-list">
+          <li>16 базовых уроков</li>
+          <li>Business Dictionary</li>
+          <li>Daily Business Duel</li>
+          <li>8 бесплатных кейсов</li>
+          <li>Симулятор кофейни</li>
+          <li>1 режим Business Coach</li>
+        </ul>
+        <button class="btn secondary" onclick="go('learn')">Продолжить бесплатно</button>
+      </div>
+      <div class="card price-card pro">
+        <div class="best-badge">PRO • MONTHLY</div>
+        <div class="price"><b>99 ₽</b><span>/ месяц</span></div>
+        <div class="copy">Полный доступ ко всей практике и обучению.</div>
+        <ul class="feature-list">
+          <li>Все 56 уроков</li>
+          <li>Все 32 кейса</li>
+          <li>Все 4 бизнес-симулятора</li>
+          <li>Все сценарии Business Coach</li>
+          <li>Система сертификатов</li>
+          <li>Расширенный прогресс</li>
+        </ul>
+        <button class="btn primary" onclick="startPaddleCheckout('pro_monthly')">Получить Pro • 99 ₽</button>
+      </div>
+      <div class="card price-card yearly">
+        <div class="best-badge">ЛУЧШАЯ ЦЕНА</div>
+        <div class="price"><b>799 ₽</b><span>/ год</span></div>
+        <div class="saving">≈ 67 ₽/мес · экономия 389 ₽</div>
+        <div class="copy">Тот же Pro, но заметно дешевле при оплате за год.</div>
+        <ul class="feature-list">
+          <li>Всё из BIZONIQ Pro</li>
+          <li>12 месяцев полного доступа</li>
+          <li>Экономия ≈ 33% против 99 ₽/мес</li>
+        </ul>
+        <button class="btn primary" onclick="startPaddleCheckout('pro_yearly')">Pro на год • 799 ₽</button>
+      </div>
+    </div>
+    <div class="card section">
+      <div class="sectiontitle">Оплата</div>
+      <div class="copy" style="margin-top:7px">Планируем использовать Paddle как Merchant of Record: платежи, подписки, налоги и управление оплатой обрабатываются платёжной платформой. Для запуска реальных платежей аккаунт продавца всё равно должен пройти проверку Paddle.</div>
+    </div>
+  </section>
+
   <section id="profile" class="page">
     <div class="profile">
       <div class="card">
@@ -231,6 +292,7 @@
       </div>
       <div class="card">
         <div class="sectiontitle">Аккаунт и сохранение</div>
+        <div id="subscriptionPanel" class="subscription-panel"></div>
         <div id="accountInfo" style="margin-top:13px"></div>
         <div id="installCta" class="card soft"></div>
         <div class="section">
@@ -259,6 +321,7 @@
       <div class="tiny" style="margin-top:5px">Build Business IQ.</div>
     </div>
     <div class="footer-links">
+      <a href="./?page=pricing">Pro • 99 ₽</a>
       <a href="./faq.html">FAQ</a>
       <a href="./verify.html">Проверить сертификат</a>
     </div>
@@ -274,6 +337,8 @@
 <nav id="mobileNav" class="mobile"></nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js" integrity="" crossorigin="anonymous"></script>
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script src="./billing-config.js"></script>
 <script src="./content.js"></script>
 <script src="./app.js"></script>
 <script>
