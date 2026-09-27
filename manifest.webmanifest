@@ -1,12 +1,14 @@
 {
-  "name":"VENTURE — Business Learning",
-  "short_name":"VENTURE",
-  "description":"Интерактивный тренажёр бизнес-мышления: термины, уроки, кейсы и симулятор предпринимателя.",
-  "start_url":"./",
-  "scope":"./",
-  "display":"standalone",
-  "background_color":"#080a0d",
-  "theme_color":"#080a0d",
-  "lang":"ru",
-  "icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+  "name": "FORGE — бизнес-тренажёр для предпринимателей",
+  "short_name": "FORGE",
+  "description": "Интерактивный тренажёр предпринимательского мышления: уроки, бизнес-термины, кейсы и симулятор.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090c11",
+  "theme_color": "#090c11",
+  "lang": "ru",
+  "icons": [
+    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
 }
