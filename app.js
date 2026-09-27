@@ -10,6 +10,7 @@ const NAV=[
   ["cases","◆","Кейсы"],
   ["simulator","▣","Симулятор"],
   ["coach","✦","Coach"],
+  ["certificates","◇","Сертификаты"],
   ["profile","◎","Профиль"]
 ];
 const LEVELS=[["Apprentice",0],["Builder",300],["Operator",800],["Founder",1500],["Scaler",2500],["Visionary",4000],["Titan",6500]];
@@ -27,6 +28,14 @@ let sim=null;
 let coachMode="idea";
 let cloudTimer=null;
 let syncBusy=false;
+let userCertificates=[];
+const CERTIFICATE_TYPES=[
+  {id:"foundation",title:"Business Foundations",desc:"База предпринимательства и первые решения.",modules:["basics"],minCases:3,minSims:0},
+  {id:"finance",title:"Business Finance",desc:"Cash flow, маржа, unit economics и финансовая дисциплина.",modules:["finance"],minCases:5,minSims:1},
+  {id:"growth",title:"Growth: Marketing & Sales",desc:"Привлечение, удержание, продажи и переговоры.",modules:["marketing","sales"],minCases:8,minSims:1},
+  {id:"operator",title:"Business Operations",desc:"Финансы + менеджмент + операционные решения.",modules:["finance","management"],minCases:12,minSims:2},
+  {id:"mastery",title:"Business Decision Mastery",desc:"Главный сертификат BIZONIQ за комплексное прохождение.",modules:["*"],minCases:24,minSims:4}
+];
 
 function loadLocalState(){
   try{
@@ -88,15 +97,16 @@ async function initAuth(){
     session=sess;
     renderAuthState();
     if(sess&&(event==="SIGNED_IN"||event==="INITIAL_SESSION"||event==="TOKEN_REFRESHED")){
-      await mergeCloud();
+      await mergeCloud(); await loadCertificates();
     }
     if(event==="SIGNED_OUT"){
+      userCertificates=[];
       setSyncStatus("Локальный режим",false);
       renderAll();
     }
   });
   renderAuthState();
-  if(session) await mergeCloud();
+  if(session){ await mergeCloud(); await loadCertificates(); }
 }
 async function registerUser(){
   const email=document.getElementById("authEmail").value.trim();
@@ -236,7 +246,7 @@ function closeAuth(){document.getElementById("auth").classList.add("hidden")}
 function buildNav(){
   const desk=document.getElementById("desktopNav"),mobile=document.getElementById("mobileNav");
   desk.innerHTML=NAV.map((n,i)=>`<button class="${i===0?"active":""}" data-page="${n[0]}"><span>${n[1]}</span><span>${n[2]}</span></button>`).join("");
-  mobile.innerHTML=NAV.filter(n=>["dashboard","learn","dictionary","simulator","profile"].includes(n[0])).map((n,i)=>`<button class="${i===0?"active":""}" data-page="${n[0]}"><span>${n[1]}</span><span>${n[2]}</span></button>`).join("");
+  mobile.innerHTML=NAV.filter(n=>["dashboard","learn","dictionary","simulator","certificates","profile"].includes(n[0])).map((n,i)=>`<button class="${i===0?"active":""}" data-page="${n[0]}"><span>${n[1]}</span><span>${n[2]}</span></button>`).join("");
   document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
 }
 function go(page){
@@ -249,6 +259,7 @@ function go(page){
     cases:["Бизнес-кейсы","32 ситуации для тренировки решений."],
     simulator:["Business Simulator","Четыре бизнеса, где решения меняют экономику."],
     coach:["AI Business Coach","Интерактивный тренер: идея, финансы, маркетинг и сложные кейсы."],
+    certificates:["Сертификаты","Проверяемые сертификаты прохождения с уникальным ID."],
     profile:["Профиль и синхронизация","Смена пути, аккаунт, backup и прогресс."]
   };
   document.getElementById("pageTitle").textContent=meta[page][0];document.getElementById("pageSub").textContent=meta[page][1];
@@ -297,7 +308,7 @@ const DUELS=[
 ];
 function dailyDuel(){
   const d=DUELS[(new Date().getDate()-1)%DUELS.length],done=state.duel.date===todayKey()&&state.duel.answered;
-  modal(`<div class="label">DAILY BUSINESS DUEL</div><h2>${d.q}</h2><div class="copy">Один вопрос в день. Первый ответ фиксируется и даёт XP только один раз.</div><div id="duelChoices" class="section">${d.opts.map((o,i)=>`<button class="choice" ${done?"disabled":""} onclick="answerDuel(${i},this)">${o}</button>`).join("")}</div><div id="duelFeedback" class="feedback ${done?"show":""}">${done?"Сегодняшняя дуэль уже завершена. Возвращайся завтра.":""}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon('duel')">Поделиться TYQON</button></div>`);
+  modal(`<div class="label">DAILY BUSINESS DUEL</div><h2>${d.q}</h2><div class="copy">Один вопрос в день. Первый ответ фиксируется и даёт XP только один раз.</div><div id="duelChoices" class="section">${d.opts.map((o,i)=>`<button class="choice" ${done?"disabled":""} onclick="answerDuel(${i},this)">${o}</button>`).join("")}</div><div id="duelFeedback" class="feedback ${done?"show":""}">${done?"Сегодняшняя дуэль уже завершена. Возвращайся завтра.":""}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon('duel')">Поделиться BIZONIQ</button></div>`);
 }
 function answerDuel(i,el){
   const d=DUELS[(new Date().getDate()-1)%DUELS.length];
@@ -325,7 +336,7 @@ function startDiagnostic(){
 function renderDiagStep(step){
   const q=DIAG[step];
   if(!q){finishDiagnostic();return;}
-  modal(`<div class="label">TYQON DIAGNOSTIC • ${step+1}/${DIAG.length}</div><h2>${q[0]}</h2><div class="copy">Это не психологический тест. Он лишь рекомендует учебную траекторию по твоим ответам.</div><div class="section">${q[1].map((o,i)=>`<button class="choice" onclick="pickDiag(${step},${i})">${o}</button>`).join("")}</div>`);
+  modal(`<div class="label">BIZONIQ DIAGNOSTIC • ${step+1}/${DIAG.length}</div><h2>${q[0]}</h2><div class="copy">Это не психологический тест. Он лишь рекомендует учебную траекторию по твоим ответам.</div><div class="section">${q[1].map((o,i)=>`<button class="choice" onclick="pickDiag(${step},${i})">${o}</button>`).join("")}</div>`);
 }
 function pickDiag(step,i){state.diagnostic.answers[step]=i;renderDiagStep(step+1)}
 function finishDiagnostic(){
@@ -359,8 +370,8 @@ function learningArchetype(){
 }
 async function shareTyqon(type="app"){
   const arch=learningArchetype()[0];
-  const text=type==="challenge"?`Я прохожу 30-Day Founder Challenge в TYQON: ${state.challenge.completedDays.length}/30 дней.`:type==="duel"?`Я прошёл сегодняшнюю Business Duel в TYQON. Мой учебный профиль: ${arch}.`:`TYQON — бизнес-тренажёр с кейсами и симуляциями. Мой учебный профиль: ${arch}.`;
-  const data={title:"TYQON",text,url:location.origin+location.pathname};
+  const text=type==="challenge"?`Я прохожу 30-Day Founder Challenge в BIZONIQ: ${state.challenge.completedDays.length}/30 дней.`:type==="duel"?`Я прошёл сегодняшнюю Business Duel в BIZONIQ. Мой учебный профиль: ${arch}.`:`BIZONIQ — бизнес-тренажёр с кейсами и симуляциями. Мой учебный профиль: ${arch}.`;
+  const data={title:"BIZONIQ",text,url:location.origin+location.pathname};
   try{if(navigator.share)await navigator.share(data);else{await navigator.clipboard.writeText(text+" "+data.url);alert("Ссылка скопирована.");}}catch(e){}
 }
 function weeklyProgress(){
@@ -386,11 +397,11 @@ function setupInstall(){
 function renderInstallButton(){
   const el=document.getElementById("installCta");if(!el)return;
   const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-  el.innerHTML=`<div class="label">MOBILE APP</div><h3>TYQON на главном экране</h3><div class="copy">${isiOS?"Safari → Поделиться → На экран «Домой»":"Установи PWA и запускай TYQON как отдельное приложение."}</div><div class="btnrow"><button class="btn ghost" onclick="installTyqon()">Установить</button></div>`;
+  el.innerHTML=`<div class="label">MOBILE APP</div><h3>BIZONIQ на главном экране</h3><div class="copy">${isiOS?"Safari → Поделиться → На экран «Домой»":"Установи PWA и запускай BIZONIQ как отдельное приложение."}</div><div class="btnrow"><button class="btn ghost" onclick="installTyqon()">Установить</button></div>`;
 }
 async function installTyqon(){
   if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;return;}
-  modal('<div class="label">УСТАНОВКА TYQON</div><h2>Добавь приложение на экран</h2><div class="copy">На iPhone открой сайт в Safari → «Поделиться» → «На экран Домой». На поддерживаемых браузерах используй пункт «Установить приложение».</div>');
+  modal('<div class="label">УСТАНОВКА BIZONIQ</div><h2>Добавь приложение на экран</h2><div class="copy">На iPhone открой сайт в Safari → «Поделиться» → «На экран Домой». На поддерживаемых браузерах используй пункт «Установить приложение».</div>');
 }
 function renderDashboard(){
   const p=pathObj(),recommended=p.recommended.slice(0,3).map(id=>C.modules.find(m=>m.id===id)).filter(Boolean);
@@ -524,6 +535,53 @@ function sendCoach(){
 }
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}
 
+function certificateProgress(def){
+  const requiredLessons=def.modules[0]==="*" ? C.modules.flatMap(m=>m.lessons.map(l=>l[0])) :
+    C.modules.filter(m=>def.modules.includes(m.id)).flatMap(m=>m.lessons.map(l=>l[0]));
+  const lessonDone=requiredLessons.filter(id=>state.lessons.includes(id)).length;
+  const simDone=Object.values(state.simDone||{}).filter(Boolean).length;
+  const parts=[
+    {label:"Уроки",value:lessonDone,need:requiredLessons.length},
+    {label:"Кейсы",value:state.cases.length,need:def.minCases},
+    {label:"Симуляторы",value:simDone,need:def.minSims}
+  ];
+  return {eligible:parts.every(x=>x.value>=x.need),parts};
+}
+async function loadCertificates(){
+  if(!session){userCertificates=[];renderCertificates();return}
+  const {data,error}=await sb.from("certificates").select("*").order("issued_at",{ascending:false});
+  if(!error) userCertificates=data||[];
+  renderCertificates();
+}
+function renderCertificates(){
+  const grid=document.getElementById("certificateGrid");if(!grid)return;
+  grid.innerHTML=CERTIFICATE_TYPES.map(def=>{
+    const cert=userCertificates.find(c=>c.certificate_type===def.id);
+    const p=certificateProgress(def);
+    const detail=p.parts.map(x=>`<span>${x.label}: <b>${Math.min(x.value,x.need)}/${x.need}</b></span>`).join("");
+    return `<div class="card certificate-card ${cert?"issued":p.eligible?"eligible":""}">
+      <div class="cert-top"><div class="certificate-mini-seal">B/IQ</div><div><div class="label">${cert?"ISSUED":p.eligible?"READY":"IN PROGRESS"}</div><h3>${def.title}</h3></div></div>
+      <div class="copy">${def.desc}</div>
+      <div class="cert-progress">${detail}</div>
+      ${cert?
+        `<div class="certificate-code">${cert.certificate_code}</div><div class="btnrow"><button class="btn primary" onclick="openCertificate('${cert.certificate_code}')">Открыть сертификат</button><button class="btn ghost" onclick="copyCertificateLink('${cert.certificate_code}')">Скопировать ссылку</button></div>`:
+        `<div class="btnrow"><button class="btn ${p.eligible?"primary":"secondary"}" ${p.eligible?"":"disabled"} onclick="claimCertificate('${def.id}')">${p.eligible?"Получить сертификат":"Сначала выполни критерии"}</button></div>`}
+    </div>`;
+  }).join("");
+}
+async function claimCertificate(type){
+  if(!session){openAuth();return}
+  await pushCloud(true);
+  const {data,error}=await sb.functions.invoke("issue-certificate",{body:{type}});
+  if(error){alert("Не удалось выдать сертификат. Проверь прогресс и попробуй ещё раз.");return}
+  if(data?.certificate){await loadCertificates();openCertificate(data.certificate.certificate_code)}
+}
+function openCertificate(code){window.open("./certificate.html?code="+encodeURIComponent(code),"_blank","noopener")}
+async function copyCertificateLink(code){
+  const url=new URL("./certificate.html?code="+encodeURIComponent(code),location.href).href;
+  try{await navigator.clipboard.writeText(url);alert("Ссылка на сертификат скопирована.");}catch{prompt("Скопируй ссылку:",url)}
+}
+
 function renderProfile(){
   const l=level(),p=pathObj();
   document.getElementById("profileLevel").textContent=l.name;document.getElementById("profileProgress").style.width=l.pct+"%";
@@ -541,12 +599,12 @@ function renderProfile(){
   document.getElementById("achievements").innerHTML=ach.map(a=>`<div class="achievement"><b>${a[2]?"✅":"🔒"} ${a[0]}</b><div class="tiny" style="margin-top:5px">${a[1]}</div></div>`).join("");
 }
 function editName(){
-  modal(`<div class="label">ПРОФИЛЬ</div><h2>Как тебя показывать в TYQON?</h2><input id="nameEdit" class="input" value="${escapeHtml(state.name||"")}"><div class="btnrow"><button class="btn primary" onclick="saveName()">Сохранить</button></div>`,true);
+  modal(`<div class="label">ПРОФИЛЬ</div><h2>Как тебя показывать в BIZONIQ?</h2><input id="nameEdit" class="input" value="${escapeHtml(state.name||"")}"><div class="btnrow"><button class="btn primary" onclick="saveName()">Сохранить</button></div>`,true);
 }
 function saveName(){state.name=document.getElementById("nameEdit").value.trim()||"Пользователь";localSave();closeModal()}
 function exportProgress(){
-  const blob=new Blob([JSON.stringify({tyqon_version:5,exported_at:new Date().toISOString(),state},null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="tyqon-progress.json";a.click();URL.revokeObjectURL(a.href);
+  const blob=new Blob([JSON.stringify({bizoniq_version:6,exported_at:new Date().toISOString(),state},null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="bizoniq-progress.json";a.click();URL.revokeObjectURL(a.href);
 }
 function importProgressFile(ev){
   const file=ev.target.files[0];if(!file)return;const reader=new FileReader();
@@ -555,7 +613,7 @@ function importProgressFile(ev){
 }
 
 function renderAll(){
-  renderStats();renderDashboard();renderLessons();renderTerms();renderCases();renderSimulator();renderCoach();renderProfile();renderAuthState();renderInstallButton();
+  renderStats();renderDashboard();renderLessons();renderTerms();renderCases();renderSimulator();renderCoach();renderCertificates();renderProfile();renderAuthState();renderInstallButton();
   localStorage.setItem("forge_v3_state",JSON.stringify(state));
 }
 document.addEventListener("DOMContentLoaded",async()=>{
