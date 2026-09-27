@@ -1,8 +1,8 @@
-# TYQON v5 — Business Decision Arena
+# BIZONIQ v6 — Build Business IQ
 
-TYQON — адаптивный бизнес-тренажёр для новичков, действующих предпринимателей и тех, кто прокачивает бизнес-мышление.
+BIZONIQ — адаптивный бизнес-тренажёр для новичков, действующих предпринимателей и тех, кто прокачивает бизнес-мышление.
 
-## Что есть в v5
+## Что есть в v6
 - 4 сменяемые траектории обучения без сброса прогресса;
 - 56 коротких уроков по 8 направлениям;
 - Business Dictionary;
@@ -28,11 +28,11 @@ Frontend использует только publishable key. Секретные/s
 GitHub Pages автоматически публикуется из ветки `main` через GitHub Actions.
 
 
-## Brand v5
-TYQON replaces the previous FORGE brand. The v5 dashboard adds Skill Map, continue-from-last-progress behavior and a saved-terms filter while preserving existing local and Supabase progress.
+## Brand v6
+BIZONIQ replaces the previous FORGE brand. The v6 dashboard adds Skill Map, continue-from-last-progress behavior and a saved-terms filter while preserving existing local and Supabase progress.
 
 
-## Audience mechanics v5
+## Audience mechanics v6
 - 6-question learning-path diagnostic;
 - Daily Business Duel with one rewarded answer per day;
 - 30-Day Founder Challenge;
@@ -40,3 +40,7 @@ TYQON replaces the previous FORGE brand. The v5 dashboard adds Skill Map, contin
 - Learning Archetype based only on completed learning modules;
 - native Web Share / clipboard fallback;
 - PWA install guidance and install prompt.
+
+
+## Certificates v6
+BIZONIQ certificates are server-issued after verified progress requirements. Certificates have unique IDs, a public verification endpoint and printable certificate pages. They are platform certificates of completion, not accredited diplomas.
