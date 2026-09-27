@@ -13,3 +13,14 @@
 .primary{background:linear-gradient(90deg,var(--green),#d5ff86)}
 @media(max-width:1160px){.skillmap{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:900px){.skillmap{grid-template-columns:1fr}.brandname{font-size:19px}.top .pill{max-width:100%;overflow:hidden;text-overflow:ellipsis}}
+
+.growth-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.growth-card{position:relative;overflow:hidden;box-shadow:none;min-height:215px}
+.growth-card:before{content:"";position:absolute;inset:auto -60px -80px auto;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(182,255,69,.11),transparent 65%)}
+.growth-icon{font-size:28px;margin-bottom:12px}
+.duel-card{border-color:rgba(182,255,69,.2);background:linear-gradient(145deg,rgba(182,255,69,.07),rgba(13,18,24,.98) 55%)}
+.linkbtn{border:0;background:none;color:var(--cyan);font:inherit;font-size:12px;cursor:pointer;padding:0}
+.archetype-badge{padding:16px;border-radius:18px;border:1px solid rgba(111,124,255,.2);background:linear-gradient(145deg,rgba(111,124,255,.08),rgba(182,255,69,.035))}
+#installCta{margin-top:16px}
+@media(max-width:1160px){.growth-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.growth-grid{grid-template-columns:1fr}.growth-card{min-height:auto}}
