@@ -1,8 +1,8 @@
-# FORGE v3 — Founder Growth Engine
+# SCALEVRA v4 — Entrepreneurship Skill OS
 
-FORGE — адаптивный бизнес-тренажёр для новичков, действующих предпринимателей и тех, кто прокачивает бизнес-мышление.
+SCALEVRA — адаптивный бизнес-тренажёр для новичков, действующих предпринимателей и тех, кто прокачивает бизнес-мышление.
 
-## Что есть в v3
+## Что есть в v4
 - 4 сменяемые траектории обучения без сброса прогресса;
 - 56 коротких уроков по 8 направлениям;
 - Business Dictionary;
@@ -26,3 +26,7 @@ Frontend использует только publishable key. Секретные/s
 
 ## Deploy
 GitHub Pages автоматически публикуется из ветки `main` через GitHub Actions.
+
+
+## Brand v4
+SCALEVRA replaces the previous FORGE brand. The v4 dashboard adds Skill Map, continue-from-last-progress behavior and a saved-terms filter while preserving existing local and Supabase progress.
