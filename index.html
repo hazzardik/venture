@@ -3,224 +3,132 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080a0d">
+<meta name="theme-color" content="#090c11">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="VENTURE">
-<title>VENTURE — Business Learning</title>
+<meta name="apple-mobile-web-app-title" content="FORGE">
+<title>FORGE — бизнес-тренажёр предпринимателя</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
-:root{--bg:#080a0d;--panel:#11161c;--panel2:#0e1318;--line:#252d36;--text:#f4f7fb;--muted:#8f9aa8;--green:#7cff9f;--cyan:#65e9ff;--gold:#ffd66b;--danger:#ff8585}
-*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 15% 0,rgba(101,233,255,.09),transparent 28%),radial-gradient(circle at 85% 0,rgba(124,255,159,.07),transparent 28%),var(--bg)}
-button,input{font:inherit}.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}.side{position:sticky;top:0;height:100vh;border-right:1px solid var(--line);padding:24px 18px;background:rgba(8,10,13,.9);backdrop-filter:blur(18px)}
-.logo{font-weight:900;letter-spacing:.2em;font-size:20px;margin:4px 10px 26px}.logo i{font-style:normal;color:var(--green)}.nav{display:grid;gap:7px}.nav button,.mobile button{border:0;background:transparent;color:var(--muted);cursor:pointer}.nav button{padding:13px 14px;text-align:left;border-radius:12px}.nav button.active,.nav button:hover{background:var(--panel);color:var(--text)}
-.levelbox{position:absolute;left:18px;right:18px;bottom:24px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
-.main{width:100%;max-width:1320px;margin:auto;padding:calc(28px + env(safe-area-inset-top)) 34px calc(52px + env(safe-area-inset-bottom))}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:24px}.eyebrow{color:var(--green);font-weight:800;font-size:12px;letter-spacing:.11em;text-transform:uppercase}.title{font-size:34px;font-weight:900;margin:5px 0}.muted{color:var(--muted);line-height:1.5}.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:#161d24;color:#cbd4dc;font-size:12px}
-.grid{display:grid;gap:15px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}.card{background:linear-gradient(180deg,rgba(20,26,32,.98),rgba(13,17,22,.98));border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 16px 44px rgba(0,0,0,.18)}
-.metric b{display:block;font-size:29px;margin:6px 0 3px}.tiny{font-size:12px;color:var(--muted)}.accent{color:var(--green)}.cyan{color:var(--cyan)}.gold{color:var(--gold)}
-.progress{height:8px;background:#202731;border-radius:999px;overflow:hidden;margin-top:10px}.progress span{height:100%;display:block;background:linear-gradient(90deg,var(--green),var(--cyan))}
-.hero{margin-top:16px;padding:24px;display:grid;grid-template-columns:1.3fr .75fr;gap:18px;align-items:center}.hero h2{font-size:29px;margin:10px 0}.hero p{margin:0;color:var(--muted);line-height:1.55}.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}.btn{border:0;border-radius:12px;padding:12px 15px;font-weight:800;cursor:pointer}.primary{background:var(--green);color:#07100a}.secondary{background:#1c242d;color:var(--text);border:1px solid var(--line)}.ghost{background:transparent;color:var(--cyan);border:1px solid #28525c}
-.section{margin-top:24px}.section h3{margin:0 0 12px;font-size:19px}.lesson{cursor:pointer;transition:.18s}.lesson:hover{transform:translateY(-2px);border-color:#3a4654}.lesson h4{font-size:17px;margin:12px 0 7px}.lesson p{font-size:14px;margin:0;color:var(--muted);line-height:1.45}.meta{display:flex;justify-content:space-between;margin-top:14px;font-size:12px;color:var(--muted)}
-.search{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:#0d1217;color:var(--text);outline:none;margin-bottom:14px}.term{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.term h4{font-size:19px;margin:0}.term p{margin:7px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
-.choice{display:block;width:100%;margin-top:9px;border:1px solid var(--line);border-radius:12px;background:#161d24;color:var(--text);padding:13px;text-align:left;cursor:pointer}.choice:hover{border-color:#43515e}.choice.good{border-color:var(--green);background:rgba(124,255,159,.08)}.choice.bad{border-color:var(--danger);background:rgba(255,133,133,.08)}
-.feedback{display:none;margin-top:12px;padding:13px;border-radius:12px;border:1px solid #23523a;background:#111a17;color:#d9fbe3;line-height:1.5}.feedback.show{display:block}.simstats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.simstat{background:#0e1419;border:1px solid var(--line);padding:14px;border-radius:14px}.simstat b{display:block;font-size:18px;margin-top:4px}
-.page{display:none}.page.active{display:block}.onboard{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(5,7,9,.97)}.onboard.hidden{display:none}.oncard{width:min(760px,100%);padding:30px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,#141b21,#0d1116)}.oncard h1{font-size:40px;margin:6px 0 10px}.goals{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin-top:20px}.goal{padding:17px;border:1px solid var(--line);border-radius:15px;background:#10161c;cursor:pointer}.goal:hover{border-color:var(--green)}.goal b{display:block;margin-bottom:5px}
-.modal{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(4,6,8,.84);backdrop-filter:blur(10px)}.modal.show{display:flex}.modalcard{width:min(680px,100%);max-height:86vh;overflow:auto;padding:24px;border-radius:22px;border:1px solid var(--line);background:#10161c}.modalcard h2{margin:5px 0 10px}.close{float:right;border:0;background:#202832;color:white;border-radius:10px;padding:8px 11px;cursor:pointer}.mobile{display:none}
-@media(max-width:900px){.app{display:block}.side{display:none}.main{padding:calc(18px + env(safe-area-inset-top)) 15px calc(92px + env(safe-area-inset-bottom))}.g4,.g3,.g2,.hero,.simstats{grid-template-columns:1fr}.top{align-items:center}.title{font-size:28px}.hero h2{font-size:24px}.oncard{padding:24px}.oncard h1{font-size:31px}.goals{grid-template-columns:1fr}.mobile{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:10;padding-bottom:env(safe-area-inset-bottom);background:rgba(8,10,13,.96);border-top:1px solid var(--line);backdrop-filter:blur(18px)}.mobile button{padding:11px 4px 9px;font-size:10px}.mobile button.active{color:var(--green)}}
+:root{--bg:#090c11;--panel:#121820;--panel2:#0e141b;--line:rgba(255,255,255,.085);--text:#f1f6fb;--muted:#8f9caf;--green:#7cff9f;--cyan:#65deff;--amber:#ffc86a;--red:#ff8484;--shadow:0 18px 55px rgba(0,0,0,.32)}
+*{box-sizing:border-box}html,body{min-height:100%}html{background:var(--bg)}body{margin:0;color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 8% 0,rgba(101,222,255,.11),transparent 27%),radial-gradient(circle at 88% 0,rgba(124,255,159,.08),transparent 28%),linear-gradient(180deg,#090c11,#0c1117 45%,#090d12)}
+button,input,select{font:inherit}.app{display:grid;grid-template-columns:270px minmax(0,1fr);min-height:100vh}.side{position:sticky;top:0;height:100vh;padding:22px 18px;border-right:1px solid var(--line);background:rgba(8,11,15,.88);backdrop-filter:blur(20px)}.brand{display:flex;align-items:center;gap:12px;padding:6px 9px 20px}.brandmark{width:42px;height:42px;border:1px solid rgba(124,255,159,.2);border-radius:14px;background:linear-gradient(135deg,rgba(124,255,159,.15),rgba(101,222,255,.14));display:grid;place-items:center}.brandname{font-size:24px;font-weight:950;letter-spacing:.14em}.brandtag{font-size:11px;color:var(--muted);margin-top:2px}.nav{display:grid;gap:7px}.nav button,.mobile button{border:0;background:transparent;color:#afbdcd;cursor:pointer}.nav button{display:flex;gap:11px;align-items:center;width:100%;padding:13px 14px;border-radius:15px;text-align:left}.nav button:hover,.nav button.active{background:rgba(255,255,255,.055);color:var(--text)}.sidebox{position:absolute;left:18px;right:18px;bottom:20px;padding:15px;border:1px solid var(--line);border-radius:19px;background:linear-gradient(180deg,#141b24,#0e131a);box-shadow:var(--shadow)}.tiny{font-size:12px;color:var(--muted)}.progress{height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--cyan))}
+.main{padding:24px clamp(15px,2.7vw,34px) calc(96px + env(safe-area-inset-bottom));min-width:0}.shell{max-width:1360px;margin:auto}.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:22px}.eyebrow{font-size:12px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;color:var(--green)}.title{font-size:clamp(30px,4vw,43px);font-weight:950;line-height:1;margin:8px 0}.sub{color:var(--muted);line-height:1.55;max-width:760px}.pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.pill,.label{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:999px}.pill{padding:9px 11px;font-size:12px}.label{padding:7px 10px;font-size:11px;font-weight:850}
+.page{display:none}.page.active{display:block}.grid{display:grid;gap:15px}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.card{border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,rgba(19,25,33,.98),rgba(13,18,24,.98));padding:18px;box-shadow:var(--shadow);min-width:0}.soft{background:rgba(255,255,255,.025)}.metric b{display:block;font-size:30px;margin:5px 0 3px}.hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(290px,.8fr);gap:16px;margin-top:16px}.hero-main{padding:24px;position:relative;overflow:hidden}.hero-main:after{content:"";position:absolute;width:250px;height:250px;right:-65px;top:-65px;border-radius:50%;background:radial-gradient(circle,rgba(124,255,159,.18),transparent 65%)}.hero h2{font-size:clamp(27px,3vw,35px);line-height:1.08;margin:10px 0}.copy{color:var(--muted);line-height:1.65}.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:13px;padding:12px 15px;font-weight:850;cursor:pointer}.primary{background:linear-gradient(90deg,var(--green),#9affb8);color:#061108}.secondary{background:#1a2430;color:var(--text);border:1px solid var(--line)}.ghost{background:transparent;color:#dbe5ef;border:1px solid var(--line)}.section{margin-top:24px}.sectionhead{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:13px}.sectiontitle{font-size:21px;font-weight:900}.sectioncopy{font-size:13px;color:var(--muted)}
+.item{transition:.17s ease}.item:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.14)}.item h3{font-size:18px;margin:10px 0 7px}.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:13px;font-size:12px;color:var(--muted)}.searchbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.search,.select{min-width:220px;flex:1;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:#0e141b;color:var(--text);outline:none}.termhead{display:flex;justify-content:space-between;gap:10px}.termname{font-size:20px;font-weight:900}.star{border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.025);color:#d8e1eb;padding:8px 10px;cursor:pointer}.star.on{color:var(--green)}
+.choice{width:100%;text-align:left;margin-top:9px;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.03);color:var(--text);cursor:pointer}.choice:hover{border-color:rgba(255,255,255,.15)}.choice.good{border-color:rgba(124,255,159,.35);background:rgba(124,255,159,.08)}.choice.bad{border-color:rgba(255,132,132,.35);background:rgba(255,132,132,.08)}.feedback{display:none;margin-top:13px;padding:13px;border-radius:14px;border:1px solid rgba(124,255,159,.2);background:rgba(124,255,159,.07);color:#dffce8;line-height:1.6}.feedback.show{display:block}.simstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:16px 0}.simstat{border:1px solid var(--line);border-radius:16px;background:#0d1319;padding:14px}.simstat b{display:block;font-size:20px;margin-top:5px}.profile{display:grid;grid-template-columns:1fr 1fr;gap:16px}.achievements{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.achievement{padding:14px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}
+.overlay{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,7,9,.86);backdrop-filter:blur(14px)}.overlay.hidden{display:none}.dialog{width:min(850px,100%);max-height:90vh;overflow:auto;padding:25px;border:1px solid var(--line);border-radius:26px;background:linear-gradient(180deg,#141b23,#0d1218);box-shadow:var(--shadow)}.dialog h1{font-size:clamp(31px,4vw,48px);line-height:1.02;margin:12px 0}.goals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}.goal{padding:17px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.03);cursor:pointer}.goal:hover{border-color:rgba(124,255,159,.28)}.goal b{display:block;margin-bottom:5px}.close{float:right;border:1px solid var(--line);background:#19222d;color:#fff;width:38px;height:38px;border-radius:11px;cursor:pointer}.mobile{display:none}
+@media(max-width:1160px){.g4,.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{grid-template-columns:1fr}.g2,.profile{grid-template-columns:1fr}}
+@media(max-width:900px){.app{display:block}.side{display:none}.main{padding:18px 14px calc(92px + env(safe-area-inset-bottom))}.mobile{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:30;padding:9px 10px calc(9px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(8,11,15,.94);backdrop-filter:blur(18px)}.mobile button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 3px;border-radius:13px;font-size:10px}.mobile button.active{background:rgba(255,255,255,.055);color:var(--green)}.top{flex-direction:column}.pills{justify-content:flex-start}.g4,.g3,.g2,.goals,.achievements,.simstats{grid-template-columns:1fr}.card,.hero-main{padding:16px}.dialog{padding:19px}}
 </style>
 </head>
 <body>
-<div id="onboarding" class="onboard">
- <div class="oncard">
-  <div class="eyebrow">VENTURE</div>
-  <h1>Научись думать как предприниматель.</h1>
-  <div class="muted">Короткие уроки, реальные термины, решения и симуляции. Без воды и мотивационного шума.</div>
-  <div class="goals">
-   <div class="goal" onclick="finishOnboarding('Начинающий предприниматель')"><b>Начинающий предприниматель</b><span class="tiny">Построить базу и понять ключевые принципы.</span></div>
-   <div class="goal" onclick="finishOnboarding('Уже веду бизнес')"><b>Уже веду бизнес</b><span class="tiny">Прокачать финансы, стратегию и решения.</span></div>
-   <div class="goal" onclick="finishOnboarding('Прокачать бизнес-мышление')"><b>Прокачать бизнес-мышление</b><span class="tiny">Кейсы, логика и управленческие задачи.</span></div>
-   <div class="goal" onclick="finishOnboarding('Просто интересуюсь')"><b>Просто интересуюсь</b><span class="tiny">Разобраться в бизнесе с нуля.</span></div>
-  </div>
- </div>
-</div>
-
-<div id="modal" class="modal"><div class="modalcard"><button class="close" onclick="closeModal()">✕</button><div id="modalBody"></div></div></div>
-
+<div id="onboard" class="overlay hidden"><div class="dialog"><div class="label">FORGE • VERSION 2</div><h1>Куй предпринимательское мышление.</h1><div class="copy">Не очередной сборник мотивации. FORGE учит понимать цифры, принимать решения и разбирать бизнес так, как это делает основатель.</div><div id="goalGrid" class="goals"></div></div></div>
+<div id="modal" class="overlay hidden"><div class="dialog"><button class="close" onclick="closeModal()">✕</button><div id="modalBody"></div></div></div>
 <div class="app">
 <aside class="side">
- <div class="logo">VENT<i>URE</i></div>
- <div class="nav" id="nav">
-  <button class="active" data-page="today">◉ Сегодня</button>
-  <button data-page="learn">▦ Обучение</button>
-  <button data-page="dictionary">⌕ Словарь</button>
-  <button data-page="cases">◆ Кейсы</button>
-  <button data-page="simulator">▣ Симулятор</button>
-  <button data-page="profile">◎ Профиль</button>
- </div>
- <div class="levelbox"><div class="tiny">Текущий уровень</div><b id="sideLevel">Rookie</b><div class="progress"><span id="sideProgress"></span></div></div>
+<div class="brand"><div class="brandmark"><svg width="25" height="25" viewBox="0 0 64 64"><path d="M18 50V14H50V22H27V29H46V37H27V50H18Z" fill="#F1F6FB"/><path d="M46 14 23 37" stroke="#7CFF9F" stroke-width="5" stroke-linecap="round"/></svg></div><div><div class="brandname">FORGE</div><div class="brandtag">Founder Growth Engine</div></div></div>
+<nav id="desktopNav" class="nav"></nav>
+<div class="sidebox"><div class="tiny">Текущий уровень</div><div id="sideLevel" style="font-size:23px;font-weight:900;margin:4px 0 10px">Apprentice</div><div class="progress"><span id="sideProgress"></span></div><div class="meta"><span>XP: <b id="sideXp">0</b></span><span>🔥 <b id="sideStreak">1</b></span></div></div>
 </aside>
+<main class="main"><div class="shell">
+<div class="top"><div><div class="eyebrow">Founder learning system</div><div id="pageTitle" class="title">Dashboard</div><div id="pageSub" class="sub">Учёба, кейсы и бизнес-симуляции без лишней воды.</div></div><div class="pills"><div id="hello" class="pill">👋 FORGE v2</div><div id="streak" class="pill">🔥 1 день</div><div id="goalPill" class="pill">🎯 Цель</div></div></div>
 
-<main class="main">
-<div class="top"><div><div class="eyebrow">Business learning system</div><div class="title" id="pageTitle">Сегодня</div><div class="muted" id="goalText">Персональная траектория обучения</div></div><div class="pill" id="streakTop">🔥 1 день</div></div>
-
-<section id="today" class="page active">
- <div class="grid g4">
-  <div class="card metric"><div class="tiny">Уровень</div><b id="levelName">Rookie</b><div class="progress"><span id="levelProgress"></span></div></div>
-  <div class="card metric"><div class="tiny">XP</div><b class="accent" id="xpNum">0</b><div class="tiny">прогресс обучения</div></div>
-  <div class="card metric"><div class="tiny">Терминов изучено</div><b class="cyan" id="termsDone">0</b><div class="tiny">из 24 в MVP</div></div>
-  <div class="card metric"><div class="tiny">Кейсов решено</div><b class="gold" id="casesDone">0</b><div class="tiny">практика решений</div></div>
- </div>
- <div class="card hero">
-  <div><span class="pill">Today's Challenge</span><h2>Компания растёт, но денег становится меньше. Почему?</h2><p>Проверь, понимаешь ли ты разницу между прибылью и cash flow — одну из самых частых проблем растущего бизнеса.</p><div class="btnrow"><button class="btn primary" onclick="go('cases')">Решить кейс</button><button class="btn secondary" onclick="go('learn')">Продолжить обучение</button></div></div>
-  <div class="card"><div class="tiny">TERM OF THE DAY</div><h3 style="font-size:28px;margin:8px 0">LTV</h3><div class="muted">Lifetime Value — сколько ценности клиент приносит бизнесу за всё время отношений.</div><div class="btnrow"><button class="btn ghost" onclick="openTerm('LTV')">Разобрать за 60 секунд →</button></div></div>
- </div>
- <div class="section"><h3>Daily Business</h3><div class="grid g3">
-  <div class="card"><div class="tiny">ИДЕЯ ДНЯ</div><h4>Рост ≠ хороший бизнес</h4><div class="muted">Если CAC растёт быстрее LTV, масштабирование ускоряет проблему, а не решает её.</div></div>
-  <div class="card"><div class="tiny">ОШИБКА ДНЯ</div><h4>Смотреть только на прибыль</h4><div class="muted">Можно быть прибыльным на бумаге и не иметь денег для обязательных платежей.</div></div>
-  <div class="card"><div class="tiny">ВОПРОС ДНЯ</div><h4>Что важнее: Revenue или Cash Flow?</h4><div class="muted">Ответ зависит от стадии бизнеса. В кризисе ликвидность может быть важнее красивой выручки.</div></div>
- </div></div>
-</section>
-
-<section id="learn" class="page">
- <div class="section"><h3>Короткие треки</h3><div id="lessonGrid" class="grid g3"></div></div>
-</section>
-
-<section id="dictionary" class="page">
- <input id="termSearch" class="search" placeholder="Найти CAC, EBITDA, Unit Economics..." oninput="renderTerms()">
- <div id="termGrid" class="grid g2"></div>
-</section>
-
-<section id="cases" class="page">
- <div class="card">
-  <span class="pill">CASE 01 • CASH FLOW</span>
-  <h2>Прибыль есть. Денег нет.</h2>
-  <p class="muted">Компания продала услуг на 900 000 ₽ и показывает прибыль, но клиенты платят с отсрочкой 45 дней. Зарплаты и аренда — уже через неделю. В чём главный риск?</p>
-  <button class="choice" onclick="answerCase(this,false)">Низкая выручка</button>
-  <button class="choice" onclick="answerCase(this,true)">Кассовый разрыв из-за несовпадения сроков поступлений и выплат</button>
-  <button class="choice" onclick="answerCase(this,false)">Слишком высокая EBITDA</button>
-  <div id="caseFeedback" class="feedback"></div>
- </div>
- <div class="section grid g2">
-  <div class="card"><div class="tiny">CASE 02 • MARKETING</div><h3>Реклама даёт продажи, но бизнес теряет деньги</h3><div class="muted">Следующий кейс будет про CAC, LTV и маржинальность.</div></div>
-  <div class="card"><div class="tiny">CASE 03 • STRATEGY</div><h3>Стоит ли снижать цену ради роста?</h3><div class="muted">Разберём price war, позиционирование и долгосрочную маржу.</div></div>
- </div>
-</section>
-
-<section id="simulator" class="page">
- <div class="card">
-  <div class="eyebrow">Business Simulator • Coffee Shop</div>
-  <h2 style="font-size:30px;margin:7px 0">Ты управляешь кофейней.</h2>
-  <div class="muted">Каждое решение меняет экономику бизнеса. Смотри на деньги, прибыль, клиентов и долгосрочные последствия.</div>
-  <div class="simstats">
-   <div class="simstat"><span class="tiny">Cash</span><b id="cash"></b></div>
-   <div class="simstat"><span class="tiny">Revenue / мес</span><b id="revenue"></b></div>
-   <div class="simstat"><span class="tiny">Profit / мес</span><b id="profit"></b></div>
-   <div class="simstat"><span class="tiny">Customers</span><b id="customers"></b></div>
-  </div>
-  <div class="card" style="background:#0d1318">
-   <div class="tiny" id="eventStep"></div><h3 id="eventTitle"></h3><div class="muted" id="eventText"></div><div id="simChoices"></div><div id="simFeedback" class="feedback"></div>
-  </div>
- </div>
-</section>
-
-<section id="profile" class="page">
- <div class="grid g2">
-  <div class="card metric"><div class="tiny">Твой уровень</div><b id="profileLevel">Rookie</b><div class="progress"><span id="profileProgress"></span></div><div class="muted" id="profileGoal" style="margin-top:12px"></div></div>
-  <div class="card"><h3>Статистика</h3><p><b id="profileXp"></b> XP</p><p><b id="profileTerms"></b> терминов изучено</p><p><b id="profileCases"></b> кейсов решено</p><p><b id="profileLessons"></b> уроков завершено</p></div>
- </div>
- <div class="section card"><h3>Уровни VENTURE</h3><div class="muted">Rookie → Hustler → Builder → Entrepreneur → Founder → CEO → Tycoon</div></div>
-</section>
-</main>
+<section id="dashboard" class="page active">
+<div id="stats" class="grid g4"></div>
+<div class="hero">
+<div class="card hero-main"><div class="label">TODAY'S CHALLENGE</div><h2>Компания растёт. Почему денег становится меньше?</h2><div class="copy">Разберись в разнице между прибылью, cash flow и оборотным капиталом — именно здесь многие быстрорастущие бизнесы ломаются.</div><div class="btnrow"><button class="btn primary" onclick="go('simulator')">Запустить симулятор</button><button class="btn secondary" onclick="go('learn')">Продолжить обучение</button><button class="btn ghost" onclick="dailyQuestion()">Вопрос дня</button></div></div>
+<div class="card"><div class="tiny">TERM OF THE DAY</div><h2 style="font-size:30px;margin:7px 0">Unit Economics</h2><div class="copy">Пока одна единица бизнеса не работает, масштабирование просто ускоряет сжигание денег.</div><div class="btnrow"><button class="btn ghost" onclick="openTerm('Unit Economics')">Разобрать за минуту</button></div><div class="section"><div class="tiny">QUOTE / INSIGHT</div><h3 style="line-height:1.4;margin:8px 0">“Price is what you pay. Value is what you get.”</h3><div class="tiny">Warren Buffett</div><div class="copy" style="margin-top:8px">Для бизнеса это означает: клиент сравнивает не твою себестоимость, а ценность результата.</div></div></div>
 </div>
+<div class="section"><div class="sectionhead"><div><div class="sectiontitle">Daily Business</div><div class="sectioncopy">Короткие блоки, которые реально меняют понимание бизнеса.</div></div></div><div id="daily" class="grid g3"></div></div>
+</section>
 
-<nav class="mobile">
- <button class="active" data-page="today">Сегодня</button><button data-page="learn">Учиться</button><button data-page="dictionary">Словарь</button><button data-page="simulator">Симулятор</button><button data-page="profile">Профиль</button>
-</nav>
+<section id="learn" class="page"><div class="sectionhead"><div><div class="sectiontitle">Мини-курсы</div><div class="sectioncopy">3–5 минут на урок: мысль → пример → практический вывод.</div></div></div><div id="lessons" class="grid g3"></div></section>
 
+<section id="dictionary" class="page"><div class="sectionhead"><div><div class="sectiontitle">Business Dictionary</div><div class="sectioncopy">Не зубри термин. Пойми, зачем он тебе нужен.</div></div></div><div class="searchbar"><input id="termSearch" class="search" placeholder="CAC, EBITDA, Burn Rate..."><select id="termFilter" class="select"><option value="all">Все категории</option><option value="finance">Финансы</option><option value="marketing">Маркетинг</option><option value="startup">Стартапы</option></select></div><div id="terms" class="grid g2"></div></section>
+
+<section id="cases" class="page"><div class="sectionhead"><div><div class="sectiontitle">Бизнес-кейсы</div><div class="sectioncopy">Смотри на trade-offs и последствия, а не на “правильный ответ”.</div></div></div><div id="caseGrid" class="grid g2"></div></section>
+
+<section id="simulator" class="page"><div class="card"><div class="label">BUSINESS SIMULATOR • COFFEE SHOP</div><h2 style="font-size:30px;margin:10px 0">Управляй кофейней как основатель.</h2><div class="copy">Каждое решение меняет cash, выручку, прибыль и клиентскую базу.</div><div id="simStats" class="simstats"></div><div class="card soft"><div class="meta"><span id="simStep" class="label">Шаг 1</span><span id="simHealth" class="label">Стабильно</span></div><h3 id="simTitle" style="font-size:21px;margin:14px 0 7px"></h3><div id="simText" class="copy"></div><div id="simChoices"></div><div id="simFeedback" class="feedback"></div><div class="btnrow"><button class="btn ghost" onclick="resetSim()">Начать заново</button></div></div></div></section>
+
+<section id="profile" class="page"><div class="profile"><div class="card"><div class="sectiontitle">Профиль</div><div class="copy" style="margin-top:7px">Уровень — это игровая механика FORGE, а не оценка твоего предпринимательского таланта.</div><div class="section"><div class="tiny">LEVEL</div><div id="profileLevel" style="font-size:32px;font-weight:900;margin:5px 0">Apprentice</div><div class="progress"><span id="profileProgress"></span></div></div><div class="grid g2" style="margin-top:15px"><div class="card soft metric"><div class="tiny">XP</div><b id="profileXp">0</b></div><div class="card soft metric"><div class="tiny">STREAK</div><b id="profileStreak">1</b></div><div class="card soft metric"><div class="tiny">УРОКИ</div><b id="profileLessons">0</b></div><div class="card soft metric"><div class="tiny">ТЕРМИНЫ</div><b id="profileTerms">0</b></div></div></div><div class="card"><div class="sectiontitle">Достижения</div><div id="achievements" class="achievements" style="margin-top:14px"></div></div></div></section>
+</div></main>
+</div>
+<nav id="mobileNav" class="mobile"></nav>
 <script>
-var defaultState={onboarded:false,goal:'',xp:0,terms:[],cases:0,lessons:[],streak:1,lastVisit:''};
-var state;
-try{state=Object.assign({},defaultState,JSON.parse(localStorage.getItem('ventureState')||'{}'));}catch(e){state=Object.assign({},defaultState);}
-var todayKey=new Date().toISOString().slice(0,10);
-if(state.lastVisit!==todayKey){if(state.lastVisit)state.streak+=1;state.lastVisit=todayKey;save();}
-var levels=[['Rookie',0],['Hustler',200],['Builder',500],['Entrepreneur',900],['Founder',1500],['CEO',2300],['Tycoon',3400]];
-var lessons=[
-['💰','Финансы','Деньги ≠ прибыль','P&L, cash flow и почему прибыльный бизнес может остаться без денег.',60],
-['📈','Маркетинг','CAC и LTV','Как понять, окупается ли привлечение клиента.',70],
-['🧠','Стратегия','Unit Economics','Когда рост усиливает бизнес, а когда масштабирует убыток.',80],
-['🤝','Продажи','Ценность вместо скидки','Почему клиент покупает результат, а не себестоимость.',60],
-['🚀','Стартапы','MVP и PMF','Что проверять до масштабирования продукта.',75],
-['🧩','Менеджмент','Делегирование','Как не стать главным ограничением собственного бизнеса.',65],
-['🧾','Экономика','Точка безубыточности','Сколько нужно продавать, чтобы покрыть постоянные и переменные расходы.',70],
-['🎯','Переговоры','BATNA и границы сделки','Почему сильная альтернатива меняет переговорную позицию.',75],
-['🧲','Психология клиента','Ценность и восприятие цены','Почему один и тот же продукт может стоить по-разному в разных контекстах.',65]
+var NAV=[['dashboard','◉','Главная'],['learn','▦','Учёба'],['dictionary','⌕','Словарь'],['cases','◆','Кейсы'],['simulator','▣','Симулятор'],['profile','◎','Профиль']];
+var LEVELS=[['Apprentice',0],['Builder',220],['Operator',520],['Founder',920],['Scaler',1500],['Visionary',2300],['Titan',3400]];
+var GOALS=[['first','Хочу запустить первый бизнес','Нужна база: деньги, гипотезы, первые продажи.'],['run','Уже веду бизнес','Хочу лучше понимать рост, финансы и решения.'],['mind','Прокачать бизнес-мышление','Хочу тренировать логику и разбирать кейсы.'],['curious','Просто интересуюсь','Хочу разбираться в бизнесе без заумной теории.']];
+var LESSONS=[
+['cash','💸','Финансы','Прибыль, cash flow и кассовый разрыв','Почему прибыльный бизнес может умереть без денег на счёте.',70,'Прибыль показывает экономический результат. Cash flow показывает реальные деньги. Если клиент платит через 45 дней, а зарплату надо платить сейчас, прибыль сама тебя не спасёт.','Продал услуг на 700 000 ₽, но оплата через месяц. Зарплаты и аренда уже на этой неделе.','Следи за графиком поступлений, а не только за P&L.'],
+['cac','📈','Маркетинг','CAC против LTV','Когда маркетинг окупается, а когда ты просто покупаешь выручку.',80,'CAC нужно сравнивать не с первой выручкой клиента, а с маржинальной ценностью клиента за всё время.','100 000 ₽ рекламы / 200 клиентов = CAC 500 ₽. Если gross-profit LTV 1 800 ₽, модель выглядит намного здоровее.','Считай окупаемость на уровне клиента, а не красивого ROAS.'],
+['unit','🧠','Стратегия','Unit Economics','Рост на плохой экономике единицы делает проблему больше.',75,'Пока одна единица не приносит положительный вклад, масштабировать опасно.','Заказ приносит 650 ₽ вклада, а переменные затраты составляют 720 ₽. Чем больше заказов, тем быстрее растёт убыток.','Проверь вклад на единицу до масштабирования.'],
+['value','🤝','Продажи','Продавай ценность, а не скидку','Скидка — часто костыль, когда оффер не объясняет результат.',65,'Если клиент не понимает ценность, он сравнивает только цену.','CRM можно продавать как “доступ за 1 999 ₽”, а можно как способ перестать терять лиды и деньги.','Формулируй оффер через проблему и результат.'],
+['mvp','🚀','Стартапы','MVP и Product-Market Fit','Что проверять до масштабирования продукта.',75,'MVP — минимальный способ проверить критичную гипотезу. PMF — уже признак устойчивого спроса.','Вместо платформы запускаешь лендинг, ручной пилот и 30 интервью.','Сначала реальный спрос, потом сложная разработка.'],
+['delegation','⚙️','Менеджмент','Делегирование без хаоса','Если всё держится на тебе, у тебя нет системы.',70,'Делегирование — это результат, критерии качества и границы решений.','Не “делай контент”, а “12 постов в месяц, 3 формата, метрика — заявки”.','Передавай результат, а не список действий.']
 ];
-var terms=[
-['CAC','Customer Acquisition Cost','Стоимость привлечения одного нового клиента.','Потратили 100 000 ₽ на рекламу и получили 200 новых клиентов → CAC = 500 ₽.'],
-['LTV','Lifetime Value','Ценность, которую клиент приносит за всё время отношений с бизнесом.','Если клиент делает 10 покупок по 1 000 ₽ с валовой маржой 40%, упрощённый gross-profit LTV = 4 000 ₽.'],
-['ROI','Return on Investment','Отдача относительно вложенных средств.','Вложили 100 000 ₽ и получили 130 000 ₽ чистого эффекта → ROI зависит от принятой формулы, но прирост составляет 30 000 ₽.'],
-['ROAS','Return on Ad Spend','Выручка от рекламы относительно рекламных расходов.','Потратили 50 000 ₽, получили 200 000 ₽ выручки → ROAS = 4x.'],
-['EBITDA','Операционный показатель','Прибыль до процентов, налогов, амортизации и износа.','Полезна для сравнения операционной эффективности, но не равна cash flow.'],
-['P&L','Profit & Loss','Отчёт о доходах, расходах и финансовом результате за период.','Выручка 1 млн ₽, расходы 800 тыс. ₽ → бухгалтерский результат до прочих корректировок 200 тыс. ₽.'],
-['Cash Flow','Денежный поток','Фактическое движение денег: сколько пришло и ушло.','Продажа сегодня с оплатой через 60 дней увеличит выручку сейчас, но cash поступит позже.'],
-['Margin','Маржа','Доля выручки, остающаяся после определённого набора затрат.','Цена 1 000 ₽, переменные затраты 600 ₽ → валовая маржа 40%.'],
-['Revenue','Выручка','Сумма продаж до вычета расходов.','100 заказов по 2 000 ₽ → выручка 200 000 ₽.'],
-['Profit','Прибыль','То, что остаётся после соответствующих расходов.','Выручка 200 000 ₽ минус расходы 160 000 ₽ → прибыль 40 000 ₽.'],
-['Burn Rate','Темп расходования капитала','Сколько денег компания теряет за месяц при отрицательном cash flow.','Если cash уменьшается на 300 000 ₽ каждый месяц, burn rate ≈ 300 000 ₽/мес.'],
-['Runway','Запас времени','На сколько месяцев хватит денег при текущем burn rate.','На счёте 3 млн ₽, burn rate 300 тыс. ₽ → около 10 месяцев runway.'],
-['MVP','Minimum Viable Product','Минимальная версия продукта для проверки критичной гипотезы.','Не «плохая версия продукта», а минимальный способ получить реальные данные от клиентов.'],
-['PMF','Product-Market Fit','Состояние устойчивого соответствия продукта реальной потребности рынка.','Признаки — сильное удержание, органический спрос и готовность платить.'],
-['B2B','Business-to-Business','Продажи компаниям.','CRM-система для отдела продаж — пример B2B-продукта.'],
-['B2C','Business-to-Consumer','Продажи конечным потребителям.','Приложение доставки еды для частных пользователей — B2C.'],
-['SaaS','Software as a Service','ПО, доступное как сервис, часто по подписке.','Клиент платит ежемесячно за доступ к продукту через интернет.'],
-['Churn','Отток','Доля клиентов, прекративших пользоваться продуктом за период.','Было 1 000 клиентов, ушло 50 → churn 5% за период.'],
-['Retention','Удержание','Доля пользователей, продолжающих пользоваться продуктом спустя время.','Высокий retention часто важнее быстрого, но краткосрочного притока.'],
-['Equity','Доля владения','Экономическая доля собственника в компании.','У основателя 70%, у инвесторов и сотрудников вместе 30%.'],
-['Valuation','Оценка компании','Стоимость бизнеса согласно методу оценки или условиям сделки.','Если инвестор платит 10 млн ₽ за 10%, post-money valuation = 100 млн ₽.'],
-['Unit Economics','Экономика единицы','Показывает прибыльность одного клиента, заказа или другой единицы.','Если contribution margin на заказ положительный и CAC окупается, масштабирование может иметь смысл.'],
-['Break-even Point','Точка безубыточности','Объём продаж, при котором прибыль равна нулю.','Постоянные расходы 100 тыс. ₽, вклад с единицы 500 ₽ → 200 единиц до break-even.'],
-['Working Capital','Оборотный капитал','Ресурс, связанный с ежедневной операционной деятельностью.','Запасы, дебиторка и кредиторка могут сильно менять потребность бизнеса в деньгах.']
+var TERMS=[
+['CAC','marketing','Customer Acquisition Cost','Стоимость привлечения одного нового клиента.','Показывает цену роста.','120 000 ₽ / 240 клиентов = CAC 500 ₽.','LTV'],
+['LTV','marketing','Lifetime Value','Ценность клиента за всё время отношений.','Показывает, сколько можно позволить себе тратить на привлечение.','8 покупок × 1 500 ₽ × 35% валовой маржи ≈ 4 200 ₽ gross-profit LTV.','Retention'],
+['ROAS','marketing','Return on Ad Spend','Выручка с каждого рубля рекламы.','Полезен для канала, но не заменяет юнит-экономику.','50 000 ₽ расходов → 250 000 ₽ выручки = ROAS 5x.','CAC'],
+['EBITDA','finance','Операционный показатель','Прибыль до процентов, налогов и амортизации.','Помогает смотреть на операционную эффективность.','Выручка 10 млн ₽, операционные расходы 7 млн ₽ → EBITDA около 3 млн ₽.','P&L'],
+['P&L','finance','Profit & Loss','Отчёт о прибыли и убытках.','Показывает, где бизнес зарабатывает и теряет.','900 000 ₽ выручки − 740 000 ₽ расходов = 160 000 ₽ результата.','Cash Flow'],
+['Cash Flow','finance','Денежный поток','Фактическое движение денег.','Определяет способность платить по обязательствам.','Продажа сегодня с оплатой через 60 дней даёт выручку раньше cash.','Working Capital'],
+['Margin','finance','Маржа','Доля выручки, остающаяся после определённых затрат.','Показывает запас прочности модели.','Цена 2 000 ₽, переменные затраты 1 100 ₽ → валовая маржа 45%.','Profit'],
+['Burn Rate','startup','Темп сжигания денег','Сколько денег компания теряет в месяц.','Показывает скорость движения к нулю на счёте.','Баланс падает на 350 000 ₽ в месяц → burn rate 350 000 ₽.','Runway'],
+['Runway','startup','Запас времени','На сколько месяцев хватит денег при текущем burn rate.','Нужен для планирования финансирования и сокращений.','2,4 млн ₽ / 300 000 ₽ = около 8 месяцев runway.','Burn Rate'],
+['MVP','startup','Minimum Viable Product','Минимальная версия продукта для проверки гипотезы.','Ускоряет обучение на рынке.','Одна ключевая функция вместо огромной платформы.','PMF'],
+['PMF','startup','Product-Market Fit','Соответствие продукта реальной потребности рынка.','До PMF масштабирование часто преждевременно.','Пользователи возвращаются, платят и рекомендуют.','MVP'],
+['Retention','marketing','Удержание','Доля клиентов, продолжающих пользоваться продуктом.','Слабое удержание убивает рост.','Через месяц возвращаются 42% пользователей.','Churn'],
+['Unit Economics','finance','Экономика единицы','Показывает, выгоден ли один клиент или заказ.','Фильтр перед масштабированием.','Заказ даёт 900 ₽ вклада, привлечение стоит 450 ₽.','CAC'],
+['Break-even Point','finance','Точка безубыточности','Объём продаж, где прибыль равна нулю.','Показывает нижний порог выживания.','180 000 ₽ постоянных расходов / 900 ₽ вклада = 200 продаж.','Margin']
 ];
-function save(){localStorage.setItem('ventureState',JSON.stringify(state));updateUI();}
-function finishOnboarding(goal){state.goal=goal;state.onboarded=true;state.xp+=20;save();document.getElementById('onboarding').classList.add('hidden');}
-if(state.onboarded)document.getElementById('onboarding').classList.add('hidden');
-function getLevel(){var cur=levels[0],next=levels[1];for(var i=0;i<levels.length;i++){if(state.xp>=levels[i][1]){cur=levels[i];next=levels[i+1]||levels[i];}}var pct=next[1]===cur[1]?100:Math.max(0,Math.min(100,(state.xp-cur[1])/(next[1]-cur[1])*100));return{cur:cur[0],pct:pct};}
-function updateUI(){var l=getLevel();['levelName','sideLevel','profileLevel'].forEach(function(id){document.getElementById(id).textContent=l.cur;});['levelProgress','sideProgress','profileProgress'].forEach(function(id){document.getElementById(id).style.width=l.pct+'%';});document.getElementById('xpNum').textContent=state.xp;document.getElementById('termsDone').textContent=state.terms.length;document.getElementById('casesDone').textContent=state.cases;document.getElementById('profileXp').textContent=state.xp;document.getElementById('profileTerms').textContent=state.terms.length;document.getElementById('profileCases').textContent=state.cases;document.getElementById('profileLessons').textContent=state.lessons.length;document.getElementById('streakTop').textContent='🔥 '+state.streak+' дн.';document.getElementById('goalText').textContent=state.goal||'Персональная траектория обучения';document.getElementById('profileGoal').textContent='Цель: '+(state.goal||'не выбрана');}
-function go(page){document.querySelectorAll('.page').forEach(function(x){x.classList.remove('active');});document.getElementById(page).classList.add('active');document.querySelectorAll('[data-page]').forEach(function(x){x.classList.toggle('active',x.dataset.page===page);});var titles={today:'Сегодня',learn:'Обучение',dictionary:'Business Dictionary',cases:'Бизнес-кейсы',simulator:'Business Simulator',profile:'Профиль'};document.getElementById('pageTitle').textContent=titles[page]||'VENTURE';window.scrollTo({top:0,behavior:'smooth'});}
-document.querySelectorAll('[data-page]').forEach(function(b){b.onclick=function(){go(b.dataset.page);};});
-function renderLessons(){document.getElementById('lessonGrid').innerHTML=lessons.map(function(l,i){var done=state.lessons.indexOf(i)>=0;return '<div class="card lesson" onclick="openLesson('+i+')"><div style="font-size:25px">'+l[0]+'</div><div class="pill">'+l[1]+'</div><h4>'+l[2]+'</h4><p>'+l[3]+'</p><div class="meta"><span>3–5 мин</span><span>'+(done?'✓ завершено':'+'+l[4]+' XP')+'</span></div></div>';}).join('');}
-function openLesson(i){var l=lessons[i];var examples=[
-'Прибыль показывает экономический результат, а cash flow — движение денег. Продажи с отсрочкой оплаты могут создавать прибыль на бумаге и кассовый разрыв одновременно.',
-'Сравнивай CAC не просто с выручкой клиента, а с маржинальной ценностью клиента. Дешёвый лид не всегда хороший клиент.',
-'Положительная экономика единицы не гарантирует успех, но отрицательная при масштабировании часто делает проблему больше.',
-'Скидка уменьшает цену. Ценность объясняет, почему клиенту выгодно купить. Сильные продажи строятся не только на уступках.',
-'MVP нужен не ради скорости самой по себе. Его задача — максимально дешёво проверить критичную гипотезу реальным поведением пользователей.',
-'Если каждое решение требует основателя, компания не масштабируется. Делегирование требует ясных результатов, полномочий и обратной связи.',
-'Точка безубыточности помогает понять минимальный объём продаж, но не отменяет необходимость следить за cash flow.',
-'BATNA — лучшая альтернатива, если соглашение не состоится. Чем она сильнее, тем меньше зависимость от одной сделки.',
-'Цена воспринимается относительно контекста, альтернатив и ценности результата, а не только себестоимости.'
-];var done=state.lessons.indexOf(i)>=0;showModal('<div class="eyebrow">'+l[1]+'</div><h2>'+l[2]+'</h2><p class="muted">'+l[3]+'</p><div class="card" style="margin-top:14px"><b>Ключевая мысль</b><p class="muted">'+examples[i]+'</p></div><div class="btnrow"><button class="btn primary" onclick="completeLesson('+i+')">'+(done?'Урок уже завершён':'Завершить • +'+l[4]+' XP')+'</button></div>');}
-function completeLesson(i){if(state.lessons.indexOf(i)<0){state.lessons.push(i);state.xp+=lessons[i][4];save();renderLessons();}closeModal();}
-function renderTerms(){var q=(document.getElementById('termSearch').value||'').toLowerCase();document.getElementById('termGrid').innerHTML=terms.filter(function(t){return t.join(' ').toLowerCase().indexOf(q)>=0;}).map(function(t){var done=state.terms.indexOf(t[0])>=0;return '<div class="card term"><div><h4>'+t[0]+'</h4><div class="tiny">'+t[1]+'</div><p>'+t[2]+'</p><div class="btnrow"><button class="btn ghost" onclick="openTerm(\''+t[0]+'\')">Открыть</button></div></div><button class="btn '+(done?'secondary':'primary')+'" onclick="learnTerm(\''+t[0]+'\')">'+(done?'✓ Изучено':'Понял +25 XP')+'</button></div>';}).join('');}
-function openTerm(name){var t=terms.filter(function(x){return x[0]===name;})[0];if(!t)return;showModal('<div class="eyebrow">BUSINESS DICTIONARY</div><h2>'+t[0]+'</h2><div class="tiny">'+t[1]+'</div><p class="muted">'+t[2]+'</p><div class="card"><b>Пример</b><p class="muted">'+t[3]+'</p></div><div class="btnrow"><button class="btn primary" onclick="learnTerm(\''+t[0]+'\');closeModal()">Понял • +25 XP</button></div>');}
-function learnTerm(name){if(state.terms.indexOf(name)<0){state.terms.push(name);state.xp+=25;save();renderTerms();}}
-function answerCase(el,ok){document.querySelectorAll('#cases .choice').forEach(function(x){x.disabled=true;});el.classList.add(ok?'good':'bad');var f=document.getElementById('caseFeedback');f.classList.add('show');f.textContent=ok?'Верно. Экономический результат и движение денег происходят в разные моменты. Отсрочка оплаты создаёт риск кассового разрыва. +80 XP':'Не совсем. Главный риск — timing денежных потоков: обязательства наступают раньше, чем деньги поступят от клиентов.';if(ok&&!el.dataset.counted){el.dataset.counted='1';state.cases+=1;state.xp+=80;save();}}
-function showModal(html){document.getElementById('modalBody').innerHTML=html;document.getElementById('modal').classList.add('show');}
-function closeModal(){document.getElementById('modal').classList.remove('show');}
-var simStep=0,sim={cash:1000000,revenue:450000,profit:70000,customers:1200};
-var events=[
-{title:'Конкурент открылся через дорогу',text:'Продажи начали падать. Что сделаешь?',opts:[['Снизить цены на 20%',[-20000,-30000,-35000,120],'Клиентов стало больше, но маржа резко просела. Ценовая война — дорогой инструмент.'],['Запустить программу лояльности',[-25000,35000,18000,150],'Удержание выросло. Ты потратился на запуск, но усилил повторные покупки и LTV.'],['Удвоить рекламный бюджет',[-70000,45000,-10000,190],'Трафик вырос, но эффективность сомнительна без контроля CAC и качества клиентов.']]},
-{title:'Сырьё подорожало на 18%',text:'Себестоимость выросла. Что делать?',opts:[['Поднять цены на 8%',[0,30000,22000,-35],'Часть спроса потеряна, но маржа восстановилась. Важно следить за эластичностью спроса.'],['Ничего не менять',[0,0,-26000,0],'Ты сохранил цену, но принял удар на маржу. Это решение тоже имеет цену.'],['Уменьшить порцию незаметно',[0,0,14000,-110],'Краткосрочно маржа лучше, но доверие и повторные покупки страдают.']]},
-{title:'Есть 120 000 ₽ на рост',text:'Какой подход выберешь?',opts:[['Performance-реклама без тестов',[-120000,80000,-25000,260],'Рост есть, но экономика не проверена. Масштабирование без контроля CAC может сжечь деньги.'],['Тест 3 каналов по 40 000 ₽',[-120000,115000,15000,300],'Ты сравнил CAC и качество клиентов до масштабирования. Более дисциплинированный подход.'],['Ничего не инвестировать',[0,-20000,-5000,-40],'Риск ниже, но есть opportunity cost — цена упущенной возможности.']]}
+var CASES=[
+['c1','Cash Flow','Прибыль есть. Денег нет.','Ты продал услуг на 900 000 ₽. Клиенты платят через 45 дней. Зарплаты и аренда — через неделю.',[['Низкая выручка',0,'Нет. Выручка уже есть. Риск в том, когда придут деньги.'],['Кассовый разрыв',1,'Верно. Продажа и поступление cash происходят в разные моменты.'],['Слишком высокая EBITDA',0,'Нет. Здесь проблема не в EBITDA.']],80],
+['c2','Pricing','Снижать цену ради роста?','Конкурент демпингует. Ты думаешь снизить цену на 20%, чтобы вернуть поток.',[['Всегда снижать цену',0,'Так можно убить маржу и позиционирование.'],['Сначала проверить эластичность и маржу',1,'Верно. Считай последствия, а не реагируй паникой.'],['Игнорировать рынок',0,'Бездействие тоже имеет цену.']],85],
+['c3','Marketing','Реклама растит выручку, но бизнес худеет','ROAS красивый, но после логистики, скидок и сервиса денег остаётся мало.',[['Смотреть только CTR',0,'CTR не отвечает на вопрос, зарабатываешь ли ты.'],['Проверить contribution margin и unit economics',1,'Верно. Нужно понять реальный вклад на единицу.'],['Смотреть только выручку',0,'Выручка без расходов легко обманывает.']],90]
 ];
-function rub(n){return Math.round(n).toLocaleString('ru-RU')+' ₽';}
-function renderSim(){document.getElementById('cash').textContent=rub(sim.cash);document.getElementById('revenue').textContent=rub(sim.revenue);document.getElementById('profit').textContent=rub(sim.profit);document.getElementById('customers').textContent=Math.round(sim.customers).toLocaleString('ru-RU');var f=document.getElementById('simFeedback');f.classList.remove('show');if(simStep>=events.length){document.getElementById('eventStep').textContent='СИМУЛЯЦИЯ ЗАВЕРШЕНА';document.getElementById('eventTitle').textContent='Итоги управления';document.getElementById('eventText').textContent='Решения одновременно влияют на cash, прибыль, рост и отношения с клиентами. Смотри на систему, а не на одну метрику.';document.getElementById('simChoices').innerHTML='<button class="btn primary" onclick="resetSim()">Пройти ещё раз</button>';return;}var e=events[simStep];document.getElementById('eventStep').textContent='СОБЫТИЕ '+(simStep+1)+' / '+events.length;document.getElementById('eventTitle').textContent=e.title;document.getElementById('eventText').textContent=e.text;document.getElementById('simChoices').innerHTML=e.opts.map(function(o,i){return '<button class="choice" onclick="chooseSim('+i+')">'+o[0]+'</button>';}).join('');}
-function chooseSim(i){var o=events[simStep].opts[i],d=o[1];sim.cash+=d[0];sim.revenue+=d[1];sim.profit+=d[2];sim.customers+=d[3];document.getElementById('simFeedback').textContent=o[2];document.getElementById('simFeedback').classList.add('show');document.querySelectorAll('#simChoices .choice').forEach(function(x){x.disabled=true;});state.xp+=50;save();setTimeout(function(){simStep++;renderSim();},1000);}
-function resetSim(){simStep=0;sim={cash:1000000,revenue:450000,profit:70000,customers:1200};renderSim();}
-renderLessons();renderTerms();renderSim();updateUI();
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}
+var DAILY=[['Идея дня','Рост хорош только тогда, когда он усиливает здоровую модель.'],['Ошибка дня','Смотреть только на прибыль и игнорировать cash flow.'],['Термин дня','Working Capital — деньги, застрявшие в ежедневной операционке.'],['Кейс дня','Сезонный всплеск спроса — ещё не устойчивый канал роста.'],['Вопрос дня','Если CAC растёт, а retention падает — точно ли пора масштабировать рекламу?']];
+var defaultState={onboarded:false,goal:'',xp:0,streak:1,lastVisit:'',lessons:[],terms:[],saved:[],cases:[],simDone:false,name:'Максим'};
+var saved=localStorage.getItem('forgeState');var old=localStorage.getItem('ventureState');var state;
+try{state=Object.assign({},defaultState,JSON.parse(saved||'{}'));if(!saved&&old){var o=JSON.parse(old);state.xp=o.xp||0;state.streak=o.streak||1;state.onboarded=!!o.onboarded;state.goal=o.goal||'';state.terms=o.terms||[];state.cases=[];}}catch(e){state=Object.assign({},defaultState)}
+var today=new Date().toISOString().slice(0,10);if(state.lastVisit!==today){if(state.lastVisit)state.streak+=1;state.lastVisit=today}
+var sim={cash:1000000,revenue:450000,profit:70000,customers:1200,step:0};
+var SIM=[
+['Конкурент открылся через дорогу','Что делаешь первым?',[['Снизить цены на 20%',[-10000,18000,-32000,120],'Ты вернул часть потока, но сильно ударил по марже.',0],['Запустить программу лояльности',[-25000,35000,14000,150],'Хорошо: усилил повторные покупки и LTV.',1],['Увеличить рекламу без теста',[-70000,42000,-8000,170],'Рост трафика без контроля CAC — опасная игра.',0]]],
+['Сырьё подорожало на 18%','Как реагируешь?',[['Поднять цены на 8%',[0,30000,23000,-35],'Часть спроса ушла, но маржа восстановилась.',1],['Ничего не менять',[0,0,-26000,0],'Ты сохранил цену, но принял удар на прибыль.',0],['Незаметно уменьшить порцию',[0,0,12000,-90],'Краткосрочно легче, долгосрочно страдает доверие.',0]]],
+['Есть 120 000 ₽ на рост','Куда инвестируешь?',[['Тест 3 каналов по 40 000 ₽',[-120000,120000,17000,290],'Сначала тест, потом масштаб — дисциплинированный подход.',1],['Всё в один модный канал',[-120000,90000,-10000,260],'Красивый рост без дисциплины может сжечь деньги.',0],['Не инвестировать вообще',[0,-15000,-6000,-30],'Риск ниже, но opportunity cost тоже реальный.',0]]]
+];
+function save(){localStorage.setItem('forgeState',JSON.stringify(state));renderAll()}
+function level(){var c=LEVELS[0],n=LEVELS[1];for(var i=0;i<LEVELS.length;i++){if(state.xp>=LEVELS[i][1]){c=LEVELS[i];n=LEVELS[i+1]||LEVELS[i]}}var p=n[1]===c[1]?100:Math.max(0,Math.min(100,(state.xp-c[1])/(n[1]-c[1])*100));return{name:c[0],pct:p}}
+function goalName(){for(var i=0;i<GOALS.length;i++)if(GOALS[i][0]===state.goal)return GOALS[i][1];return'Цель не выбрана'}
+function rub(n){return Math.round(n).toLocaleString('ru-RU')+' ₽'}
+function nav(){document.getElementById('desktopNav').innerHTML=NAV.map(function(n,i){return'<button class="'+(i===0?'active':'')+'" data-page="'+n[0]+'"><span>'+n[1]+'</span><span>'+n[2]+'</span></button>'}).join('');document.getElementById('mobileNav').innerHTML=NAV.filter(function(n){return['dashboard','learn','dictionary','simulator','profile'].indexOf(n[0])>=0}).map(function(n,i){return'<button class="'+(i===0?'active':'')+'" data-page="'+n[0]+'"><span>'+n[1]+'</span><span>'+n[2]+'</span></button>'}).join('');document.querySelectorAll('[data-page]').forEach(function(b){b.onclick=function(){go(b.dataset.page)}})}
+function go(p){document.querySelectorAll('.page').forEach(function(x){x.classList.toggle('active',x.id===p)});document.querySelectorAll('[data-page]').forEach(function(x){x.classList.toggle('active',x.dataset.page===p)});var m={dashboard:['Dashboard','Учёба, кейсы и бизнес-симуляции без лишней воды.'],learn:['Обучение','Короткие уроки по ключевым бизнес-навыкам.'],dictionary:['Business Dictionary','Термины, которые нужно понимать, а не просто знать.'],cases:['Кейсы','Практика решений и разбор последствий.'],simulator:['Business Simulator','Управляй цифрами, а не красивыми словами.'],profile:['Профиль','Твой прогресс внутри FORGE.']};document.getElementById('pageTitle').textContent=m[p][0];document.getElementById('pageSub').textContent=m[p][1];scrollTo({top:0,behavior:'smooth'})}
+function onboard(){document.getElementById('goalGrid').innerHTML=GOALS.map(function(g){return'<div class="goal" onclick="pickGoal(\''+g[0]+'\')"><b>'+g[1]+'</b><div class="copy">'+g[2]+'</div></div>'}).join('');document.getElementById('onboard').classList.toggle('hidden',state.onboarded)}
+function pickGoal(g){state.goal=g;state.onboarded=true;state.xp+=25;save();document.getElementById('onboard').classList.add('hidden')}
+function renderStats(){var l=level();document.getElementById('sideLevel').textContent=l.name;document.getElementById('sideProgress').style.width=l.pct+'%';document.getElementById('sideXp').textContent=state.xp;document.getElementById('sideStreak').textContent=state.streak;document.getElementById('hello').textContent='👋 '+state.name+', FORGE v2';document.getElementById('streak').textContent='🔥 '+state.streak+' дн.';document.getElementById('goalPill').textContent='🎯 '+goalName();var arr=[['Level',l.name,'Текущий уровень'],['XP',state.xp,'Игровой прогресс'],['Уроки',state.lessons.length,'Завершено'],['Термины',state.terms.length,'Изучено']];document.getElementById('stats').innerHTML=arr.map(function(s,i){return'<div class="card metric"><div class="tiny">'+s[0]+'</div><b>'+s[1]+'</b><div class="tiny">'+s[2]+'</div>'+(i===0?'<div class="progress" style="margin-top:10px"><span style="width:'+l.pct+'%"></span></div>':'')+'</div>'}).join('')}
+function renderDaily(){document.getElementById('daily').innerHTML=DAILY.map(function(d,i){return'<div class="card item"><div class="tiny">'+d[0].toUpperCase()+'</div><h3>'+d[0]+'</h3><div class="copy">'+d[1]+'</div>'+(i===4?'<div class="btnrow"><button class="btn ghost" onclick="dailyQuestion()">Разобрать</button></div>':'')+'</div>'}).join('')}
+function renderLessons(){document.getElementById('lessons').innerHTML=LESSONS.map(function(l){var done=state.lessons.indexOf(l[0])>=0;return'<div class="card item"><div style="font-size:24px">'+l[1]+'</div><div class="label">'+l[2]+'</div><h3>'+l[3]+'</h3><div class="copy">'+l[4]+'</div><div class="meta"><span>3–5 мин</span><span>'+(done?'✓ завершено':'+'+l[5]+' XP')+'</span></div><div class="btnrow"><button class="btn '+(done?'secondary':'ghost')+'" onclick="openLesson(\''+l[0]+'\')">'+(done?'Открыть ещё раз':'Открыть урок')+'</button></div></div>'}).join('')}
+function openLesson(id){var l=LESSONS.find(function(x){return x[0]===id});var done=state.lessons.indexOf(id)>=0;modal('<div class="label">'+l[2]+'</div><h2 style="font-size:28px;margin:10px 0">'+l[3]+'</h2><div class="copy">'+l[4]+'</div><div class="card soft section"><div class="tiny">КЛЮЧЕВАЯ МЫСЛЬ</div><div class="copy" style="margin-top:7px">'+l[6]+'</div></div><div class="card soft section"><div class="tiny">ПРИМЕР</div><div class="copy" style="margin-top:7px">'+l[7]+'</div></div><div class="card soft section"><div class="tiny">ПРАКТИЧЕСКИ</div><div class="copy" style="margin-top:7px">'+l[8]+'</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson(\''+id+'\')">'+(done?'Уже пройден':'Завершить • +'+l[5]+' XP')+'</button></div>')}
+function completeLesson(id){var l=LESSONS.find(function(x){return x[0]===id});if(state.lessons.indexOf(id)<0){state.lessons.push(id);state.xp+=l[5];save()}closeModal()}
+function renderTerms(){var q=(document.getElementById('termSearch').value||'').toLowerCase(),f=document.getElementById('termFilter').value;var list=TERMS.filter(function(t){return(f==='all'||t[1]===f)&&t.join(' ').toLowerCase().indexOf(q)>=0});document.getElementById('terms').innerHTML=list.map(function(t){var learned=state.terms.indexOf(t[0])>=0,saved=state.saved.indexOf(t[0])>=0;return'<div class="card item"><div class="termhead"><div><div class="termname">'+t[0]+'</div><div class="tiny">'+t[2]+'</div></div><button class="star '+(saved?'on':'')+'" onclick="toggleSave(\''+t[0]+'\')">'+(saved?'★':'☆')+'</button></div><div class="copy" style="margin-top:10px">'+t[3]+'</div><div class="meta"><span>Связано: '+t[6]+'</span><span>'+(learned?'✓ изучено':'+25 XP')+'</span></div><div class="btnrow"><button class="btn ghost" onclick="openTerm(\''+t[0]+'\')">Открыть</button><button class="btn '+(learned?'secondary':'primary')+'" onclick="learnTerm(\''+t[0]+'\')">'+(learned?'Понял':'Понял • +25 XP')+'</button></div></div>'}).join('')}
+function openTerm(n){var t=TERMS.find(function(x){return x[0]===n});modal('<div class="label">'+t[2]+'</div><h2 style="font-size:30px;margin:10px 0">'+t[0]+'</h2><div class="card soft section"><div class="tiny">ПО-ПРОСТОМУ</div><div class="copy" style="margin-top:7px">'+t[3]+'</div></div><div class="card soft section"><div class="tiny">ЗАЧЕМ ПРЕДПРИНИМАТЕЛЮ</div><div class="copy" style="margin-top:7px">'+t[4]+'</div></div><div class="card soft section"><div class="tiny">ПРИМЕР</div><div class="copy" style="margin-top:7px">'+t[5]+'</div></div><div class="btnrow"><button class="btn primary" onclick="learnTerm(\''+t[0]+'\');closeModal()">Понял • +25 XP</button></div>')}
+function learnTerm(n){if(state.terms.indexOf(n)<0){state.terms.push(n);state.xp+=25;save()}}
+function toggleSave(n){state.saved=state.saved.indexOf(n)>=0?state.saved.filter(function(x){return x!==n}):state.saved.concat([n]);save()}
+function renderCases(){document.getElementById('caseGrid').innerHTML=CASES.map(function(c){var done=state.cases.indexOf(c[0])>=0;return'<div class="card item"><div class="label">'+c[1]+'</div><h3>'+c[2]+'</h3><div class="copy">'+c[3]+'</div><div class="btnrow"><button class="btn '+(done?'secondary':'ghost')+'" onclick="openCase(\''+c[0]+'\')">'+(done?'Разобрать ещё раз':'Открыть кейс')+'</button></div></div>'}).join('')}
+function openCase(id){var c=CASES.find(function(x){return x[0]===id});modal('<div class="label">CASE • '+c[1]+'</div><h2 style="font-size:28px;margin:10px 0">'+c[2]+'</h2><div class="copy">'+c[3]+'</div><div id="caseChoices" class="section">'+c[4].map(function(ch,i){return'<button class="choice" onclick="answerCase(\''+id+'\','+i+',this)">'+ch[0]+'</button>'}).join('')+'</div><div id="caseFeedback" class="feedback"></div>')}
+function answerCase(id,i,el){var c=CASES.find(function(x){return x[0]===id}),ch=c[4][i];document.querySelectorAll('#caseChoices .choice').forEach(function(b){b.disabled=true});el.classList.add(ch[1]?'good':'bad');var f=document.getElementById('caseFeedback');f.textContent=ch[2]+(ch[1]?' +'+c[5]+' XP':'');f.classList.add('show');if(ch[1]&&state.cases.indexOf(id)<0){state.cases.push(id);state.xp+=c[5];save()}}
+function dailyQuestion(){modal('<div class="label">DAILY QUESTION</div><h2 style="font-size:28px;margin:10px 0">CAC растёт, retention падает. Масштабировать рекламу?</h2><div class="copy">Скорее нет. Ты льёшь всё более дорогой трафик в продукт, который удерживает всё хуже. Сначала чини продукт, воронку и удержание, потом ускоряй привлечение.</div>')}
+function renderSim(){var st=[['Cash',rub(sim.cash)],['Revenue / мес',rub(sim.revenue)],['Profit / мес',rub(sim.profit)],['Customers',Math.round(sim.customers).toLocaleString('ru-RU')]];document.getElementById('simStats').innerHTML=st.map(function(x){return'<div class="simstat"><div class="tiny">'+x[0]+'</div><b>'+x[1]+'</b></div>'}).join('');document.getElementById('simHealth').textContent=sim.profit>80000?'Сильная экономика':sim.profit>30000?'Стабильно':'Под давлением';var f=document.getElementById('simFeedback');f.classList.remove('show');if(sim.step>=SIM.length){document.getElementById('simStep').textContent='ФИНАЛ';document.getElementById('simTitle').textContent='Сценарий завершён';document.getElementById('simText').textContent='Маленькие решения меняют cash, маржу и удержание. Смотри на систему целиком.';document.getElementById('simChoices').innerHTML='<div class="card soft section"><div class="copy">Итог: '+rub(sim.cash)+' cash • '+rub(sim.revenue)+' revenue • '+rub(sim.profit)+' profit</div></div>';if(!state.simDone){state.simDone=true;state.xp+=120;save()}return}var s=SIM[sim.step];document.getElementById('simStep').textContent='Шаг '+(sim.step+1)+' / '+SIM.length;document.getElementById('simTitle').textContent=s[0];document.getElementById('simText').textContent=s[1];document.getElementById('simChoices').innerHTML=s[2].map(function(o,i){return'<button class="choice" onclick="chooseSim('+i+',this)">'+o[0]+'</button>'}).join('')}
+function chooseSim(i,el){var o=SIM[sim.step][2][i],d=o[1];sim.cash+=d[0];sim.revenue+=d[1];sim.profit+=d[2];sim.customers+=d[3];document.querySelectorAll('#simChoices .choice').forEach(function(b){b.disabled=true});el.classList.add(o[3]?'good':'bad');var f=document.getElementById('simFeedback');f.textContent=o[2]+' +50 XP';f.classList.add('show');state.xp+=50;save();setTimeout(function(){sim.step+=1;renderSim()},950)}
+function resetSim(){sim={cash:1000000,revenue:450000,profit:70000,customers:1200,step:0};renderSim()}
+function renderProfile(){var l=level();document.getElementById('profileLevel').textContent=l.name;document.getElementById('profileProgress').style.width=l.pct+'%';document.getElementById('profileXp').textContent=state.xp;document.getElementById('profileStreak').textContent=state.streak;document.getElementById('profileLessons').textContent=state.lessons.length;document.getElementById('profileTerms').textContent=state.terms.length;var a=[['Первый рывок','100 XP',state.xp>=100],['Терминатор','5 терминов',state.terms.length>=5],['Практик','2 кейса',state.cases.length>=2],['Дисциплина','3 урока',state.lessons.length>=3],['Оператор','пройти симулятор',state.simDone],['Серия','streak 3 дня',state.streak>=3]];document.getElementById('achievements').innerHTML=a.map(function(x){return'<div class="achievement"><b>'+(x[2]?'✅ ':'🔒 ')+x[0]+'</b><div class="tiny" style="margin-top:5px">'+x[1]+'</div></div>'}).join('')}
+function modal(h){document.getElementById('modalBody').innerHTML=h;document.getElementById('modal').classList.remove('hidden')}
+function closeModal(){document.getElementById('modal').classList.add('hidden')}
+function renderAll(){renderStats();renderDaily();renderLessons();renderTerms();renderCases();renderSim();renderProfile();localStorage.setItem('forgeState',JSON.stringify(state))}
+document.getElementById('termSearch').oninput=renderTerms;document.getElementById('termFilter').onchange=renderTerms;nav();onboard();renderAll();if('serviceWorker'in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){})});
 </script>
 </body>
 </html>
