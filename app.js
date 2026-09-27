@@ -258,6 +258,9 @@ async function pushCloud(force=false){
 function isPro(){
   return !!userSubscription && ["active","trialing"].includes(userSubscription.status);
 }
+function proAccess(){
+  return !billingConfigured() || isPro();
+}
 function proLabel(){
   if(isPro()) return userSubscription.plan_id==="pro_yearly" ? "Pro Yearly" : "Pro Monthly";
   if(userSubscription?.status==="past_due") return "Pro • проблема с оплатой";
@@ -552,14 +555,14 @@ function renderLessons(){
   const lessons=modules.flatMap(m=>m.lessons.map(l=>({m,l}))).filter(x=>activeModule==="all"||x.m.id===activeModule);
   document.getElementById("lessons").innerHTML=lessons.map(({m,l})=>{
     const done=state.lessons.includes(l[0]);
-    const locked=lessonIsPremium(m,l)&&!isPro();
+    const locked=lessonIsPremium(m,l)&&!proAccess();
     return `<div class="card item ${locked?"pro-locked":""}"><div class="label">${m.icon} ${m.title}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${l[1]}</h3><div class="copy">${l[2]}</div><div class="meta"><span>3–5 мин</span><span>${locked?"Pro":done?"✓ завершено":"+"+l[6]+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openLesson('${l[0]}')">${locked?"Открыть с Pro":done?"Повторить":"Открыть урок"}</button></div></div>`;
   }).join("");
 }
 function findLesson(id){for(const m of C.modules){const l=m.lessons.find(x=>x[0]===id);if(l)return{m,l}}}
 function openLesson(id){
   const {m,l}=findLesson(id),done=state.lessons.includes(id);
-  if(lessonIsPremium(m,l)&&!isPro()){paywall("Этот урок");return}
+  if(lessonIsPremium(m,l)&&!proAccess()){paywall("Этот урок");return}
   modal(`<div class="label">${m.icon} ${m.title}</div><h2>${l[1]}</h2><div class="copy">${l[2]}</div><div class="card soft section"><div class="tiny">КЛЮЧЕВАЯ МЫСЛЬ</div><div class="copy" style="margin-top:7px">${l[3]}</div></div><div class="card soft section"><div class="tiny">ПРИМЕР</div><div class="copy" style="margin-top:7px">${l[4]}</div></div><div class="card soft section"><div class="tiny">ПРАКТИЧЕСКИЙ ВЫВОД</div><div class="copy" style="margin-top:7px">${l[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson('${id}')">${done?"Уже завершено":"Завершить • +"+l[6]+" XP"}</button></div>`);
 }
 function completeLesson(id){
@@ -589,13 +592,13 @@ function renderCases(){
   const list=C.cases.filter(c=>(c.title+" "+c.copy+" "+c.tag).toLowerCase().includes(q));
   document.getElementById("caseGrid").innerHTML=list.map(c=>{
     const done=state.cases.includes(c.id);
-    const locked=caseIsPremium(c)&&!isPro();
+    const locked=caseIsPremium(c)&&!proAccess();
     return `<div class="card item ${locked?"pro-locked":""}"><div class="label">${c.tag}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${c.title}</h3><div class="copy">${c.copy}</div><div class="meta"><span>${c.category}</span><span>${locked?"Pro":done?"✓ решено":"+"+c.xp+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openCase('${c.id}')">${locked?"Открыть с Pro":done?"Разобрать снова":"Открыть кейс"}</button></div></div>`;
   }).join("");
 }
 function openCase(id){
   const c=C.cases.find(x=>x.id===id);
-  if(caseIsPremium(c)&&!isPro()){paywall("Этот кейс");return}
+  if(caseIsPremium(c)&&!proAccess()){paywall("Этот кейс");return}
   modal(`<div class="label">CASE • ${c.tag}</div><h2>${c.title}</h2><div class="copy">${c.copy}</div><div id="caseChoices" class="section">${c.choices.map((ch,i)=>`<button class="choice" onclick="answerCase('${id}',${i},this)">${ch.text}</button>`).join("")}</div><div id="caseFeedback" class="feedback"></div>`);
 }
 function answerCase(id,i,el){
@@ -606,7 +609,7 @@ function answerCase(id,i,el){
 }
 
 function selectSimulator(id){
-  if(id!=="coffee"&&!isPro()){paywall("Этот бизнес-симулятор");return}
+  if(id!=="coffee"&&!proAccess()){paywall("Этот бизнес-симулятор");return}
   activeSimulator=id;resetSimulator(false);renderSimulator()
 }
 function resetSimulator(render=true){
@@ -614,7 +617,7 @@ function resetSimulator(render=true){
 }
 function renderSimulator(){
   const sims=Object.values(C.simulators);
-  document.getElementById("simSelect").innerHTML=sims.map(s=>{const locked=s.id!=="coffee"&&!isPro();return `<div class="card simtile ${s.id===activeSimulator?"active":""} ${locked?"pro-locked":""}" onclick="selectSimulator('${s.id}')"><div style="font-size:25px">${s.icon}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${s.title}</h3><div class="copy">${s.description}</div><div class="meta"><span>3 решения</span><span>${locked?"Pro":state.simDone[s.id]?"✓ завершено":""}</span></div></div>`}).join("");
+  document.getElementById("simSelect").innerHTML=sims.map(s=>{const locked=s.id!=="coffee"&&!proAccess();return `<div class="card simtile ${s.id===activeSimulator?"active":""} ${locked?"pro-locked":""}" onclick="selectSimulator('${s.id}')"><div style="font-size:25px">${s.icon}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${s.title}</h3><div class="copy">${s.description}</div><div class="meta"><span>3 решения</span><span>${locked?"Pro":state.simDone[s.id]?"✓ завершено":""}</span></div></div>`}).join("");
   if(!sim)resetSimulator(false);
   const s=C.simulators[activeSimulator];
   document.getElementById("simTitleMain").textContent=s.icon+" "+s.title;
@@ -640,12 +643,12 @@ function chooseSim(i,el){
 }
 
 function renderCoach(){
-  document.getElementById("coachModes").innerHTML=C.coach.map((m,i)=>{const locked=i>0&&!isPro();return `<div class="card coach-mode ${m.id===coachMode?"active":""} ${locked?"pro-locked":""}" onclick="setCoachMode('${m.id}')">${locked?'<span class="pro-badge">PRO</span>':""}<h3>${m.title}</h3><div class="copy">${m.prompt}</div></div>`}).join("");
+  document.getElementById("coachModes").innerHTML=C.coach.map((m,i)=>{const locked=i>0&&!proAccess();return `<div class="card coach-mode ${m.id===coachMode?"active":""} ${locked?"pro-locked":""}" onclick="setCoachMode('${m.id}')">${locked?'<span class="pro-badge">PRO</span>':""}<h3>${m.title}</h3><div class="copy">${m.prompt}</div></div>`}).join("");
   if(!document.getElementById("messages").children.length)resetCoach();
 }
 function setCoachMode(id){
   const i=C.coach.findIndex(x=>x.id===id);
-  if(i>0&&!isPro()){paywall("Этот режим Business Coach");return}
+  if(i>0&&!proAccess()){paywall("Этот режим Business Coach");return}
   coachMode=id;renderCoach();resetCoach()
 }
 function resetCoach(){
@@ -689,7 +692,7 @@ function renderCertificates(){
   grid.innerHTML=CERTIFICATE_TYPES.map(def=>{
     const cert=userCertificates.find(c=>c.certificate_type===def.id);
     const p=certificateProgress(def);
-    const proRequired=!cert&&!isPro();
+    const proRequired=!cert&&!proAccess();
     const detail=p.parts.map(x=>`<span>${x.label}: <b>${Math.min(x.value,x.need)}/${x.need}</b></span>`).join("");
     return `<div class="card certificate-card ${cert?"issued":p.eligible?"eligible":""}">
       <div class="cert-top"><div class="certificate-mini-seal">B/IQ</div><div><div class="label">${cert?"ISSUED":proRequired?"PRO":p.eligible?"READY":"IN PROGRESS"}</div><h3>${def.title}</h3></div></div>
@@ -702,7 +705,7 @@ function renderCertificates(){
   }).join("");
 }
 async function claimCertificate(type){
-  if(!isPro()){paywall("Выдача сертификатов");return}
+  if(!proAccess()){paywall("Выдача сертификатов");return}
   if(!session){openAuth();return}
   await pushCloud(true);
   const {data,error}=await sb.functions.invoke("issue-certificate",{body:{type}});
