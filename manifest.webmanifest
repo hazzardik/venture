@@ -1,0 +1,12 @@
+{
+  "name":"VENTURE — Business Learning",
+  "short_name":"VENTURE",
+  "description":"Интерактивный тренажёр бизнес-мышления: термины, уроки, кейсы и симулятор предпринимателя.",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#080a0d",
+  "theme_color":"#080a0d",
+  "lang":"ru",
+  "icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
