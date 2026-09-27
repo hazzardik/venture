@@ -13,7 +13,12 @@ const NAV=[
   ["profile","◎","Профиль"]
 ];
 const LEVELS=[["Apprentice",0],["Builder",300],["Operator",800],["Founder",1500],["Scaler",2500],["Visionary",4000],["Titan",6500]];
-const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:[],terms:[],saved:[],cases:[],simDone:{},name:"",dailyDone:{},version:4};
+const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:[],terms:[],saved:[],cases:[],simDone:{},name:"",dailyDone:{},version:5,
+  diagnostic:{completed:false,answers:[],recommended:""},
+  challenge:{started:false,startDate:"",completedDays:[]},
+  duel:{date:"",answered:false,choice:null},
+  weekly:{weekKey:"",xpStart:0,target:400}
+};
 let state=loadLocalState();
 let session=null;
 let activeModule="all";
@@ -26,13 +31,30 @@ let syncBusy=false;
 function loadLocalState(){
   try{
     const v3=JSON.parse(localStorage.getItem("forge_v3_state")||"null");
-    if(v3) return {...DEFAULT_STATE,...v3,simDone:v3.simDone||{},dailyDone:v3.dailyDone||{}};
+    if(v3) return normalizeGrowthState({...DEFAULT_STATE,...v3,simDone:v3.simDone||{},dailyDone:v3.dailyDone||{}});
     const v2=JSON.parse(localStorage.getItem("forgeState")||"null");
-    if(v2) return {...DEFAULT_STATE,...v2,simDone:typeof v2.simDone==="object"?v2.simDone:{coffee:!!v2.simDone},version:3};
+    if(v2) return normalizeGrowthState({...DEFAULT_STATE,...v2,simDone:typeof v2.simDone==="object"?v2.simDone:{coffee:!!v2.simDone},version:5});
     const old=JSON.parse(localStorage.getItem("ventureState")||"null");
-    if(old) return {...DEFAULT_STATE,onboarded:!!old.onboarded,goal:normalizeGoal(old.goal),xp:old.xp||0,streak:old.streak||1,terms:old.terms||[],name:"Максим",version:3};
+    if(old) return normalizeGrowthState({...DEFAULT_STATE,onboarded:!!old.onboarded,goal:normalizeGoal(old.goal),xp:old.xp||0,streak:old.streak||1,terms:old.terms||[],name:"Максим",version:5});
   }catch(e){}
-  return {...DEFAULT_STATE};
+  return normalizeGrowthState({...DEFAULT_STATE});
+}
+function normalizeGrowthState(s){
+  s.diagnostic={...DEFAULT_STATE.diagnostic,...(s.diagnostic||{})};
+  s.challenge={...DEFAULT_STATE.challenge,...(s.challenge||{}),completedDays:[...new Set((s.challenge&&s.challenge.completedDays)||[])]};
+  s.duel={...DEFAULT_STATE.duel,...(s.duel||{})};
+  s.weekly={...DEFAULT_STATE.weekly,...(s.weekly||{})};
+  resetWeeklyIfNeeded(s);
+  return s;
+}
+function weekKeyNow(){
+  const d=new Date(),day=(d.getDay()+6)%7;
+  const monday=new Date(d);monday.setDate(d.getDate()-day);monday.setHours(0,0,0,0);
+  return monday.toISOString().slice(0,10);
+}
+function resetWeeklyIfNeeded(s=state){
+  const wk=weekKeyNow();
+  if(s.weekly.weekKey!==wk){s.weekly={weekKey:wk,xpStart:s.xp||0,target:s.weekly.target||400};}
 }
 function normalizeGoal(g){
   if(["first","run","mind","curious"].includes(g)) return g;
@@ -141,6 +163,12 @@ async function mergeCloud(){
       state.onboarded=true;
       state.xp=Math.max(state.xp||0,remote.xp||0);
       state.streak=Math.max(state.streak||1,remote.streak||1);
+      if(remote.extras&&typeof remote.extras==="object"){
+        state.diagnostic={...state.diagnostic,...(remote.extras.diagnostic||{})};
+        state.challenge={...state.challenge,...(remote.extras.challenge||{}),completedDays:[...new Set([...(state.challenge.completedDays||[]),...((remote.extras.challenge||{}).completedDays||[])])]};
+        state.duel={...state.duel,...(remote.extras.duel||{})};
+        state.weekly={...state.weekly,...(remote.extras.weekly||{})};
+      }
     }else{
       state.name=state.name||session.user.user_metadata?.display_name||"Пользователь";
       state.goal=state.goal||"curious";
@@ -177,7 +205,9 @@ async function pushCloud(force=false){
     await sb.from("profiles").upsert({
       user_id:uid,display_name:state.name||"Пользователь",learning_path:state.goal||"curious",
       xp:state.xp||0,streak:state.streak||1,last_active_date:todayKey(),
-      simulator_finished:Object.values(state.simDone||{}).some(Boolean),updated_at:new Date().toISOString()
+      simulator_finished:Object.values(state.simDone||{}).some(Boolean),
+      extras:{diagnostic:state.diagnostic,challenge:state.challenge,duel:state.duel,weekly:state.weekly},
+      updated_at:new Date().toISOString()
     },{onConflict:"user_id"});
     if(state.lessons.length) await sb.from("lesson_progress").upsert(state.lessons.map(id=>({user_id:uid,lesson_id:id})),{onConflict:"user_id,lesson_id"});
     const termIds=[...new Set([...(state.terms||[]),...(state.saved||[])])];
@@ -258,6 +288,107 @@ function continueLearning(){
   if(next){activeModule=next.m.id;go("learn");renderLessons();setTimeout(()=>openLesson(next.l[0]),120);}
   else{go("cases");}
 }
+const DUELS=[
+  {q:"Выручка выросла на 40%, а cash на счёте упал. Что проверишь первым?",opts:["Количество подписчиков","Дебиторку и сроки платежей","Цвет рекламных креативов"],correct:1,why:"Рост продаж может съедать cash, если деньги зависают в дебиторке или оборотном капитале."},
+  {q:"CAC вырос на 35%, retention одновременно падает. Лучшее действие?",opts:["Удвоить рекламный бюджет","Сначала чинить удержание и unit economics","Сразу снизить цену всем"],correct:1,why:"Дорогой трафик в продукт со слабым удержанием масштабирует проблему."},
+  {q:"Команда одновременно ведёт 9 приоритетов. Какой риск самый вероятный?",opts:["Слишком много данных","Размытый фокус и слабое исполнение","Слишком высокая маржа"],correct:1,why:"Стратегия требует отказа. Девять приоритетов почти всегда означают, что настоящего приоритета нет."},
+  {q:"Клиент говорит «дорого». Что сильнее всего сделать первым?",opts:["Дать скидку","Уточнить ценность, сравнение и ожидаемый результат","Сказать, что конкуренты хуже"],correct:1,why:"«Дорого» часто означает не цену как таковую, а недостаточно понятную ценность или риск."},
+  {q:"У SaaS высокий рост новых регистраций, но churn 10% в месяц. Что опаснее?",opts:["Слабое удержание","Мало логотипов на сайте","Слишком короткий onboarding email"],correct:0,why:"Высокий churn заставляет постоянно заменять ушедших клиентов и разрушает compounding роста."}
+];
+function dailyDuel(){
+  const d=DUELS[(new Date().getDate()-1)%DUELS.length],done=state.duel.date===todayKey()&&state.duel.answered;
+  modal(`<div class="label">DAILY BUSINESS DUEL</div><h2>${d.q}</h2><div class="copy">Один вопрос в день. Первый ответ фиксируется и даёт XP только один раз.</div><div id="duelChoices" class="section">${d.opts.map((o,i)=>`<button class="choice" ${done?"disabled":""} onclick="answerDuel(${i},this)">${o}</button>`).join("")}</div><div id="duelFeedback" class="feedback ${done?"show":""}">${done?"Сегодняшняя дуэль уже завершена. Возвращайся завтра.":""}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon('duel')">Поделиться TYQON</button></div>`);
+}
+function answerDuel(i,el){
+  const d=DUELS[(new Date().getDate()-1)%DUELS.length];
+  if(state.duel.date===todayKey()&&state.duel.answered)return;
+  const correct=i===d.correct;
+  document.querySelectorAll("#duelChoices .choice").forEach(b=>b.disabled=true);
+  el.classList.add(correct?"good":"bad");
+  const f=document.getElementById("duelFeedback");f.textContent=(correct?"Верно. ":"Не лучший выбор. ")+d.why+(correct?" +100 XP":" +25 XP");f.classList.add("show");
+  state.duel={date:todayKey(),answered:true,choice:i};
+  state.xp+=correct?100:25;
+  if(state.challenge.started&&!state.challenge.completedDays.includes(todayKey()))state.challenge.completedDays.push(todayKey());
+  localSave();
+}
+const DIAG=[
+  ["Твой опыт сейчас?",["Только начинаю","Уже запускал проекты","Уже управляю бизнесом","Изучаю для общего развития"]],
+  ["Что сложнее всего?",["Понять с чего начать","Получать клиентов","Системно расти и управлять","Принимать сильные решения"]],
+  ["Что хочешь прокачать первым?",["Базу бизнеса","Маркетинг и продажи","Финансы и менеджмент","Стратегическое мышление"]],
+  ["Как тебе удобнее учиться?",["С нуля по шагам","Через практику продаж","Через реальные управленческие ситуации","Через сложные кейсы"]],
+  ["Есть ли сейчас реальный бизнес?",["Нет","Есть идея/проект","Да, есть выручка","Неважно — хочу навык"]],
+  ["Главная цель на 90 дней?",["Запустить","Найти рост","Навести систему","Стать сильнее в бизнес-мышлении"]]
+];
+function startDiagnostic(){
+  state.diagnostic.answers=[];renderDiagStep(0);
+}
+function renderDiagStep(step){
+  const q=DIAG[step];
+  if(!q){finishDiagnostic();return;}
+  modal(`<div class="label">TYQON DIAGNOSTIC • ${step+1}/${DIAG.length}</div><h2>${q[0]}</h2><div class="copy">Это не психологический тест. Он лишь рекомендует учебную траекторию по твоим ответам.</div><div class="section">${q[1].map((o,i)=>`<button class="choice" onclick="pickDiag(${step},${i})">${o}</button>`).join("")}</div>`);
+}
+function pickDiag(step,i){state.diagnostic.answers[step]=i;renderDiagStep(step+1)}
+function finishDiagnostic(){
+  const a=state.diagnostic.answers,score=[0,0,0,0];
+  a.forEach(v=>{if(v!=null)score[v]++});
+  let idx=score.indexOf(Math.max(...score));
+  const ids=["first","run","run","mind"];
+  const rec=ids[idx]||"curious";
+  state.diagnostic={completed:true,answers:a,recommended:rec};
+  localSave();
+  const p=C.paths.find(x=>x.id===rec);
+  modal(`<div class="label">РЕКОМЕНДАЦИЯ</div><h2>${p.title}</h2><div class="copy">${p.subtitle}</div><div class="btnrow"><button class="btn primary" onclick="choosePath('${rec}',false)">Выбрать этот путь</button><button class="btn ghost" onclick="changePath()">Выбрать вручную</button></div>`);
+}
+function startChallenge(){
+  if(!state.challenge.started){state.challenge={started:true,startDate:todayKey(),completedDays:[]};localSave();}
+  modal(`<div class="label">30-DAY FOUNDER CHALLENGE</div><h2>30 дней решений, а не мотивации.</h2><div class="copy">Каждый день решай Business Duel. День засчитывается автоматически после ответа.</div><div class="progress" style="margin-top:18px"><span style="width:${Math.min(100,state.challenge.completedDays.length/30*100)}%"></span></div><div class="meta"><span>${state.challenge.completedDays.length}/30 дней</span><span>Старт: ${state.challenge.startDate||"—"}</span></div><div class="btnrow"><button class="btn primary" onclick="closeModal();dailyDuel()">Сегодняшняя дуэль</button><button class="btn ghost" onclick="shareTyqon('challenge')">Поделиться</button></div>`);
+}
+function learningArchetype(){
+  const counts={};
+  C.modules.forEach(m=>counts[m.id]=m.lessons.filter(l=>state.lessons.includes(l[0])).length);
+  const groups=[
+    ["Strategist",(counts.strategy||0)+(counts.economics||0),"Сильнее всего развиваешь стратегию и решения."],
+    ["Operator",(counts.management||0)+(counts.finance||0),"Фокус на системе, цифрах и управлении."],
+    ["Growth Builder",(counts.marketing||0)+(counts.sales||0),"Фокус на клиентах, продажах и росте."],
+    ["Venture Mind",(counts.startup||0)+(counts.basics||0),"Фокус на запуске, гипотезах и бизнес-модели."]
+  ].sort((x,y)=>y[1]-x[1]);
+  return groups[0][1]>0?groups[0]:["Explorer",0,"Ты только начинаешь собирать свой учебный профиль."];
+}
+async function shareTyqon(type="app"){
+  const arch=learningArchetype()[0];
+  const text=type==="challenge"?`Я прохожу 30-Day Founder Challenge в TYQON: ${state.challenge.completedDays.length}/30 дней.`:type==="duel"?`Я прошёл сегодняшнюю Business Duel в TYQON. Мой учебный профиль: ${arch}.`:`TYQON — бизнес-тренажёр с кейсами и симуляциями. Мой учебный профиль: ${arch}.`;
+  const data={title:"TYQON",text,url:location.origin+location.pathname};
+  try{if(navigator.share)await navigator.share(data);else{await navigator.clipboard.writeText(text+" "+data.url);alert("Ссылка скопирована.");}}catch(e){}
+}
+function weeklyProgress(){
+  resetWeeklyIfNeeded();return Math.max(0,state.xp-state.weekly.xpStart);
+}
+function setWeeklyTarget(){
+  const val=Number(prompt("Цель XP на неделю",state.weekly.target||400));if(val>=100&&val<=5000){state.weekly.target=val;localSave();}
+}
+function renderGrowthHub(){
+  const arch=learningArchetype(),wp=weeklyProgress(),target=state.weekly.target||400,pct=Math.min(100,wp/target*100),challenge=state.challenge.completedDays.length;
+  document.getElementById("growthHub").innerHTML=`
+    <div class="card growth-card duel-card"><div class="growth-icon">⚔️</div><div class="label">DAILY DUEL</div><h3>60 секунд на бизнес-решение</h3><div class="copy">Один новый управленческий выбор каждый день.</div><div class="btnrow"><button class="btn primary" onclick="dailyDuel()">${state.duel.date===todayKey()&&state.duel.answered?"Посмотреть":"Принять вызов"}</button></div></div>
+    <div class="card growth-card"><div class="growth-icon">🧭</div><div class="label">PATH DIAGNOSTIC</div><h3>${state.diagnostic.completed?"Путь уже рассчитан":"Найди свою траекторию"}</h3><div class="copy">6 вопросов → рекомендация учебного пути. Можно изменить вручную.</div><div class="btnrow"><button class="btn ghost" onclick="startDiagnostic()">${state.diagnostic.completed?"Пройти заново":"Начать"}</button></div></div>
+    <div class="card growth-card"><div class="growth-icon">🔥</div><div class="label">30-DAY CHALLENGE</div><h3>${challenge}/30 дней</h3><div class="progress"><span style="width:${Math.min(100,challenge/30*100)}%"></span></div><div class="btnrow"><button class="btn ghost" onclick="startChallenge()">${state.challenge.started?"Продолжить":"Войти в челлендж"}</button></div></div>
+    <div class="card growth-card"><div class="growth-icon">◈</div><div class="label">WEEKLY TARGET</div><h3>${wp}/${target} XP</h3><div class="progress"><span style="width:${pct}%"></span></div><div class="meta"><span>${Math.round(pct)}%</span><button class="linkbtn" onclick="setWeeklyTarget()">изменить</button></div></div>
+  `;
+}
+let deferredInstallPrompt=null;
+function setupInstall(){
+  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;renderInstallButton()});
+  renderInstallButton();
+}
+function renderInstallButton(){
+  const el=document.getElementById("installCta");if(!el)return;
+  const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  el.innerHTML=`<div class="label">MOBILE APP</div><h3>TYQON на главном экране</h3><div class="copy">${isiOS?"Safari → Поделиться → На экран «Домой»":"Установи PWA и запускай TYQON как отдельное приложение."}</div><div class="btnrow"><button class="btn ghost" onclick="installTyqon()">Установить</button></div>`;
+}
+async function installTyqon(){
+  if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;return;}
+  modal('<div class="label">УСТАНОВКА TYQON</div><h2>Добавь приложение на экран</h2><div class="copy">На iPhone открой сайт в Safari → «Поделиться» → «На экран Домой». На поддерживаемых браузерах используй пункт «Установить приложение».</div>');
+}
 function renderDashboard(){
   const p=pathObj(),recommended=p.recommended.slice(0,3).map(id=>C.modules.find(m=>m.id===id)).filter(Boolean);
   document.getElementById("pathSummary").innerHTML=`<div class="label">ТВОЯ ТРАЕКТОРИЯ</div><h3>${p.title}</h3><div class="copy">${p.subtitle}</div><div class="btnrow"><button class="btn ghost" onclick="changePath()">Сменить путь</button></div>`;
@@ -273,6 +404,7 @@ function renderDashboard(){
     const pct=Math.round(done/m.lessons.length*100);
     return `<div class="card skill-card"><div class="skill-top"><span>${m.icon} ${m.title}</span><b>${pct}%</b></div><div class="progress"><span style="width:${pct}%"></span></div><div class="tiny" style="margin-top:8px">${done}/${m.lessons.length} уроков</div></div>`;
   }).join("");
+  renderGrowthHub();
   document.getElementById("daily").innerHTML=tasks.map((t,i)=>`<div class="card item"><div class="tiny">DAILY ${i+1}</div><h3>${t[0]}</h3><div class="copy">${t[1]}</div><div class="btnrow"><button class="btn ghost" onclick="${["go('learn')","go('cases')","go('simulator')","go('coach')"][i]}">Выполнить</button></div></div>`).join("");
 }
 
@@ -395,6 +527,9 @@ function renderProfile(){
   document.getElementById("profileXp").textContent=state.xp;document.getElementById("profileStreak").textContent=state.streak;document.getElementById("profileLessons").textContent=state.lessons.length;document.getElementById("profileTerms").textContent=state.terms.length;
   document.getElementById("profileName").textContent=state.name||"Гость";
   document.getElementById("profilePath").textContent=p.title;
+  const arch=learningArchetype();
+  const badge=document.getElementById("archetypeBadge");
+  if(badge)badge.innerHTML=`<div class="label">LEARNING ARCHETYPE</div><div style="font-size:22px;font-weight:900;margin-top:8px">${arch[0]}</div><div class="copy" style="margin-top:5px">${arch[2]}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon()">Поделиться профилем</button></div>`;
   document.getElementById("accountInfo").innerHTML=session?`<div class="tiny good">● Облачная синхронизация включена</div><div style="margin-top:7px">${session.user.email}</div><div class="btnrow"><button class="btn secondary" onclick="pushCloud(true)">Синхронизировать сейчас</button><button class="btn danger" onclick="signOutUser()">Выйти</button></div>`:`<div class="tiny warn">● Сейчас прогресс хранится только на этом устройстве.</div><div class="btnrow"><button class="btn primary" onclick="openAuth()">Создать аккаунт / войти</button></div>`;
   const ach=[
     ["Первый рывок","100 XP",state.xp>=100],["Терминатор","10 терминов",state.terms.length>=10],["Практик","5 кейсов",state.cases.length>=5],
@@ -403,12 +538,12 @@ function renderProfile(){
   document.getElementById("achievements").innerHTML=ach.map(a=>`<div class="achievement"><b>${a[2]?"✅":"🔒"} ${a[0]}</b><div class="tiny" style="margin-top:5px">${a[1]}</div></div>`).join("");
 }
 function editName(){
-  modal(`<div class="label">ПРОФИЛЬ</div><h2>Как тебя показывать в SCALEVRA?</h2><input id="nameEdit" class="input" value="${escapeHtml(state.name||"")}"><div class="btnrow"><button class="btn primary" onclick="saveName()">Сохранить</button></div>`,true);
+  modal(`<div class="label">ПРОФИЛЬ</div><h2>Как тебя показывать в TYQON?</h2><input id="nameEdit" class="input" value="${escapeHtml(state.name||"")}"><div class="btnrow"><button class="btn primary" onclick="saveName()">Сохранить</button></div>`,true);
 }
 function saveName(){state.name=document.getElementById("nameEdit").value.trim()||"Пользователь";localSave();closeModal()}
 function exportProgress(){
   const blob=new Blob([JSON.stringify({scalevra_version:4,exported_at:new Date().toISOString(),state},null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="scalevra-progress.json";a.click();URL.revokeObjectURL(a.href);
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="tyqon-progress.json";a.click();URL.revokeObjectURL(a.href);
 }
 function importProgressFile(ev){
   const file=ev.target.files[0];if(!file)return;const reader=new FileReader();
@@ -417,7 +552,7 @@ function importProgressFile(ev){
 }
 
 function renderAll(){
-  renderStats();renderDashboard();renderLessons();renderTerms();renderCases();renderSimulator();renderCoach();renderProfile();renderAuthState();
+  renderStats();renderDashboard();renderLessons();renderTerms();renderCases();renderSimulator();renderCoach();renderProfile();renderAuthState();renderInstallButton();
   localStorage.setItem("forge_v3_state",JSON.stringify(state));
 }
 document.addEventListener("DOMContentLoaded",async()=>{
@@ -425,5 +560,5 @@ document.addEventListener("DOMContentLoaded",async()=>{
   document.getElementById("termSearch").oninput=renderTerms;document.getElementById("termFilter").onchange=renderTerms;
   document.getElementById("caseSearch").oninput=renderCases;
   document.getElementById("coachInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendCoach()});
-  resetSimulator(false);renderAll();await initAuth();
+  resetSimulator(false);renderAll();setupInstall();await initAuth();
 });
