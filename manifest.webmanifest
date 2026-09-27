@@ -1,7 +1,7 @@
 {
-  "name":"FORGE — Founder Growth Engine",
-  "short_name":"FORGE",
-  "description":"Бизнес-тренажёр с 56 уроками, 32 кейсами, 4 симуляторами, Business Coach и облачной синхронизацией.",
+  "name":"SCALEVRA — Entrepreneurship Skill OS",
+  "short_name":"SCALEVRA",
+  "description":"Система развития предпринимательских навыков: 56 уроков, 32 кейса, 4 бизнес-симулятора, Business Coach и облачная синхронизация.",
   "start_url":"./",
   "scope":"./",
   "display":"standalone",
