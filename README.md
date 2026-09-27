@@ -1,8 +1,8 @@
-# SCALEVRA v4 — Entrepreneurship Skill OS
+# TYQON v5 — Business Decision Arena
 
-SCALEVRA — адаптивный бизнес-тренажёр для новичков, действующих предпринимателей и тех, кто прокачивает бизнес-мышление.
+TYQON — адаптивный бизнес-тренажёр для новичков, действующих предпринимателей и тех, кто прокачивает бизнес-мышление.
 
-## Что есть в v4
+## Что есть в v5
 - 4 сменяемые траектории обучения без сброса прогресса;
 - 56 коротких уроков по 8 направлениям;
 - Business Dictionary;
@@ -28,5 +28,15 @@ Frontend использует только publishable key. Секретные/s
 GitHub Pages автоматически публикуется из ветки `main` через GitHub Actions.
 
 
-## Brand v4
-SCALEVRA replaces the previous FORGE brand. The v4 dashboard adds Skill Map, continue-from-last-progress behavior and a saved-terms filter while preserving existing local and Supabase progress.
+## Brand v5
+TYQON replaces the previous FORGE brand. The v5 dashboard adds Skill Map, continue-from-last-progress behavior and a saved-terms filter while preserving existing local and Supabase progress.
+
+
+## Audience mechanics v5
+- 6-question learning-path diagnostic;
+- Daily Business Duel with one rewarded answer per day;
+- 30-Day Founder Challenge;
+- weekly XP target;
+- Learning Archetype based only on completed learning modules;
+- native Web Share / clipboard fallback;
+- PWA install guidance and install prompt.
