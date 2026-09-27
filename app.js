@@ -13,7 +13,7 @@ const NAV=[
   ["profile","◎","Профиль"]
 ];
 const LEVELS=[["Apprentice",0],["Builder",300],["Operator",800],["Founder",1500],["Scaler",2500],["Visionary",4000],["Titan",6500]];
-const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:[],terms:[],saved:[],cases:[],simDone:{},name:"",dailyDone:{},version:3};
+const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:[],terms:[],saved:[],cases:[],simDone:{},name:"",dailyDone:{},version:4};
 let state=loadLocalState();
 let session=null;
 let activeModule="all";
@@ -252,6 +252,12 @@ function renderStats(){
     ["Уроки",state.lessons.length+"/56","Завершено"],["Кейсы",state.cases.length+"/32","Решено"]
   ].map((s,i)=>`<div class="card metric"><div class="tiny">${s[0]}</div><b>${s[1]}</b><div class="tiny">${s[2]}</div>${i===0?`<div class="progress" style="margin-top:10px"><span style="width:${l.pct}%"></span></div>`:""}</div>`).join("");
 }
+function continueLearning(){
+  const ordered=moduleOrder().flatMap(m=>m.lessons.map(l=>({m,l})));
+  const next=ordered.find(x=>!state.lessons.includes(x.l[0]));
+  if(next){activeModule=next.m.id;go("learn");renderLessons();setTimeout(()=>openLesson(next.l[0]),120);}
+  else{go("cases");}
+}
 function renderDashboard(){
   const p=pathObj(),recommended=p.recommended.slice(0,3).map(id=>C.modules.find(m=>m.id===id)).filter(Boolean);
   document.getElementById("pathSummary").innerHTML=`<div class="label">ТВОЯ ТРАЕКТОРИЯ</div><h3>${p.title}</h3><div class="copy">${p.subtitle}</div><div class="btnrow"><button class="btn ghost" onclick="changePath()">Сменить путь</button></div>`;
@@ -262,6 +268,11 @@ function renderDashboard(){
     ["Симуляция","Прими 3 управленческих решения",()=>go("simulator")],
     ["Coach","Разбери одну бизнес-гипотезу",()=>go("coach")]
   ];
+  document.getElementById("skillMap").innerHTML=C.modules.map(m=>{
+    const done=m.lessons.filter(l=>state.lessons.includes(l[0])).length;
+    const pct=Math.round(done/m.lessons.length*100);
+    return `<div class="card skill-card"><div class="skill-top"><span>${m.icon} ${m.title}</span><b>${pct}%</b></div><div class="progress"><span style="width:${pct}%"></span></div><div class="tiny" style="margin-top:8px">${done}/${m.lessons.length} уроков</div></div>`;
+  }).join("");
   document.getElementById("daily").innerHTML=tasks.map((t,i)=>`<div class="card item"><div class="tiny">DAILY ${i+1}</div><h3>${t[0]}</h3><div class="copy">${t[1]}</div><div class="btnrow"><button class="btn ghost" onclick="${["go('learn')","go('cases')","go('simulator')","go('coach')"][i]}">Выполнить</button></div></div>`).join("");
 }
 
@@ -289,7 +300,10 @@ function completeLesson(id){
 
 function renderTerms(){
   const q=(document.getElementById("termSearch").value||"").toLowerCase(),f=document.getElementById("termFilter").value;
-  const list=C.terms.filter(t=>(f==="all"||t[1]===f)&&t.join(" ").toLowerCase().includes(q));
+  const list=C.terms.filter(t=>{
+    const byFilter=f==="all"||(f==="saved"&&state.saved.includes(t[0]))||t[1]===f;
+    return byFilter&&t.join(" ").toLowerCase().includes(q);
+  });
   document.getElementById("terms").innerHTML=list.map(t=>{
     const learned=state.terms.includes(t[0]),saved=state.saved.includes(t[0]);
     return `<div class="card item"><div class="termhead"><div><div class="termname">${t[0]}</div><div class="tiny">${t[2]}</div></div><button class="star ${saved?"on":""}" onclick="toggleSave('${t[0]}')">${saved?"★":"☆"}</button></div><div class="copy" style="margin-top:10px">${t[3]}</div><div class="meta"><span>Связано: ${t[6]}</span><span>${learned?"✓ изучено":"+25 XP"}</span></div><div class="btnrow"><button class="btn ghost" onclick="openTerm('${t[0]}')">Открыть</button><button class="btn ${learned?"secondary":"primary"}" onclick="learnTerm('${t[0]}')">${learned?"Понял":"Понял • +25 XP"}</button></div></div>`;
@@ -389,12 +403,12 @@ function renderProfile(){
   document.getElementById("achievements").innerHTML=ach.map(a=>`<div class="achievement"><b>${a[2]?"✅":"🔒"} ${a[0]}</b><div class="tiny" style="margin-top:5px">${a[1]}</div></div>`).join("");
 }
 function editName(){
-  modal(`<div class="label">ПРОФИЛЬ</div><h2>Как тебя показывать в FORGE?</h2><input id="nameEdit" class="input" value="${escapeHtml(state.name||"")}"><div class="btnrow"><button class="btn primary" onclick="saveName()">Сохранить</button></div>`,true);
+  modal(`<div class="label">ПРОФИЛЬ</div><h2>Как тебя показывать в SCALEVRA?</h2><input id="nameEdit" class="input" value="${escapeHtml(state.name||"")}"><div class="btnrow"><button class="btn primary" onclick="saveName()">Сохранить</button></div>`,true);
 }
 function saveName(){state.name=document.getElementById("nameEdit").value.trim()||"Пользователь";localSave();closeModal()}
 function exportProgress(){
-  const blob=new Blob([JSON.stringify({forge_version:3,exported_at:new Date().toISOString(),state},null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="forge-progress.json";a.click();URL.revokeObjectURL(a.href);
+  const blob=new Blob([JSON.stringify({scalevra_version:4,exported_at:new Date().toISOString(),state},null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="scalevra-progress.json";a.click();URL.revokeObjectURL(a.href);
 }
 function importProgressFile(ev){
   const file=ev.target.files[0];if(!file)return;const reader=new FileReader();
