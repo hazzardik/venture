@@ -255,6 +255,99 @@ async function pushCloud(force=false){
   }catch(e){setSyncStatus("Ошибка облака",false);console.error(e)}
 }
 
+function isPro(){
+  return !!userSubscription && ["active","trialing"].includes(userSubscription.status);
+}
+function proLabel(){
+  if(isPro()) return userSubscription.plan_id==="pro_yearly" ? "Pro Yearly" : "Pro Monthly";
+  if(userSubscription?.status==="past_due") return "Pro • проблема с оплатой";
+  if(userSubscription?.status==="paused") return "Pro • приостановлена";
+  return "Free";
+}
+async function loadSubscription(){
+  if(!session){userSubscription=null;renderPricing();renderProfile();return}
+  const {data,error}=await sb.from("subscriptions").select("*").order("updated_at",{ascending:false}).limit(5);
+  if(!error){
+    const rows=data||[];
+    userSubscription=rows.find(x=>["active","trialing"].includes(x.status))||rows[0]||null;
+  }
+  renderPricing();
+  renderProfile();
+  renderAllProtected();
+}
+function renderAllProtected(){
+  renderLessons();renderCases();renderSimulator();renderCoach();renderCertificates();
+}
+function paywall(feature="Эта функция"){
+  modal(`<div class="label">BIZONIQ PRO</div><h2>${feature} доступна в Pro</h2><div class="copy">Полный доступ стоит 99 ₽/мес или 799 ₽/год. Годовой план экономит 389 ₽.</div><div class="btnrow"><button class="btn primary" onclick="closeModal();go('pricing')">Посмотреть Pro</button><button class="btn ghost" onclick="closeModal()">Позже</button></div>`,true);
+}
+function lessonIsPremium(module,lesson){
+  return module.lessons.findIndex(x=>x[0]===lesson[0])>=2;
+}
+function caseIsPremium(c){
+  return C.cases.findIndex(x=>x.id===c.id)>=8;
+}
+function initPaddle(){
+  const cfg=window.BIZONIQ_BILLING||{};
+  if(paddleInitialized)return true;
+  if(!cfg.clientToken||!window.Paddle)return false;
+  try{
+    if(cfg.environment==="sandbox")Paddle.Environment.set("sandbox");
+    Paddle.Initialize({
+      token:cfg.clientToken,
+      checkout:{settings:{displayMode:"overlay",theme:"dark"}},
+      eventCallback:function(ev){
+        if(ev?.name==="checkout.completed")setTimeout(()=>loadSubscription(),1800);
+      }
+    });
+    paddleInitialized=true;
+    return true;
+  }catch(e){console.error(e);return false}
+}
+function billingConfigured(){
+  const cfg=window.BIZONIQ_BILLING||{};
+  return !!(cfg.clientToken&&cfg.monthlyPriceId&&cfg.yearlyPriceId);
+}
+function startPaddleCheckout(plan){
+  pendingCheckoutPlan=plan;
+  if(!session){openAuth();return}
+  if(isPro()){
+    modal('<div class="label">BIZONIQ PRO</div><h2>Pro уже активен</h2><div class="copy">Управлять оплатой или отменой можно через Paddle Customer Portal.</div><div class="btnrow"><button class="btn primary" onclick="closeModal();openBillingPortal()">Управлять подпиской</button></div>',true);
+    return;
+  }
+  const cfg=window.BIZONIQ_BILLING||{};
+  if(!billingConfigured()||!initPaddle()){
+    modal('<div class="label">PAYMENTS READY</div><h2>Checkout подготовлен, но Paddle ещё не подключён</h2><div class="copy">Тарифы, billing-таблицы и webhook уже готовы. Для реальных платежей нужен Paddle client token и два Price ID. Секретные API-ключи в код сайта не добавляются.</div>',true);
+    return;
+  }
+  const priceId=plan==="pro_yearly"?cfg.yearlyPriceId:cfg.monthlyPriceId;
+  Paddle.Checkout.open({
+    items:[{priceId,quantity:1}],
+    customer:{email:session.user.email},
+    customData:{supabase_user_id:session.user.id,plan_id:plan},
+    settings:{displayMode:"overlay",theme:"dark"}
+  });
+}
+async function openBillingPortal(){
+  if(!session){openAuth();return}
+  const {data,error}=await sb.functions.invoke("paddle-portal",{body:{}});
+  if(error||!data?.management_urls){
+    modal('<div class="label">BILLING</div><h2>Портал оплаты пока не подключён</h2><div class="copy">Для Customer Portal нужен Paddle API key в секретах Supabase. Backend уже подготовлен.</div>',true);
+    return;
+  }
+  const u=data.management_urls;
+  modal(`<div class="label">PADDLE CUSTOMER PORTAL</div><h2>Управление подпиской</h2><div class="copy">Платёжные данные обрабатываются на стороне Paddle.</div><div class="btnrow">${u.update_payment_method?`<button class="btn secondary" onclick="window.open('${u.update_payment_method}','_blank')">Изменить оплату</button>`:""}${u.cancel?`<button class="btn danger" onclick="window.open('${u.cancel}','_blank')">Отменить подписку</button>`:""}</div>`,true);
+}
+function renderPricing(){
+  const el=document.getElementById("pricingStatus");if(!el)return;
+  if(isPro()){
+    const end=userSubscription.current_period_end?new Date(userSubscription.current_period_end).toLocaleDateString("ru-RU"):"—";
+    el.innerHTML=`<div class="pricing-status-row"><div><div class="tiny good">● PRO ACTIVE</div><h3>${proLabel()}</h3><div class="copy">Доступ активен${end!=="—"?" до "+end:""}.</div></div><button class="btn secondary" onclick="openBillingPortal()">Управлять подпиской</button></div>`;
+  }else{
+    el.innerHTML='<div class="pricing-status-row"><div><div class="tiny">CURRENT PLAN</div><h3>Free</h3><div class="copy">Базовый доступ остаётся бесплатным.</div></div><span class="pill">99 ₽/мес · 799 ₽/год</span></div>';
+  }
+}
+
 function level(){
   let cur=LEVELS[0],next=LEVELS[1];
   for(let i=0;i<LEVELS.length;i++){if(state.xp>=LEVELS[i][1]){cur=LEVELS[i];next=LEVELS[i+1]||LEVELS[i]}}
