@@ -1,7 +1,7 @@
 {
-  "name":"TYQON — Business Decision Arena",
-  "short_name":"TYQON",
-  "description":"Игровая система бизнес-мышления: 56 уроков, 32 кейса, 4 симулятора, Daily Business Duel, Founder Challenge и облачная синхронизация.",
+  "name":"BIZONIQ — Build Business IQ",
+  "short_name":"BIZONIQ",
+  "description":"Интерактивный тренажёр бизнес-мышления: уроки, кейсы, симуляторы, Business Coach и проверяемые сертификаты.",
   "start_url":"./",
   "scope":"./",
   "display":"standalone",
