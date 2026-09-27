@@ -1,7 +1,7 @@
 {
-  "name":"SCALEVRA — Entrepreneurship Skill OS",
-  "short_name":"SCALEVRA",
-  "description":"Система развития предпринимательских навыков: 56 уроков, 32 кейса, 4 бизнес-симулятора, Business Coach и облачная синхронизация.",
+  "name":"TYQON — Business Decision Arena",
+  "short_name":"TYQON",
+  "description":"Игровая система бизнес-мышления: 56 уроков, 32 кейса, 4 симулятора, Daily Business Duel, Founder Challenge и облачная синхронизация.",
   "start_url":"./",
   "scope":"./",
   "display":"standalone",
