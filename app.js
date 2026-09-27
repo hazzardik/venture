@@ -333,14 +333,17 @@ function finishDiagnostic(){
   a.forEach(v=>{if(v!=null)score[v]++});
   let idx=score.indexOf(Math.max(...score));
   const ids=["first","run","run","mind"];
-  const rec=ids[idx]||"curious";
+  let rec=ids[idx]||"curious";
+  if(a[0]===3&&a[4]===3)rec="curious";
   state.diagnostic={completed:true,answers:a,recommended:rec};
   localSave();
   const p=C.paths.find(x=>x.id===rec);
   modal(`<div class="label">РЕКОМЕНДАЦИЯ</div><h2>${p.title}</h2><div class="copy">${p.subtitle}</div><div class="btnrow"><button class="btn primary" onclick="choosePath('${rec}',false)">Выбрать этот путь</button><button class="btn ghost" onclick="changePath()">Выбрать вручную</button></div>`);
 }
 function startChallenge(){
-  if(!state.challenge.started){state.challenge={started:true,startDate:todayKey(),completedDays:[]};localSave();}
+  if(!state.challenge.started){state.challenge={started:true,startDate:todayKey(),completedDays:[]};}
+  if(state.duel.date===todayKey()&&state.duel.answered&&!state.challenge.completedDays.includes(todayKey()))state.challenge.completedDays.push(todayKey());
+  localSave();
   modal(`<div class="label">30-DAY FOUNDER CHALLENGE</div><h2>30 дней решений, а не мотивации.</h2><div class="copy">Каждый день решай Business Duel. День засчитывается автоматически после ответа.</div><div class="progress" style="margin-top:18px"><span style="width:${Math.min(100,state.challenge.completedDays.length/30*100)}%"></span></div><div class="meta"><span>${state.challenge.completedDays.length}/30 дней</span><span>Старт: ${state.challenge.startDate||"—"}</span></div><div class="btnrow"><button class="btn primary" onclick="closeModal();dailyDuel()">Сегодняшняя дуэль</button><button class="btn ghost" onclick="shareTyqon('challenge')">Поделиться</button></div>`);
 }
 function learningArchetype(){
@@ -542,7 +545,7 @@ function editName(){
 }
 function saveName(){state.name=document.getElementById("nameEdit").value.trim()||"Пользователь";localSave();closeModal()}
 function exportProgress(){
-  const blob=new Blob([JSON.stringify({scalevra_version:4,exported_at:new Date().toISOString(),state},null,2)],{type:"application/json"});
+  const blob=new Blob([JSON.stringify({tyqon_version:5,exported_at:new Date().toISOString(),state},null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="tyqon-progress.json";a.click();URL.revokeObjectURL(a.href);
 }
 function importProgressFile(ev){
