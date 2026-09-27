@@ -18,6 +18,8 @@
     <div class="label">TYQON • VERSION 4</div>
     <h1>Выбери свою траекторию.</h1>
     <div class="copy">TYQON адаптирует обучение под твой уровень и цель. Траекторию можно менять в любой момент без потери прогресса.</div>
+    <div class="btnrow"><button class="btn primary" onclick="startDiagnostic()">Пройти диагностику • 60 сек</button></div>
+    <div class="tiny" style="margin-top:16px">Или выбери путь вручную:</div>
     <div id="goalGrid" class="goals"></div>
   </div>
 </div>
@@ -204,6 +206,7 @@
       <div class="card">
         <div class="sectiontitle">Аккаунт и сохранение</div>
         <div id="accountInfo" style="margin-top:13px"></div>
+        <div id="installCta" class="card soft"></div>
         <div class="section">
           <div class="tiny">СТАТУС</div>
           <div class="accountbar" style="margin-top:8px"><span id="syncDot" class="syncdot"></span><span id="syncText">Локальный режим</span></div>
