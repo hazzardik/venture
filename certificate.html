@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Certificate — BIZONIQ</title>
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<style>
+:root{--ink:#10141c;--lime:#96d93a;--indigo:#5868e8;--paper:#f7f5ef;--muted:#6d7380}
+*{box-sizing:border-box}body{margin:0;background:#090c11;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff}.wrap{max-width:1120px;margin:0 auto;padding:28px 18px 60px}.actions{display:flex;justify-content:space-between;gap:12px;margin-bottom:20px}.btn{padding:11px 14px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:#151c25;color:#fff;text-decoration:none;font-weight:750;cursor:pointer}.btn.primary{background:#b6ff45;color:#071008;border:0}.cert{aspect-ratio:1.414/1;background:var(--paper);color:var(--ink);border-radius:8px;padding:3.8%;position:relative;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.42)}.frame{position:absolute;inset:2.1%;border:1px solid rgba(16,20,28,.23);pointer-events:none}.accent{position:absolute;right:-9%;top:-16%;width:43%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(88,104,232,.18),rgba(150,217,58,.08) 38%,transparent 67%)}.top{display:flex;justify-content:space-between;align-items:center}.brand{font-weight:950;letter-spacing:.2em;font-size:clamp(17px,2vw,28px)}.seal{width:80px;height:80px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-weight:950;position:relative}.seal:after{content:"";position:absolute;inset:5px;border:1px solid var(--lime);border-radius:50%}.kicker{margin-top:7%;font-size:clamp(10px,1.1vw,15px);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:800}.heading{font-family:Georgia,"Times New Roman",serif;font-size:clamp(35px,5.2vw,70px);font-weight:500;margin:1.2% 0 2%}.for{color:var(--muted);font-size:clamp(12px,1.3vw,18px)}.name{font-family:Georgia,"Times New Roman",serif;font-size:clamp(31px,4.2vw,58px);font-style:italic;margin:1% 0 2%;border-bottom:1px solid rgba(16,20,28,.25);padding-bottom:1.5%;max-width:78%}.title{font-size:clamp(18px,2.2vw,31px);font-weight:900;margin:1.5% 0}.copy{color:var(--muted);font-size:clamp(10px,1vw,14px);line-height:1.5;max-width:70%}.bottom{position:absolute;left:3.8%;right:3.8%;bottom:5%;display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:4%;align-items:end}.sig{border-top:1px solid rgba(16,20,28,.35);padding-top:7px;font-size:clamp(9px,.9vw,13px)}.sig b{display:block}.code{text-align:right;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(8px,.85vw,12px)}.code b{display:block;font-family:Inter,-apple-system,sans-serif;margin-bottom:5px}.status{padding:30px;text-align:center;color:#dce4ed}.notice{font-size:11px;color:#aab3bf;margin-top:13px;line-height:1.5}
+@media(max-width:700px){.cert{aspect-ratio:auto;min-height:620px;padding:28px}.frame{inset:14px}.bottom{position:static;margin-top:48px;grid-template-columns:1fr;gap:22px}.code{text-align:left}.name{max-width:100%}.copy{max-width:100%}.seal{width:58px;height:58px}.heading{margin-top:8px}}
+@media print{body{background:#fff}.wrap{max-width:none;padding:0}.actions,.notice{display:none}.cert{box-shadow:none;border-radius:0;width:100vw;height:70.7vw;max-height:100vh}.status{display:none}@page{size:A4 landscape;margin:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="actions"><a class="btn" href="./">← BIZONIQ</a><div><a class="btn" id="verifyLink" href="./verify.html">Проверить</a> <button class="btn primary" onclick="window.print()">Сохранить / PDF</button></div></div>
+<div id="status" class="status">Проверяю сертификат…</div>
+<div id="certificate" class="cert" hidden>
+ <div class="frame"></div><div class="accent"></div>
+ <div class="top"><div class="brand">BIZONIQ</div><div class="seal">B/IQ</div></div>
+ <div class="kicker">Certificate of Completion</div>
+ <div class="heading">Certificate</div>
+ <div class="for">This certifies that</div>
+ <div id="name" class="name"></div>
+ <div class="for">has successfully completed</div>
+ <div id="title" class="title"></div>
+ <div class="copy">The certificate confirms completion of the required learning modules, business cases and simulations inside BIZONIQ according to the criteria version shown below.</div>
+ <div class="bottom">
+   <div class="sig"><b>Лобов Максим</b>Creator, BIZONIQ</div>
+   <div class="sig"><b>Сагал Сергей</b>Creator, BIZONIQ</div>
+   <div class="code"><b id="issued"></b><span id="code"></span><br><span id="version"></span></div>
+ </div>
+</div>
+<div class="notice">BIZONIQ certificates are certificates of completion issued by the platform. They are not state-accredited diplomas, licenses or professional qualifications.</div>
+</div>
+<script>
+const endpoint="https://qmjtmhtmbaseykmwttvn.supabase.co/functions/v1/verify-certificate";
+const code=new URLSearchParams(location.search).get("code")||"";
+async function init(){
+ try{
+  const r=await fetch(endpoint+"?code="+encodeURIComponent(code));const d=await r.json();
+  if(!r.ok||!d.valid)throw new Error();
+  const c=d.certificate;
+  document.getElementById("name").textContent=c.display_name;
+  document.getElementById("title").textContent=c.title;
+  document.getElementById("code").textContent=c.certificate_code;
+  document.getElementById("version").textContent="Criteria "+c.criteria_version;
+  document.getElementById("issued").textContent="Issued "+new Date(c.issued_at).toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"});
+  document.getElementById("verifyLink").href="./verify.html?code="+encodeURIComponent(c.certificate_code);
+  document.getElementById("status").hidden=true;document.getElementById("certificate").hidden=false;
+ }catch{document.getElementById("status").textContent="Сертификат не найден или код недействителен."}
+}
+init();
+</script>
+</body></html>
