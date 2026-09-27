@@ -1,8 +1,8 @@
-# BIZONIQ v6 — Build Business IQ
+# BIZONIQ v7 — Build Business IQ
 
 BIZONIQ — адаптивный бизнес-тренажёр для новичков, действующих предпринимателей и тех, кто прокачивает бизнес-мышление.
 
-## Что есть в v6
+## Что есть в v7
 - 4 сменяемые траектории обучения без сброса прогресса;
 - 56 коротких уроков по 8 направлениям;
 - Business Dictionary;
@@ -44,3 +44,13 @@ BIZONIQ replaces the previous FORGE brand. The v6 dashboard adds Skill Map, cont
 
 ## Certificates v6
 BIZONIQ certificates are server-issued after verified progress requirements. Certificates have unique IDs, a public verification endpoint and printable certificate pages. They are platform certificates of completion, not accredited diplomas.
+
+
+## Billing v7
+- Free + Pro pricing: 99 RUB/month or 799 RUB/year (~67 RUB/month, saves 389 RUB/year vs monthly).
+- Supabase billing_customers, subscriptions and billing_events tables with RLS.
+- Paddle.js checkout scaffold using browser-safe client token + Price IDs.
+- Supabase paddle-webhook Edge Function with Paddle-Signature HMAC verification and idempotent event storage.
+- Supabase paddle-portal Edge Function for Customer Portal management links.
+- Pro gating is intentionally not enforced until Paddle credentials are configured, so the public beta never dead-ends behind an unpayable paywall.
+- Set PADDLE_ENFORCE_PRO=true only after live/sandbox billing is fully connected and tested.
