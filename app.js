@@ -4,15 +4,36 @@ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const C=window.FORGE_CONTENT;
 
 const NAV=[
-  ["dashboard","◉","Главная"],
-  ["learn","▦","Учёба"],
-  ["dictionary","⌕","Словарь"],
-  ["cases","◆","Кейсы"],
-  ["simulator","▣","Симулятор"],
-  ["coach","✦","Coach"],
-  ["certificates","◇","Сертификаты"],
-  ["profile","◎","Профиль"]
+  ["dashboard","home","Главная"],
+  ["learn","learn","Учёба"],
+  ["dictionary","dictionary","Словарь"],
+  ["cases","cases","Кейсы"],
+  ["simulator","simulator","Симулятор"],
+  ["coach","coach","Coach"],
+  ["certificates","certificate","Сертификаты"],
+  ["pricing","pro","Pro"],
+  ["profile","profile","Профиль"]
 ];
+const MOBILE_NAV=[
+  ["dashboard","home","Главная"],
+  ["learn","learn","Курсы"],
+  ["dictionary","dictionary","Словарь"],
+  ["practice","practice","Практика"],
+  ["profile","profile","Профиль"]
+];
+const ICONS={
+  home:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg>',
+  learn:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5h6.8c1.1 0 1.7.5 1.7 1.5v12c0-1-.6-1.5-1.7-1.5H3.5z"/><path d="M20.5 5.5h-6.8c-1.1 0-1.7.5-1.7 1.5v12c0-1 .6-1.5 1.7-1.5h6.8z"/></svg>',
+  dictionary:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4.5h11a3 3 0 0 1 3 3V20H7a3 3 0 0 1-3-3z"/><path d="M7 4.5V20"/><path d="M10 9h5M10 13h5"/></svg>',
+  practice:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7V5.5A2.5 2.5 0 0 1 10.5 3h3A2.5 2.5 0 0 1 16 5.5V7"/><rect x="3" y="7" width="18" height="13" rx="3"/><path d="M3 12.5c5 2.5 13 2.5 18 0"/><path d="M10 13h4"/></svg>',
+  cases:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>',
+  simulator:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/><path d="M2 19h20"/></svg>',
+  coach:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>',
+  certificate:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="m9 13-1 8 4-2 4 2-1-8"/></svg>',
+  pro:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 8 4 4 4-7 4 7 4-4-2 11H6z"/></svg>',
+  profile:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>'
+};
+function iconSvg(id){return '<span class="nav-svg">'+(ICONS[id]||ICONS.practice)+'</span>'}
 const LEVELS=[["Apprentice",0],["Builder",300],["Operator",800],["Founder",1500],["Scaler",2500],["Visionary",4000],["Titan",6500]];
 const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:[],terms:[],saved:[],cases:[],simDone:{},name:"",dailyDone:{},version:5,
   diagnostic:{completed:false,answers:[],recommended:""},
@@ -29,6 +50,9 @@ let coachMode="idea";
 let cloudTimer=null;
 let syncBusy=false;
 let userCertificates=[];
+let userSubscription=null;
+let paddleInitialized=false;
+let pendingCheckoutPlan=null;
 const CERTIFICATE_TYPES=[
   {id:"foundation",title:"Business Foundations",desc:"База предпринимательства и первые решения.",modules:["basics"],minCases:3,minSims:0},
   {id:"finance",title:"Business Finance",desc:"Cash flow, маржа, unit economics и финансовая дисциплина.",modules:["finance"],minCases:5,minSims:1},
@@ -97,16 +121,17 @@ async function initAuth(){
     session=sess;
     renderAuthState();
     if(sess&&(event==="SIGNED_IN"||event==="INITIAL_SESSION"||event==="TOKEN_REFRESHED")){
-      await mergeCloud(); await loadCertificates();
+      await mergeCloud(); await Promise.all([loadCertificates(),loadSubscription()]);
     }
     if(event==="SIGNED_OUT"){
       userCertificates=[];
+      userSubscription=null;
       setSyncStatus("Локальный режим",false);
       renderAll();
     }
   });
   renderAuthState();
-  if(session){ await mergeCloud(); await loadCertificates(); }
+  if(session){ await mergeCloud(); await Promise.all([loadCertificates(),loadSubscription()]); }
 }
 async function registerUser(){
   const email=document.getElementById("authEmail").value.trim();
@@ -145,10 +170,10 @@ function renderAuthState(){
   const btn=document.getElementById("accountButton");
   if(!btn)return;
   if(session){
-    btn.textContent="☁ "+(session.user.email||"Аккаунт");
+    btn.textContent="☁ Аккаунт";
     btn.onclick=()=>go("profile");
   }else{
-    btn.textContent="Войти / синхронизация";
+    btn.textContent="Войти";
     btn.onclick=openAuth;
   }
   setSyncStatus(session?"Облако подключено":"Локальный режим",!!session);
@@ -245,8 +270,8 @@ function closeAuth(){document.getElementById("auth").classList.add("hidden")}
 
 function buildNav(){
   const desk=document.getElementById("desktopNav"),mobile=document.getElementById("mobileNav");
-  desk.innerHTML=NAV.map((n,i)=>`<button class="${i===0?"active":""}" data-page="${n[0]}"><span>${n[1]}</span><span>${n[2]}</span></button>`).join("");
-  mobile.innerHTML=NAV.filter(n=>["dashboard","learn","dictionary","simulator","certificates","profile"].includes(n[0])).map((n,i)=>`<button class="${i===0?"active":""}" data-page="${n[0]}"><span>${n[1]}</span><span>${n[2]}</span></button>`).join("");
+  desk.innerHTML=NAV.map((n,i)=>`<button class="${i===0?"active":""}" data-page="${n[0]}">${iconSvg(n[1])}<span>${n[2]}</span></button>`).join("");
+  mobile.innerHTML=MOBILE_NAV.map((n,i)=>`<button class="${i===0?"active":""}" data-page="${n[0]}">${iconSvg(n[1])}<span>${n[2]}</span></button>`).join("");
   document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
 }
 function go(page){
@@ -256,10 +281,12 @@ function go(page){
     dashboard:["Dashboard","Твой ежедневный бизнес-тренажёр."],
     learn:["Обучение","56 коротких уроков, адаптированных под твою траекторию."],
     dictionary:["Business Dictionary","Термины с примерами, поиском и избранным."],
+    practice:["Практика","Кейсы, симуляторы, Coach и сертификаты."],
     cases:["Бизнес-кейсы","32 ситуации для тренировки решений."],
     simulator:["Business Simulator","Четыре бизнеса, где решения меняют экономику."],
     coach:["AI Business Coach","Интерактивный тренер: идея, финансы, маркетинг и сложные кейсы."],
     certificates:["Сертификаты","Проверяемые сертификаты прохождения с уникальным ID."],
+    pricing:["BIZONIQ Pro","Полный доступ за 99 ₽/мес или 799 ₽/год."],
     profile:["Профиль и синхронизация","Смена пути, аккаунт, backup и прогресс."]
   };
   document.getElementById("pageTitle").textContent=meta[page][0];document.getElementById("pageSub").textContent=meta[page][1];
@@ -432,12 +459,14 @@ function renderLessons(){
   const lessons=modules.flatMap(m=>m.lessons.map(l=>({m,l}))).filter(x=>activeModule==="all"||x.m.id===activeModule);
   document.getElementById("lessons").innerHTML=lessons.map(({m,l})=>{
     const done=state.lessons.includes(l[0]);
-    return `<div class="card item"><div class="label">${m.icon} ${m.title}</div><h3>${l[1]}</h3><div class="copy">${l[2]}</div><div class="meta"><span>3–5 мин</span><span>${done?"✓ завершено":"+"+l[6]+" XP"}</span></div><div class="btnrow"><button class="btn ${done?"secondary":"ghost"}" onclick="openLesson('${l[0]}')">${done?"Повторить":"Открыть урок"}</button></div></div>`;
+    const locked=lessonIsPremium(m,l)&&!isPro();
+    return `<div class="card item ${locked?"pro-locked":""}"><div class="label">${m.icon} ${m.title}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${l[1]}</h3><div class="copy">${l[2]}</div><div class="meta"><span>3–5 мин</span><span>${locked?"Pro":done?"✓ завершено":"+"+l[6]+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openLesson('${l[0]}')">${locked?"Открыть с Pro":done?"Повторить":"Открыть урок"}</button></div></div>`;
   }).join("");
 }
 function findLesson(id){for(const m of C.modules){const l=m.lessons.find(x=>x[0]===id);if(l)return{m,l}}}
 function openLesson(id){
   const {m,l}=findLesson(id),done=state.lessons.includes(id);
+  if(lessonIsPremium(m,l)&&!isPro()){paywall("Этот урок");return}
   modal(`<div class="label">${m.icon} ${m.title}</div><h2>${l[1]}</h2><div class="copy">${l[2]}</div><div class="card soft section"><div class="tiny">КЛЮЧЕВАЯ МЫСЛЬ</div><div class="copy" style="margin-top:7px">${l[3]}</div></div><div class="card soft section"><div class="tiny">ПРИМЕР</div><div class="copy" style="margin-top:7px">${l[4]}</div></div><div class="card soft section"><div class="tiny">ПРАКТИЧЕСКИЙ ВЫВОД</div><div class="copy" style="margin-top:7px">${l[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson('${id}')">${done?"Уже завершено":"Завершить • +"+l[6]+" XP"}</button></div>`);
 }
 function completeLesson(id){
@@ -467,11 +496,13 @@ function renderCases(){
   const list=C.cases.filter(c=>(c.title+" "+c.copy+" "+c.tag).toLowerCase().includes(q));
   document.getElementById("caseGrid").innerHTML=list.map(c=>{
     const done=state.cases.includes(c.id);
-    return `<div class="card item"><div class="label">${c.tag}</div><h3>${c.title}</h3><div class="copy">${c.copy}</div><div class="meta"><span>${c.category}</span><span>${done?"✓ решено":"+"+c.xp+" XP"}</span></div><div class="btnrow"><button class="btn ${done?"secondary":"ghost"}" onclick="openCase('${c.id}')">${done?"Разобрать снова":"Открыть кейс"}</button></div></div>`;
+    const locked=caseIsPremium(c)&&!isPro();
+    return `<div class="card item ${locked?"pro-locked":""}"><div class="label">${c.tag}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${c.title}</h3><div class="copy">${c.copy}</div><div class="meta"><span>${c.category}</span><span>${locked?"Pro":done?"✓ решено":"+"+c.xp+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openCase('${c.id}')">${locked?"Открыть с Pro":done?"Разобрать снова":"Открыть кейс"}</button></div></div>`;
   }).join("");
 }
 function openCase(id){
   const c=C.cases.find(x=>x.id===id);
+  if(caseIsPremium(c)&&!isPro()){paywall("Этот кейс");return}
   modal(`<div class="label">CASE • ${c.tag}</div><h2>${c.title}</h2><div class="copy">${c.copy}</div><div id="caseChoices" class="section">${c.choices.map((ch,i)=>`<button class="choice" onclick="answerCase('${id}',${i},this)">${ch.text}</button>`).join("")}</div><div id="caseFeedback" class="feedback"></div>`);
 }
 function answerCase(id,i,el){
@@ -481,13 +512,16 @@ function answerCase(id,i,el){
   if(ch.correct&&!state.cases.includes(id)){state.cases.push(id);state.xp+=c.xp;localSave()}
 }
 
-function selectSimulator(id){activeSimulator=id;resetSimulator(false);renderSimulator()}
+function selectSimulator(id){
+  if(id!=="coffee"&&!isPro()){paywall("Этот бизнес-симулятор");return}
+  activeSimulator=id;resetSimulator(false);renderSimulator()
+}
 function resetSimulator(render=true){
   const s=C.simulators[activeSimulator];sim={...s.start,step:0};if(render)renderSimulator();
 }
 function renderSimulator(){
   const sims=Object.values(C.simulators);
-  document.getElementById("simSelect").innerHTML=sims.map(s=>`<div class="card simtile ${s.id===activeSimulator?"active":""}" onclick="selectSimulator('${s.id}')"><div style="font-size:25px">${s.icon}</div><h3>${s.title}</h3><div class="copy">${s.description}</div><div class="meta"><span>3 решения</span><span>${state.simDone[s.id]?"✓ завершено":""}</span></div></div>`).join("");
+  document.getElementById("simSelect").innerHTML=sims.map(s=>{const locked=s.id!=="coffee"&&!isPro();return `<div class="card simtile ${s.id===activeSimulator?"active":""} ${locked?"pro-locked":""}" onclick="selectSimulator('${s.id}')"><div style="font-size:25px">${s.icon}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${s.title}</h3><div class="copy">${s.description}</div><div class="meta"><span>3 решения</span><span>${locked?"Pro":state.simDone[s.id]?"✓ завершено":""}</span></div></div>`}).join("");
   if(!sim)resetSimulator(false);
   const s=C.simulators[activeSimulator];
   document.getElementById("simTitleMain").textContent=s.icon+" "+s.title;
@@ -513,10 +547,14 @@ function chooseSim(i,el){
 }
 
 function renderCoach(){
-  document.getElementById("coachModes").innerHTML=C.coach.map(m=>`<div class="card coach-mode ${m.id===coachMode?"active":""}" onclick="setCoachMode('${m.id}')"><h3>${m.title}</h3><div class="copy">${m.prompt}</div></div>`).join("");
+  document.getElementById("coachModes").innerHTML=C.coach.map((m,i)=>{const locked=i>0&&!isPro();return `<div class="card coach-mode ${m.id===coachMode?"active":""} ${locked?"pro-locked":""}" onclick="setCoachMode('${m.id}')">${locked?'<span class="pro-badge">PRO</span>':""}<h3>${m.title}</h3><div class="copy">${m.prompt}</div></div>`}).join("");
   if(!document.getElementById("messages").children.length)resetCoach();
 }
-function setCoachMode(id){coachMode=id;renderCoach();resetCoach()}
+function setCoachMode(id){
+  const i=C.coach.findIndex(x=>x.id===id);
+  if(i>0&&!isPro()){paywall("Этот режим Business Coach");return}
+  coachMode=id;renderCoach();resetCoach()
+}
 function resetCoach(){
   const m=C.coach.find(x=>x.id===coachMode),box=document.getElementById("messages");
   box.innerHTML=`<div class="msg bot"><b>${m.title}</b><br>${m.prompt}</div>`;box.dataset.step="0";
@@ -558,18 +596,20 @@ function renderCertificates(){
   grid.innerHTML=CERTIFICATE_TYPES.map(def=>{
     const cert=userCertificates.find(c=>c.certificate_type===def.id);
     const p=certificateProgress(def);
+    const proRequired=!cert&&!isPro();
     const detail=p.parts.map(x=>`<span>${x.label}: <b>${Math.min(x.value,x.need)}/${x.need}</b></span>`).join("");
     return `<div class="card certificate-card ${cert?"issued":p.eligible?"eligible":""}">
-      <div class="cert-top"><div class="certificate-mini-seal">B/IQ</div><div><div class="label">${cert?"ISSUED":p.eligible?"READY":"IN PROGRESS"}</div><h3>${def.title}</h3></div></div>
+      <div class="cert-top"><div class="certificate-mini-seal">B/IQ</div><div><div class="label">${cert?"ISSUED":proRequired?"PRO":p.eligible?"READY":"IN PROGRESS"}</div><h3>${def.title}</h3></div></div>
       <div class="copy">${def.desc}</div>
       <div class="cert-progress">${detail}</div>
       ${cert?
         `<div class="certificate-code">${cert.certificate_code}</div><div class="btnrow"><button class="btn primary" onclick="openCertificate('${cert.certificate_code}')">Открыть сертификат</button><button class="btn ghost" onclick="copyCertificateLink('${cert.certificate_code}')">Скопировать ссылку</button></div>`:
-        `<div class="btnrow"><button class="btn ${p.eligible?"primary":"secondary"}" ${p.eligible?"":"disabled"} onclick="claimCertificate('${def.id}')">${p.eligible?"Получить сертификат":"Сначала выполни критерии"}</button></div>`}
+        `<div class="btnrow"><button class="btn ${proRequired?"secondary":p.eligible?"primary":"secondary"}" ${(!proRequired&&p.eligible)?"":"disabled"} onclick="claimCertificate('${def.id}')">${proRequired?"Доступно в Pro":p.eligible?"Получить сертификат":"Сначала выполни критерии"}</button>${proRequired?'<button class="btn ghost" onclick="go(\'pricing\')">Посмотреть Pro</button>':""}</div>`}
     </div>`;
   }).join("");
 }
 async function claimCertificate(type){
+  if(!isPro()){paywall("Выдача сертификатов");return}
   if(!session){openAuth();return}
   await pushCloud(true);
   const {data,error}=await sb.functions.invoke("issue-certificate",{body:{type}});
@@ -591,6 +631,10 @@ function renderProfile(){
   const arch=learningArchetype();
   const badge=document.getElementById("archetypeBadge");
   if(badge)badge.innerHTML=`<div class="label">LEARNING ARCHETYPE</div><div style="font-size:22px;font-weight:900;margin-top:8px">${arch[0]}</div><div class="copy" style="margin-top:5px">${arch[2]}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon()">Поделиться профилем</button></div>`;
+  const subscriptionPanel=document.getElementById("subscriptionPanel");
+  if(subscriptionPanel)subscriptionPanel.innerHTML=isPro()
+    ?`<div class="subscription-active"><div><div class="tiny good">● BIZONIQ PRO</div><b>${proLabel()}</b></div><button class="btn ghost" onclick="openBillingPortal()">Управлять</button></div>`
+    :`<div class="subscription-free"><div><div class="tiny">Тариф</div><b>Free</b></div><button class="btn primary" onclick="go('pricing')">Pro от 99 ₽</button></div>`;
   document.getElementById("accountInfo").innerHTML=session?`<div class="tiny good">● Облачная синхронизация включена</div><div style="margin-top:7px">${session.user.email}</div><div class="btnrow"><button class="btn secondary" onclick="pushCloud(true)">Синхронизировать сейчас</button><button class="btn danger" onclick="signOutUser()">Выйти</button></div>`:`<div class="tiny warn">● Сейчас прогресс хранится только на этом устройстве.</div><div class="btnrow"><button class="btn primary" onclick="openAuth()">Создать аккаунт / войти</button></div>`;
   const ach=[
     ["Первый рывок","100 XP",state.xp>=100],["Терминатор","10 терминов",state.terms.length>=10],["Практик","5 кейсов",state.cases.length>=5],
@@ -613,7 +657,7 @@ function importProgressFile(ev){
 }
 
 function renderAll(){
-  renderStats();renderDashboard();renderLessons();renderTerms();renderCases();renderSimulator();renderCoach();renderCertificates();renderProfile();renderAuthState();renderInstallButton();
+  renderStats();renderDashboard();renderLessons();renderTerms();renderCases();renderSimulator();renderCoach();renderCertificates();renderPricing();renderProfile();renderAuthState();renderInstallButton();
   localStorage.setItem("forge_v3_state",JSON.stringify(state));
 }
 document.addEventListener("DOMContentLoaded",async()=>{
@@ -621,5 +665,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
   document.getElementById("termSearch").oninput=renderTerms;document.getElementById("termFilter").onchange=renderTerms;
   document.getElementById("caseSearch").oninput=renderCases;
   document.getElementById("coachInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendCoach()});
-  resetSimulator(false);renderAll();setupInstall();await initAuth();
+  resetSimulator(false);renderAll();setupInstall();initPaddle();await initAuth();
+  const requested=new URLSearchParams(location.search).get("page");
+  if(["dashboard","learn","dictionary","practice","cases","simulator","coach","certificates","pricing","profile"].includes(requested))go(requested);
 });
