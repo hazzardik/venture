@@ -1,14 +1,12 @@
 {
-  "name": "FORGE — бизнес-тренажёр для предпринимателей",
-  "short_name": "FORGE",
-  "description": "Интерактивный тренажёр предпринимательского мышления: уроки, бизнес-термины, кейсы и симулятор.",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "background_color": "#090c11",
-  "theme_color": "#090c11",
-  "lang": "ru",
-  "icons": [
-    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
-  ]
+  "name":"FORGE — Founder Growth Engine",
+  "short_name":"FORGE",
+  "description":"Бизнес-тренажёр с 56 уроками, 32 кейсами, 4 симуляторами, Business Coach и облачной синхронизацией.",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#090c11",
+  "theme_color":"#090c11",
+  "lang":"ru",
+  "icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
 }
