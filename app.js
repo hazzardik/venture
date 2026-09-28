@@ -35,7 +35,7 @@ const ICONS={
 };
 function iconSvg(id){return '<span class="nav-svg">'+(ICONS[id]||ICONS.practice)+'</span>'}
 const LEVELS=[["Apprentice",0],["Builder",300],["Operator",800],["Founder",1500],["Scaler",2500],["Visionary",4000],["Titan",6500]];
-const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:[],terms:[],saved:[],cases:[],simDone:{},name:"",dailyDone:{},version:5,
+const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:[],terms:[],saved:[],cases:[],simDone:{},name:"",dailyDone:{},version:9,
   diagnostic:{completed:false,answers:[],recommended:""},
   challenge:{started:false,startDate:"",completedDays:[]},
   duel:{date:"",answered:false,choice:null},
