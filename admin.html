@@ -67,6 +67,13 @@ body{background:radial-gradient(circle at 15% 0,rgba(111,124,255,.11),transparen
         <div class="btnrow"><button class="btn primary" onclick="grantPro()">Выдать Pro</button><button class="btn danger" onclick="revokePro()">Отозвать ручной Pro</button></div>
       </section>
 
+      <section id="ownerTools" class="panel span-6 hidden">
+        <div class="panel-head"><div><div class="panel-title">Creator Security</div><div class="panel-copy">Только owner может создать одноразовое приглашение нового создателя. Код хранится только как hash и исчезает после первой активации.</div></div></div>
+        <div class="copy">Используй это для приглашения Сергея вместо постоянного bootstrap-кода.</div>
+        <div class="btnrow"><button class="btn primary" onclick="generateCreatorInvite()">Создать Creator Invite • 7 дней</button></div>
+        <div id="creatorInviteBox" class="new-code hidden"><div class="mini">ПОКАЗЫВАЕТСЯ ПОЛНОСТЬЮ ТОЛЬКО СЕЙЧАС</div><code id="creatorInviteValue"></code><div id="creatorInviteExpiry" class="mini"></div><div style="height:8px"></div><button class="small-btn" onclick="copyCreatorInvite()">Скопировать</button></div>
+      </section>
+
       <section class="panel span-6"><div class="panel-head"><div><div class="panel-title">Генератор Pro-кодов</div><div class="panel-copy">Можно сделать код на 7/30/90/365 дней, одноразовый или для нескольких пользователей.</div></div></div>
         <div class="form-grid">
           <div class="field"><label>Pro на</label><select id="codeDuration"><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="90">90 дней</option><option value="365">365 дней</option></select></div>
