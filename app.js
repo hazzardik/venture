@@ -62,6 +62,7 @@ let userSubscription=null;
 let userEntitlement=null;
 let creatorAccount=null;
 let paddleInitialized=false;
+let paddleLoadPromise=null;
 let pendingCheckoutPlan=null;
 const CERTIFICATE_TYPES=[
   {id:"foundation",title:"Business Foundations",desc:"База предпринимательства и первые решения.",modules:["basics"],minCases:3,minSims:0},
@@ -160,7 +161,7 @@ async function registerUser(){
   const password=document.getElementById("authPassword").value;
   const name=document.getElementById("authName").value.trim()||state.name||"Пользователь";
   const status=document.getElementById("authStatus");
-  if(password.length<6){status.textContent="Пароль должен быть минимум 6 символов.";return}
+  if(password.length<10){status.textContent="Для нового аккаунта используй пароль минимум из 10 символов.";return}
   status.textContent="Создаю аккаунт…";
   const {data,error}=await sb.auth.signUp({
     email,password,
@@ -357,10 +358,28 @@ function lessonIsPremium(module,lesson){
 function caseIsPremium(c){
   return C.cases.findIndex(x=>x.id===c.id)>=8;
 }
-function initPaddle(){
+async function ensurePaddleLoaded(){
+  if(window.Paddle)return true;
+  if(!billingConfigured())return false;
+  if(!paddleLoadPromise){
+    paddleLoadPromise=new Promise(resolve=>{
+      const script=document.createElement("script");
+      script.src="https://cdn.paddle.com/paddle/v2/paddle.js";
+      script.async=true;
+      script.crossOrigin="anonymous";
+      script.referrerPolicy="strict-origin-when-cross-origin";
+      script.onload=()=>resolve(!!window.Paddle);
+      script.onerror=()=>resolve(false);
+      document.head.appendChild(script);
+    });
+  }
+  return await paddleLoadPromise;
+}
+async function initPaddle(){
   const cfg=window.BIZONIQ_BILLING||{};
   if(paddleInitialized)return true;
-  if(!cfg.clientToken||!window.Paddle)return false;
+  if(!cfg.clientToken)return false;
+  if(!(await ensurePaddleLoaded()))return false;
   try{
     if(cfg.environment==="sandbox")Paddle.Environment.set("sandbox");
     Paddle.Initialize({
@@ -378,7 +397,7 @@ function billingConfigured(){
   const cfg=window.BIZONIQ_BILLING||{};
   return !!(cfg.clientToken&&cfg.monthlyPriceId&&cfg.yearlyPriceId);
 }
-function startPaddleCheckout(plan){
+async function startPaddleCheckout(plan){
   pendingCheckoutPlan=plan;
   trackEvent("pro_clicked",{plan,source:"pricing"});
   if(!session){openAuth();return}
@@ -387,8 +406,8 @@ function startPaddleCheckout(plan){
     return;
   }
   const cfg=window.BIZONIQ_BILLING||{};
-  if(!billingConfigured()||!initPaddle()){
-    modal('<div class="label">PAYMENTS READY</div><h2>Checkout подготовлен, но Paddle ещё не подключён</h2><div class="copy">Тарифы, billing-таблицы и webhook уже готовы. Для реальных платежей нужен Paddle client token и два Price ID. Секретные API-ключи в код сайта не добавляются.</div>',true);
+  if(!billingConfigured()||!(await initPaddle())){
+    modal('<div class="label">ОПЛАТА</div><h2>Онлайн-оплата ещё не включена</h2><div class="copy">Тарифы и серверная часть уже готовы. До подключения Paddle текущая beta-версия остаётся доступной без платёжной блокировки.</div>',true);
     return;
   }
   const priceId=plan==="pro_yearly"?cfg.yearlyPriceId:cfg.monthlyPriceId;
@@ -412,8 +431,11 @@ async function openBillingPortal(){
 function renderPricing(){
   const el=document.getElementById("pricingStatus");if(!el)return;
   if(isPro()){
-    const end=userSubscription.current_period_end?new Date(userSubscription.current_period_end).toLocaleDateString("ru-RU"):"—";
-    el.innerHTML=`<div class="pricing-status-row"><div><div class="tiny good">● PRO ACTIVE</div><h3>${proLabel()}</h3><div class="copy">Доступ активен${end!=="—"?" до "+end:""}.</div></div><button class="btn secondary" onclick="openBillingPortal()">Управлять подпиской</button></div>`;
+    const manual=manualProActive();
+    const end=manual
+      ? (userEntitlement?.ends_at?new Date(userEntitlement.ends_at).toLocaleDateString("ru-RU"):"")
+      : (userSubscription?.current_period_end?new Date(userSubscription.current_period_end).toLocaleDateString("ru-RU"):"");
+    el.innerHTML=`<div class="pricing-status-row"><div><div class="tiny good">● PRO ACTIVE</div><h3>${proLabel()}</h3><div class="copy">Доступ активен${end?" до "+end:""}.</div></div>${!manual&&userSubscription?'<button class="btn secondary" onclick="openBillingPortal()">Управлять подпиской</button>':""}</div>`;
   }else{
     el.innerHTML='<div class="pricing-status-row"><div><div class="tiny">CURRENT PLAN</div><h3>Free</h3><div class="copy">Базовый доступ остаётся бесплатным.</div></div><span class="pill">99 ₽/мес · 799 ₽/год</span></div>';
   }
@@ -434,21 +456,21 @@ function closeAuth(){document.getElementById("auth").classList.add("hidden")}
 
 function buildNav(){
   const desk=document.getElementById("desktopNav"),mobile=document.getElementById("mobileNav");
-  desk.innerHTML=NAV.map((n,i)=>`<button class="${i===0?"active":""}" data-page="${n[0]}">${iconSvg(n[1])}<span>${n[2]}</span></button>`).join("");
-  mobile.innerHTML=MOBILE_NAV.map((n,i)=>`<button class="${i===0?"active":""}" data-page="${n[0]}">${iconSvg(n[1])}<span>${n[2]}</span></button>`).join("");
+  desk.innerHTML=NAV.map((n,i)=>`<button class="${i===0?"active":""}" data-page="${n[0]}" aria-label="${n[2]}" title="${n[2]}">${iconSvg(n[1])}<span>${n[2]}</span></button>`).join("");
+  mobile.innerHTML=MOBILE_NAV.map((n,i)=>`<button class="${i===0?"active":""}" data-page="${n[0]}" aria-label="${n[2]}">${iconSvg(n[1])}<span>${n[2]}</span></button>`).join("");
   document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
 }
 function go(page){
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===page));
   document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
   const meta={
-    dashboard:["Dashboard","Твой ежедневный бизнес-тренажёр."],
+    dashboard:["Главная","Следующий шаг, прогресс и практика — без лишних поисков."],
     learn:["Обучение","56 коротких уроков, адаптированных под твою траекторию."],
     dictionary:["Business Dictionary","Термины с примерами, поиском и избранным."],
     practice:["Практика","Кейсы, симуляторы, Coach и сертификаты."],
     cases:["Бизнес-кейсы","32 ситуации для тренировки решений."],
     simulator:["Business Simulator","Четыре бизнеса, где решения меняют экономику."],
-    coach:["AI Business Coach","Интерактивный тренер: идея, финансы, маркетинг и сложные кейсы."],
+    coach:["Business Coach","Интерактивный тренер: идея, финансы, маркетинг и сложные кейсы."],
     certificates:["Сертификаты","Проверяемые сертификаты прохождения с уникальным ID."],
     pricing:["BIZONIQ Pro","Полный доступ за 99 ₽/мес или 799 ₽/год."],
     profile:["Профиль и синхронизация","Смена пути, аккаунт, backup и прогресс."]
@@ -956,8 +978,8 @@ function renderProfile(){
   const arch=learningArchetype();
   const badge=document.getElementById("archetypeBadge");
   const adaptive=document.getElementById("adaptiveProfile");
-  if(adaptive)adaptive.innerHTML=`<div class="label">ADAPTIVE LEVEL</div><div class="adaptive-profile-level">${difficultyName()}</div><div class="copy">BIZONIQ меняет сложность по первым попыткам и твоим оценкам кейсов.</div>`;
-  if(badge)badge.innerHTML=`<div class="label">LEARNING ARCHETYPE</div><div style="font-size:22px;font-weight:900;margin-top:8px">${arch[0]}</div><div class="copy" style="margin-top:5px">${arch[2]}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon()">Поделиться профилем</button></div>`;
+  if(adaptive)adaptive.innerHTML=`<div class="label">СЛОЖНОСТЬ КЕЙСОВ</div><div class="adaptive-profile-level">${difficultyName()}</div><div class="copy">BIZONIQ меняет сложность по первым попыткам и твоим оценкам кейсов.</div>`;
+  if(badge)badge.innerHTML=`<div class="label">ПРОФИЛЬ ОБУЧЕНИЯ</div><div style="font-size:22px;font-weight:900;margin-top:8px">${arch[0]}</div><div class="copy" style="margin-top:5px">${arch[2]}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon()">Поделиться профилем</button></div>`;
   const subscriptionPanel=document.getElementById("subscriptionPanel");
   if(subscriptionPanel){
     if(isPro()){
@@ -973,7 +995,7 @@ function renderProfile(){
     creatorBox.classList.toggle("hidden",!creatorAccount);
     if(creatorAccount)creatorBox.innerHTML=`<div><div class="tiny good">● CREATOR ACCESS</div><b>Creator Console</b><div class="copy">Пользователи, аналитика, Pro-коды и beta-feedback.</div></div><a class="btn primary" href="./admin.html">Открыть панель</a>`;
   }
-  document.getElementById("accountInfo").innerHTML=session?`<div class="tiny good">● Облачная синхронизация включена</div><div style="margin-top:7px">${session.user.email}</div><div class="btnrow"><button class="btn secondary" onclick="pushCloud(true)">Синхронизировать сейчас</button><button class="btn danger" onclick="signOutUser()">Выйти</button></div>`:`<div class="tiny warn">● Сейчас прогресс хранится только на этом устройстве.</div><div class="btnrow"><button class="btn primary" onclick="openAuth()">Создать аккаунт / войти</button></div>`;
+  document.getElementById("accountInfo").innerHTML=session?`<div class="tiny good">● Облачная синхронизация включена</div><div style="margin-top:7px">${escapeHtml(session.user.email||"")}</div><div class="btnrow"><button class="btn secondary" onclick="pushCloud(true)">Синхронизировать сейчас</button><button class="btn danger" onclick="signOutUser()">Выйти</button></div>`:`<div class="tiny warn">● Сейчас прогресс хранится только на этом устройстве.</div><div class="btnrow"><button class="btn primary" onclick="openAuth()">Создать аккаунт / войти</button></div>`;
   const ach=[
     ["Первый рывок","100 XP",state.xp>=100],["Терминатор","10 терминов",state.terms.length>=10],["Практик","5 кейсов",state.cases.length>=5],
     ["Дисциплина","10 уроков",state.lessons.length>=10],["Оператор","2 симулятора",Object.values(state.simDone).filter(Boolean).length>=2],["Titan track","3000 XP",state.xp>=3000]
@@ -983,14 +1005,53 @@ function renderProfile(){
 function editName(){
   modal(`<div class="label">ПРОФИЛЬ</div><h2>Как тебя показывать в BIZONIQ?</h2><input id="nameEdit" class="input" value="${escapeHtml(state.name||"")}"><div class="btnrow"><button class="btn primary" onclick="saveName()">Сохранить</button></div>`,true);
 }
-function saveName(){state.name=document.getElementById("nameEdit").value.trim()||"Пользователь";localSave();closeModal()}
+function cleanPlainText(value,max=80){
+  return String(value??"").replace(/[\u0000-\u001F\u007F]/g," ").replace(/\s+/g," ").trim().slice(0,max);
+}
+function saveName(){state.name=cleanPlainText(document.getElementById("nameEdit").value,80)||"Пользователь";localSave();closeModal()}
 function exportProgress(){
-  const blob=new Blob([JSON.stringify({bizoniq_version:6,exported_at:new Date().toISOString(),state},null,2)],{type:"application/json"});
+  const blob=new Blob([JSON.stringify({bizoniq_version:10,exported_at:new Date().toISOString(),state},null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="bizoniq-progress.json";a.click();URL.revokeObjectURL(a.href);
 }
+function sanitizeImportedState(raw){
+  if(!raw||typeof raw!=="object"||Array.isArray(raw))throw new Error("Invalid state");
+  const lessonIds=new Set(C.modules.flatMap(m=>m.lessons.map(l=>l[0])));
+  const termIds=new Set(C.terms.map(t=>t[0]));
+  const caseIds=new Set(C.cases.map(c=>c.id));
+  const simIds=new Set(Object.keys(C.simulators));
+  const uniqAllowed=(value,set,max)=>[...new Set(Array.isArray(value)?value:[])].filter(x=>typeof x==="string"&&set.has(x)).slice(0,max);
+  const clean={...DEFAULT_STATE};
+  clean.onboarded=!!raw.onboarded;
+  clean.goal=normalizeGoal(cleanPlainText(raw.goal,30));
+  clean.xp=Math.max(0,Math.min(10000000,Math.floor(Number(raw.xp)||0)));
+  clean.streak=Math.max(1,Math.min(3650,Math.floor(Number(raw.streak)||1)));
+  clean.name=cleanPlainText(raw.name,80);
+  clean.lessons=uniqAllowed(raw.lessons,lessonIds,56);
+  clean.terms=uniqAllowed(raw.terms,termIds,C.terms.length);
+  clean.saved=uniqAllowed(raw.saved,termIds,C.terms.length);
+  clean.cases=uniqAllowed(raw.cases,caseIds,32);
+  clean.simDone={};
+  if(raw.simDone&&typeof raw.simDone==="object"){
+    for(const id of simIds)if(raw.simDone[id]===true)clean.simDone[id]=true;
+  }
+  clean.dailyDone={};
+  clean.diagnostic={...DEFAULT_STATE.diagnostic,completed:!!raw.diagnostic?.completed,recommended:normalizeGoal(raw.diagnostic?.recommended),answers:Array.isArray(raw.diagnostic?.answers)?raw.diagnostic.answers.slice(0,8).map(x=>Math.max(0,Math.min(3,Number(x)||0))):[]};
+  clean.challenge={...DEFAULT_STATE.challenge,started:!!raw.challenge?.started,startDate:cleanPlainText(raw.challenge?.startDate,10),completedDays:Array.isArray(raw.challenge?.completedDays)?raw.challenge.completedDays.filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(String(x))).slice(0,366):[]};
+  clean.duel={...DEFAULT_STATE.duel,date:cleanPlainText(raw.duel?.date,10),answered:!!raw.duel?.answered,choice:Number.isFinite(Number(raw.duel?.choice))?Math.max(0,Math.min(5,Number(raw.duel.choice))):null};
+  clean.weekly={...DEFAULT_STATE.weekly,weekKey:cleanPlainText(raw.weekly?.weekKey,10),xpStart:Math.max(0,Math.min(10000000,Number(raw.weekly?.xpStart)||0)),target:Math.max(100,Math.min(5000,Number(raw.weekly?.target)||400))};
+  const ad=raw.adaptive&&typeof raw.adaptive==="object"?raw.adaptive:{};
+  clean.adaptive={...DEFAULT_STATE.adaptive,level:Math.max(1,Math.min(3,Number(ad.level)||initialAdaptiveLevel(clean.goal))),recent:Array.isArray(ad.recent)?ad.recent.slice(-5).map(Boolean):[],recentDifficulty:Array.isArray(ad.recentDifficulty)?ad.recentDifficulty.slice(-3).filter(x=>["easy","normal","hard"].includes(x)):[],caseResults:{},caseRatings:{}};
+  for(const [id,r] of Object.entries(ad.caseResults||{})){
+    if(caseIds.has(id)&&r&&typeof r==="object")clean.adaptive.caseResults[id]={correct:!!r.correct,category:cleanPlainText(r.category,30),difficulty:Math.max(1,Math.min(3,Number(r.difficulty)||1)),at:cleanPlainText(r.at,40)};
+  }
+  for(const [id,rating] of Object.entries(ad.caseRatings||{}))if(caseIds.has(id)&&["easy","normal","hard"].includes(rating))clean.adaptive.caseRatings[id]=rating;
+  return normalizeGrowthState(clean);
+}
 function importProgressFile(ev){
-  const file=ev.target.files[0];if(!file)return;const reader=new FileReader();
-  reader.onload=()=>{try{const data=JSON.parse(reader.result);const incoming=data.state||data;state={...DEFAULT_STATE,...incoming,simDone:incoming.simDone||{},dailyDone:incoming.dailyDone||{}};localSave();alert("Прогресс импортирован.");}catch(e){alert("Не удалось прочитать backup.")}};
+  const file=ev.target.files[0];if(!file)return;
+  if(file.size>1024*1024){alert("Backup слишком большой. Максимум 1 МБ.");ev.target.value="";return}
+  const reader=new FileReader();
+  reader.onload=()=>{try{const data=JSON.parse(reader.result);state=sanitizeImportedState(data.state||data);localSave();alert("Прогресс импортирован.");}catch(e){alert("Backup повреждён или имеет неподдерживаемый формат.")}};
   reader.readAsText(file);ev.target.value="";
 }
 
@@ -1003,7 +1064,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
   document.getElementById("termSearch").oninput=renderTerms;document.getElementById("termFilter").onchange=renderTerms;
   document.getElementById("caseSearch").oninput=renderCases;
   document.getElementById("coachInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendCoach()});
-  resetSimulator(false);renderAll();setupInstall();initPaddle();await initAuth();
+  resetSimulator(false);renderAll();setupInstall();await initAuth();
   trackEvent("page_view",{page:"dashboard",initial:true});
   const requested=new URLSearchParams(location.search).get("page");
   if(["dashboard","learn","dictionary","practice","cases","simulator","coach","certificates","pricing","profile"].includes(requested))go(requested);
