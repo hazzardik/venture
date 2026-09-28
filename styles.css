@@ -162,3 +162,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }
+
+@media(max-width:900px){
+  .pills #hello{display:none}
+  #pathSummary{display:none}
+  .hero{display:block}
+}
