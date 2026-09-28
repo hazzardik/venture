@@ -54,3 +54,16 @@ BIZONIQ certificates are server-issued after verified progress requirements. Cer
 - Supabase paddle-portal Edge Function for Customer Portal management links.
 - Pro gating is intentionally not enforced until Paddle credentials are configured, so the public beta never dead-ends behind an unpayable paywall.
 - Set PADDLE_ENFORCE_PRO=true only after live/sandbox billing is fully connected and tested.
+
+
+## Creator Console v9
+- Private Creator Console at `/admin.html`, protected by authenticated creator roles.
+- One-time hashed bootstrap codes activate creator accounts; plaintext bootstrap codes are never stored in the database.
+- Product metrics: total users, daily/7-day activity, activation rate, practice rate, Pro intent, learning paths, popular lessons/cases, difficult cases and page views.
+- Beta feedback review inside the console.
+- Manual Pro grants by email for 7/30/90/365 days or lifetime.
+- Secure Pro access codes `BZQ-PRO-XXXX-XXXX` with duration, redemption limits, expiration and deactivation.
+- Access codes are stored as SHA-256 hashes; only the final four characters remain visible after creation.
+- User code redemption is server-side and extends an existing manual entitlement.
+- Creator audit log records code creation/deactivation and manual Pro grants/revocations.
+- Direct client access to private code, analytics and audit tables is blocked by RLS.
