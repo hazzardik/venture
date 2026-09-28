@@ -134,7 +134,31 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none!important}
 .creator-panel-link b{display:block;font-size:17px;margin:4px 0}
 @media(max-width:900px){.redeem-row{flex-direction:column;align-items:stretch}.redeem-row .btn{width:100%}.creator-panel-link{align-items:flex-start;flex-direction:column}.creator-panel-link .btn{width:100%;text-align:center}}
 
-.redeem-row{display:flex;gap:9px;align-items:center}.redeem-row .input{min-width:0}
-.creator-panel-link{margin:13px 0;padding:14px;border:1px solid rgba(182,255,69,.2);border-radius:16px;background:linear-gradient(145deg,rgba(182,255,69,.055),rgba(111,124,255,.04));display:flex;justify-content:space-between;gap:14px;align-items:center}
-.creator-panel-link b{display:block;font-size:17px;margin:4px 0}
-@media(max-width:900px){.redeem-row{flex-direction:column;align-items:stretch}.redeem-row .btn{width:100%}.creator-panel-link{align-items:flex-start;flex-direction:column}.creator-panel-link .btn{width:100%;text-align:center}}
+/* BIZONIQ v10 — clarity, accessibility and mobile ergonomics */
+button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.btn,.choice,.modulechip,.mobile button{touch-action:manipulation}
+.input,.search,.select,.textarea{max-width:100%}
+.security-note{font-size:11px;color:var(--muted);line-height:1.55}
+@media(max-width:900px){
+  #stats.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mobile-secondary{display:none}
+  .main{padding-left:12px;padding-right:12px}
+  .shell{width:100%;max-width:100%}
+  .mobile button{min-height:52px}
+  .btn{min-height:44px}
+  .choice{min-height:50px}
+  .input,.search,.select,.textarea{font-size:16px}
+  .hero-main .btnrow{display:grid;grid-template-columns:1fr}
+  .hero-main .btnrow .btn{width:100%}
+  .profile{gap:12px}
+  .site-footer{font-size:12px}
+}
+@media(max-width:380px){
+  #stats.g4{grid-template-columns:1fr 1fr;gap:8px}
+  #stats .metric b{font-size:21px}
+  .mobile button{font-size:8.5px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
