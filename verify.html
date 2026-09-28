@@ -2,7 +2,9 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#090c11"><title>Проверка сертификата — BIZONIQ</title>
+<meta name="theme-color" content="#090c11">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://qmjtmhtmbaseykmwttvn.supabase.co; form-action 'self'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer"><title>Проверка сертификата — BIZONIQ</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./styles.css">
 <style>
 .verify-shell{max-width:760px;margin:0 auto;padding:32px 18px 70px}.verify-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:42px}.verify-brand{font-size:22px;font-weight:950;letter-spacing:.12em}.verify-box{margin-top:22px}.verify-row{display:flex;gap:10px}.verify-row .input{min-width:0}.result{margin-top:18px}.valid-mark{width:72px;height:72px;border-radius:22px;background:rgba(182,255,69,.09);border:1px solid rgba(182,255,69,.27);display:grid;place-items:center;font-size:30px}.invalid{border-color:rgba(255,133,133,.25)!important}.kv{display:grid;grid-template-columns:150px 1fr;gap:8px 16px;margin-top:18px;font-size:14px}.kv div:nth-child(odd){color:var(--muted)}@media(max-width:600px){.verify-row{flex-direction:column}.kv{grid-template-columns:1fr;gap:3px}.kv div:nth-child(even){margin-bottom:9px}}
@@ -15,12 +17,12 @@
 <h1 class="title" style="margin-top:12px">Проверь сертификат</h1>
 <div class="sub">Введи уникальный ID сертификата. Проверка идёт через сервер BIZONIQ.</div>
 <div class="card verify-box">
-  <div class="verify-row"><input id="code" class="input" placeholder="BZQ-2026-XXX-XXXXXXXXXX" autocomplete="off"><button class="btn primary" onclick="verifyCert()">Проверить</button></div>
+  <div class="verify-row"><input id="code" class="input" placeholder="BZQ-2026-FND-…" autocomplete="off"><button class="btn primary" onclick="verifyCert()">Проверить</button></div>
   <div id="status" class="auth-status"></div>
   <div id="result" class="result"></div>
 </div>
 <div class="copy" style="margin-top:18px">Сертификат BIZONIQ подтверждает завершение программы внутри платформы и не является государственным дипломом или аккредитованной квалификацией.</div>
-<footer class="site-footer" style="margin-top:40px"><div><b>BIZONIQ</b><div class="tiny">Created by Лобов Максим · Сагал Сергей</div></div><div class="footer-links"><a href="./faq.html">FAQ</a></div><div class="footer-legal">© 2026 BIZONIQ. All rights reserved.</div></footer>
+<footer class="site-footer" style="margin-top:40px"><div><b>BIZONIQ</b><div class="tiny">Created by Лобов Максим · Сагал Сергей</div></div><div class="footer-links"><a href="./faq.html">FAQ</a><a href="./privacy.html">Privacy & Security</a></div><div class="footer-legal">© 2026 BIZONIQ. All rights reserved.</div></footer>
 </main>
 <script>
 const endpoint="https://qmjtmhtmbaseykmwttvn.supabase.co/functions/v1/verify-certificate";
