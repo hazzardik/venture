@@ -39,11 +39,19 @@ const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:
   diagnostic:{completed:false,answers:[],recommended:""},
   challenge:{started:false,startDate:"",completedDays:[]},
   duel:{date:"",answered:false,choice:null},
-  weekly:{weekKey:"",xpStart:0,target:400}
+  weekly:{weekKey:"",xpStart:0,target:400},
+  adaptive:{
+    level:0,
+    recent:[],
+    recentDifficulty:[],
+    caseResults:{},
+    caseRatings:{}
+  }
 };
 let state=loadLocalState();
 let session=null;
 let activeModule="all";
+let caseMode="adaptive";
 let activeSimulator="coffee";
 let sim=null;
 let coachMode="idea";
@@ -77,6 +85,12 @@ function normalizeGrowthState(s){
   s.challenge={...DEFAULT_STATE.challenge,...(s.challenge||{}),completedDays:[...new Set((s.challenge&&s.challenge.completedDays)||[])]};
   s.duel={...DEFAULT_STATE.duel,...(s.duel||{})};
   s.weekly={...DEFAULT_STATE.weekly,...(s.weekly||{})};
+  s.adaptive={...DEFAULT_STATE.adaptive,...(s.adaptive||{})};
+  s.adaptive.recent=[...(s.adaptive.recent||[])];
+  s.adaptive.recentDifficulty=[...(s.adaptive.recentDifficulty||[])];
+  s.adaptive.caseResults={...(s.adaptive.caseResults||{})};
+  s.adaptive.caseRatings={...(s.adaptive.caseRatings||{})};
+  if(!s.adaptive.level)s.adaptive.level=initialAdaptiveLevel(s.goal);
   resetWeeklyIfNeeded(s);
   return s;
 }
@@ -88,6 +102,10 @@ function weekKeyNow(){
 function resetWeeklyIfNeeded(s=state){
   const wk=weekKeyNow();
   if(s.weekly.weekKey!==wk){s.weekly={weekKey:wk,xpStart:s.xp||0,target:s.weekly.target||400};}
+}
+function initialAdaptiveLevel(goal){
+  if(goal==="run"||goal==="mind")return 2;
+  return 1;
 }
 function normalizeGoal(g){
   if(["first","run","mind","curious"].includes(g)) return g;
@@ -203,6 +221,16 @@ async function mergeCloud(){
         state.challenge={...state.challenge,...(remote.extras.challenge||{}),completedDays:[...new Set([...(state.challenge.completedDays||[]),...((remote.extras.challenge||{}).completedDays||[])])]};
         state.duel={...state.duel,...(remote.extras.duel||{})};
         state.weekly={...state.weekly,...(remote.extras.weekly||{})};
+        if(remote.extras.adaptive){
+          const ra=remote.extras.adaptive;
+          state.adaptive={
+            ...state.adaptive,...ra,
+            caseResults:{...(state.adaptive.caseResults||{}),...(ra.caseResults||{})},
+            caseRatings:{...(state.adaptive.caseRatings||{}),...(ra.caseRatings||{})},
+            recent:[...(ra.recent||state.adaptive.recent||[])],
+            recentDifficulty:[...(ra.recentDifficulty||state.adaptive.recentDifficulty||[])]
+          };
+        }
       }
     }else{
       state.name=state.name||session.user.user_metadata?.display_name||"Пользователь";
@@ -241,7 +269,7 @@ async function pushCloud(force=false){
       user_id:uid,display_name:state.name||"Пользователь",learning_path:state.goal||"curious",
       xp:state.xp||0,streak:state.streak||1,last_active_date:todayKey(),
       simulator_finished:Object.values(state.simDone||{}).some(Boolean),
-      extras:{diagnostic:state.diagnostic,challenge:state.challenge,duel:state.duel,weekly:state.weekly},
+      extras:{diagnostic:state.diagnostic,challenge:state.challenge,duel:state.duel,weekly:state.weekly,adaptive:state.adaptive},
       updated_at:new Date().toISOString()
     },{onConflict:"user_id"});
     if(state.lessons.length) await sb.from("lesson_progress").upsert(state.lessons.map(id=>({user_id:uid,lesson_id:id})),{onConflict:"user_id,lesson_id"});
@@ -394,7 +422,9 @@ function renderOnboarding(){
   document.getElementById("onboard").classList.toggle("hidden",!!state.onboarded);
 }
 function choosePath(id,first=false){
+  const hadCases=Object.keys(state.adaptive?.caseResults||{}).length>0;
   state.goal=id;state.onboarded=true;
+  if(!hadCases||first)state.adaptive.level=initialAdaptiveLevel(id);
   if(first&&state.xp===0)state.xp+=25;
   localSave();
   document.getElementById("onboard").classList.add("hidden");
@@ -402,6 +432,138 @@ function choosePath(id,first=false){
 }
 function changePath(){
   modal(`<div class="label">СМЕНИТЬ ТРАЕКТОРИЮ</div><h2>Выбери новый путь</h2><div class="copy">Прогресс, XP, изученные термины и кейсы не сбрасываются. Меняются рекомендации и порядок контента.</div><div class="goals">${C.paths.map(p=>`<div class="goal ${state.goal===p.id?"selected":""}" onclick="choosePath('${p.id}',false)"><b>${p.title}</b><div class="copy">${p.subtitle}</div></div>`).join("")}</div>`);
+}
+
+
+const SKILL_LABELS={
+  basics:"Бизнес-база",finance:"Финансы",marketing:"Маркетинг",sales:"Продажи",
+  strategy:"Стратегия",startup:"Стартапы",management:"Менеджмент",economics:"Экономика"
+};
+function difficultyName(level=state.adaptive.level){
+  return level===3?"Advanced":level===2?"Intermediate":"Beginner";
+}
+function difficultyRu(level){
+  return level===3?"Продвинутый":level===2?"Средний":"Начальный";
+}
+function skillScores(){
+  const out={};
+  C.modules.forEach(m=>{
+    const done=m.lessons.filter(l=>state.lessons.includes(l[0])).length;
+    const lessonScore=done/m.lessons.length*100;
+    const results=Object.values(state.adaptive.caseResults||{}).filter(r=>r.category===m.id);
+    const accuracy=results.length?(results.filter(r=>r.correct).length/results.length*100):lessonScore;
+    const score=Math.round(lessonScore*.6+accuracy*.4);
+    out[m.id]={id:m.id,label:SKILL_LABELS[m.id]||m.title,icon:m.icon,score,lessons:done,total:m.lessons.length,attempts:results.length,correct:results.filter(r=>r.correct).length};
+  });
+  return out;
+}
+function weakSkills(){
+  const scores=Object.values(skillScores());
+  const preferred=pathObj().recommended;
+  return scores.sort((a,b)=>{
+    const ap=preferred.includes(a.id)?-8:0,bp=preferred.includes(b.id)?-8:0;
+    return (a.score+ap)-(b.score+bp);
+  });
+}
+function recordCaseAttempt(c,correct){
+  if(state.adaptive.caseResults[c.id])return;
+  state.adaptive.caseResults[c.id]={correct:!!correct,category:c.category,difficulty:c.difficulty,at:new Date().toISOString()};
+  state.adaptive.recent=[...(state.adaptive.recent||[]),!!correct].slice(-5);
+  const r=state.adaptive.recent;
+  if(r.length>=5){
+    const correctCount=r.filter(Boolean).length;
+    if(correctCount>=4&&state.adaptive.level<3){state.adaptive.level++;state.adaptive.recent=[];}
+    else if(correctCount<=1&&state.adaptive.level>1){state.adaptive.level--;state.adaptive.recent=[];}
+  }
+}
+function rateCaseDifficulty(id,rating){
+  if(state.adaptive.caseRatings[id])return;
+  state.adaptive.caseRatings[id]=rating;
+  state.adaptive.recentDifficulty=[...(state.adaptive.recentDifficulty||[]),rating].slice(-3);
+  const last=state.adaptive.recentDifficulty;
+  if(last.length>=2&&last.slice(-2).every(x=>x==="easy")&&state.adaptive.level<3){
+    state.adaptive.level++;state.adaptive.recentDifficulty=[];
+  }else if(last.length>=2&&last.slice(-2).every(x=>x==="hard")&&state.adaptive.level>1){
+    state.adaptive.level--;state.adaptive.recentDifficulty=[];
+  }
+  localSave();
+  const box=document.getElementById("caseRating");
+  if(box)box.innerHTML='<div class="tiny good">Спасибо. Следующие кейсы будут учитывать эту оценку.</div>';
+}
+function adaptiveCasePool(){
+  const level=state.adaptive.level||initialAdaptiveLevel(state.goal);
+  let pool=C.cases.filter(c=>c.paths.includes(state.goal)&&c.difficulty===level);
+  if(pool.length<6)pool=C.cases.filter(c=>c.paths.includes(state.goal)&&Math.abs(c.difficulty-level)<=1);
+  if(pool.length<6)pool=C.cases.filter(c=>Math.abs(c.difficulty-level)<=1);
+  return [...pool].sort((a,b)=>{
+    const ad=state.cases.includes(a.id)?1:0,bd=state.cases.includes(b.id)?1:0;
+    if(ad!==bd)return ad-bd;
+    return Math.abs(a.difficulty-level)-Math.abs(b.difficulty-level);
+  });
+}
+function nextAdaptiveCase(category=null){
+  let pool=adaptiveCasePool();
+  if(category){
+    const same=pool.filter(c=>c.category===category&&!state.cases.includes(c.id));
+    if(same.length)return same[0];
+  }
+  return pool.find(c=>!state.cases.includes(c.id))||pool[0]||C.cases[0];
+}
+function nextLessonForSkill(skillId){
+  const m=C.modules.find(x=>x.id===skillId);
+  if(!m)return null;
+  const l=m.lessons.find(x=>!state.lessons.includes(x[0]));
+  return l?{m,l}:null;
+}
+function renderTodayPlan(){
+  const target=document.getElementById("todayPlan");if(!target)return;
+  const weak=weakSkills()[0]||{id:"basics",label:"Бизнес-база"};
+  const lesson=nextLessonForSkill(weak.id)||moduleOrder().flatMap(m=>m.lessons.map(l=>({m,l}))).find(x=>!state.lessons.includes(x.l[0]));
+  const c=nextAdaptiveCase(weak.id);
+  target.innerHTML=`
+    <div class="card today-card primary-plan">
+      <div class="tiny">1 · УРОК</div>
+      <h3>${lesson?lesson.l[1]:"Все уроки пройдены"}</h3>
+      <div class="copy">${lesson?"Усиль навык: "+(SKILL_LABELS[lesson.m.id]||lesson.m.title):"Переходи к практике."}</div>
+      <div class="btnrow"><button class="btn primary" onclick="${lesson?`activeModule='${lesson.m.id}';go('learn');setTimeout(()=>openLesson('${lesson.l[0]}'),100)`:"go('cases')"}">Начать</button></div>
+    </div>
+    <div class="card today-card">
+      <div class="tiny">2 · АДАПТИВНЫЙ КЕЙС</div>
+      <h3>${c?c.title:"Практика"}</h3>
+      <div class="copy">${c?difficultyName(c.difficulty)+" · "+(SKILL_LABELS[c.category]||c.category):"Подберём кейс по уровню."}</div>
+      <div class="btnrow"><button class="btn ghost" onclick="${c?`go('cases');setTimeout(()=>openCase('${c.id}'),100)`:"go('cases')"}">Решить</button></div>
+    </div>
+    <div class="card today-card">
+      <div class="tiny">3 · DAILY DUEL</div>
+      <h3>${state.duel.date===todayKey()&&state.duel.answered?"Сегодня выполнено ✓":"60 секунд на решение"}</h3>
+      <div class="copy">Один короткий управленческий выбор, чтобы держать мышление в тонусе.</div>
+      <div class="btnrow"><button class="btn ghost" onclick="dailyDuel()">Открыть</button></div>
+    </div>`;
+}
+function renderWeakAreas(){
+  const el=document.getElementById("weakAreas");if(!el)return;
+  const weak=weakSkills().slice(0,3);
+  el.innerHTML=weak.map((s,i)=>`<div class="weak-row"><div><span class="weak-rank">0${i+1}</span><b>${s.icon} ${s.label}</b><div class="tiny">${s.attempts?`${s.correct}/${s.attempts} кейсов правильно`:"Нужно больше практики для точной оценки"}</div></div><div class="weak-score">${s.score}</div><button class="btn ghost" onclick="activeModule='${s.id}';go('learn');renderLessons()">Прокачать</button></div>`).join("");
+}
+function openBetaFeedback(category){
+  const prompts={
+    confusing:"В какой момент ты не понимал, что делать дальше?",
+    useless:"Что в BIZONIQ показалось бесполезным?",
+    return:"Что реально заставило бы тебя зайти завтра?",
+    willing_to_pay:"За какую конкретно функцию ты бы отдал 99 ₽?",
+    general:"Что нам обязательно нужно улучшить?"
+  };
+  modal(`<div class="label">BETA FEEDBACK</div><h2>${prompts[category]||prompts.general}</h2><div class="copy">Пиши прямо. Нам сейчас полезнее критика, чем «всё классно».</div><textarea id="betaFeedbackText" class="textarea" maxlength="1500" placeholder="Твой ответ..."></textarea><div id="betaFeedbackStatus" class="auth-status"></div><div class="btnrow"><button class="btn primary" onclick="submitBetaFeedback('${category}')">Отправить</button><button class="btn ghost" onclick="closeModal()">Закрыть</button></div>`,true);
+}
+async function submitBetaFeedback(category){
+  const input=document.getElementById("betaFeedbackText"),status=document.getElementById("betaFeedbackStatus");
+  const message=(input?.value||"").trim();
+  if(message.length<2){status.textContent="Напиши хотя бы пару слов.";return}
+  status.textContent="Сохраняю…";
+  const {data,error}=await sb.functions.invoke("submit-feedback",{body:{category,message,context:{path:state.goal,adaptive_level:state.adaptive.level,xp:state.xp,lessons:state.lessons.length,cases:state.cases.length}}});
+  if(error||!data?.ok){status.textContent="Не получилось отправить. Попробуй ещё раз.";return}
+  status.textContent="Спасибо. Отзыв сохранён.";
+  setTimeout(closeModal,700);
 }
 
 function renderStats(){
@@ -412,7 +574,7 @@ function renderStats(){
   document.getElementById("streak").textContent="🔥 "+state.streak+" дн.";
   document.getElementById("goalPill").textContent="🎯 "+path.title;
   document.getElementById("stats").innerHTML=[
-    ["Level",l.name,"Текущий уровень"],["XP",state.xp,"Игровой прогресс"],
+    ["Level",l.name,"Текущий уровень"],["Case Level",difficultyName(),"Адаптивная сложность"],
     ["Уроки",state.lessons.length+"/56","Завершено"],["Кейсы",state.cases.length+"/32","Решено"]
   ].map((s,i)=>`<div class="card metric"><div class="tiny">${s[0]}</div><b>${s[1]}</b><div class="tiny">${s[2]}</div>${i===0?`<div class="progress" style="margin-top:10px"><span style="width:${l.pct}%"></span></div>`:""}</div>`).join("");
 }
@@ -536,11 +698,13 @@ function renderDashboard(){
     ["Симуляция","Прими 3 управленческих решения",()=>go("simulator")],
     ["Coach","Разбери одну бизнес-гипотезу",()=>go("coach")]
   ];
+  const scores=skillScores();
   document.getElementById("skillMap").innerHTML=C.modules.map(m=>{
-    const done=m.lessons.filter(l=>state.lessons.includes(l[0])).length;
-    const pct=Math.round(done/m.lessons.length*100);
-    return `<div class="card skill-card"><div class="skill-top"><span>${m.icon} ${m.title}</span><b>${pct}%</b></div><div class="progress"><span style="width:${pct}%"></span></div><div class="tiny" style="margin-top:8px">${done}/${m.lessons.length} уроков</div></div>`;
+    const x=scores[m.id];
+    return `<div class="card skill-card"><div class="skill-top"><span>${m.icon} ${m.title}</span><b>${x.score}</b></div><div class="progress"><span style="width:${x.score}%"></span></div><div class="tiny" style="margin-top:8px">Skill Score · ${x.lessons}/${x.total} уроков · ${x.attempts} кейсов</div></div>`;
   }).join("");
+  renderTodayPlan();
+  renderWeakAreas();
   renderGrowthHub();
   document.getElementById("daily").innerHTML=tasks.map((t,i)=>`<div class="card item"><div class="tiny">DAILY ${i+1}</div><h3>${t[0]}</h3><div class="copy">${t[1]}</div><div class="btnrow"><button class="btn ghost" onclick="${["go('learn')","go('cases')","go('simulator')","go('coach')"][i]}">Выполнить</button></div></div>`).join("");
 }
@@ -588,24 +752,38 @@ function learnTerm(name){if(!state.terms.includes(name)){state.terms.push(name);
 function toggleSave(name){state.saved=state.saved.includes(name)?state.saved.filter(x=>x!==name):[...state.saved,name];localSave()}
 
 function renderCases(){
-  const q=(document.getElementById("caseSearch").value||"").toLowerCase();
-  const list=C.cases.filter(c=>(c.title+" "+c.copy+" "+c.tag).toLowerCase().includes(q));
+  const search=document.getElementById("caseSearch");
+  const q=(search?.value||"").toLowerCase();
+  const info=document.getElementById("caseAdaptiveInfo");
+  if(info)info.innerHTML=`
+    <div><div class="tiny">ТВОЙ УРОВЕНЬ КЕЙСОВ</div><b>${difficultyName()}</b><span class="adaptive-path"> · ${pathObj().title}</span></div>
+    <div class="adaptive-actions">
+      <button class="modulechip ${caseMode==="adaptive"?"active":""}" onclick="caseMode='adaptive';renderCases()">Для меня</button>
+      <button class="modulechip ${caseMode==="all"?"active":""}" onclick="caseMode='all';renderCases()">Все 32</button>
+    </div>`;
+  let list=q?C.cases.filter(c=>(c.title+" "+c.copy+" "+c.tag).toLowerCase().includes(q)):(caseMode==="adaptive"?adaptiveCasePool():[...C.cases]);
   document.getElementById("caseGrid").innerHTML=list.map(c=>{
     const done=state.cases.includes(c.id);
     const locked=caseIsPremium(c)&&!proAccess();
-    return `<div class="card item ${locked?"pro-locked":""}"><div class="label">${c.tag}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${c.title}</h3><div class="copy">${c.copy}</div><div class="meta"><span>${c.category}</span><span>${locked?"Pro":done?"✓ решено":"+"+c.xp+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openCase('${c.id}')">${locked?"Открыть с Pro":done?"Разобрать снова":"Открыть кейс"}</button></div></div>`;
+    const recommended=c.paths.includes(state.goal)&&c.difficulty===state.adaptive.level;
+    return `<div class="card item case-card ${locked?"pro-locked":""}"><div class="case-badges"><span class="label">${c.tag}</span><span class="difficulty d${c.difficulty}">${difficultyName(c.difficulty)}</span>${recommended?'<span class="recommended-badge">Для тебя</span>':""}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${c.title}</h3><div class="copy">${c.copy}</div><div class="meta"><span>${SKILL_LABELS[c.category]||c.category}</span><span>${locked?"Pro":done?"✓ решено":"+"+c.xp+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openCase('${c.id}')">${locked?"Открыть с Pro":done?"Разобрать снова":"Открыть кейс"}</button></div></div>`;
   }).join("");
 }
 function openCase(id){
   const c=C.cases.find(x=>x.id===id);
   if(caseIsPremium(c)&&!proAccess()){paywall("Этот кейс");return}
-  modal(`<div class="label">CASE • ${c.tag}</div><h2>${c.title}</h2><div class="copy">${c.copy}</div><div id="caseChoices" class="section">${c.choices.map((ch,i)=>`<button class="choice" onclick="answerCase('${id}',${i},this)">${ch.text}</button>`).join("")}</div><div id="caseFeedback" class="feedback"></div>`);
+  modal(`<div class="case-badges"><span class="label">CASE • ${c.tag}</span><span class="difficulty d${c.difficulty}">${difficultyName(c.difficulty)}</span></div><h2>${c.title}</h2><div class="copy">${c.copy}</div><div id="caseChoices" class="section">${c.choices.map((ch,i)=>`<button class="choice" onclick="answerCase('${id}',${i},this)">${ch.text}</button>`).join("")}</div><div id="caseFeedback" class="feedback"></div><div id="caseRating"></div>`);
 }
 function answerCase(id,i,el){
   const c=C.cases.find(x=>x.id===id),ch=c.choices[i];
   document.querySelectorAll("#caseChoices .choice").forEach(b=>b.disabled=true);el.classList.add(ch.correct?"good":"bad");
-  const f=document.getElementById("caseFeedback");f.textContent=ch.feedback+(ch.correct?" +"+c.xp+" XP":"");f.classList.add("show");
-  if(ch.correct&&!state.cases.includes(id)){state.cases.push(id);state.xp+=c.xp;localSave()}
+  const firstAttempt=!state.adaptive.caseResults[id];
+  if(firstAttempt)recordCaseAttempt(c,ch.correct);
+  const f=document.getElementById("caseFeedback");f.textContent=ch.feedback+(ch.correct&&!state.cases.includes(id)?" +"+c.xp+" XP":"");f.classList.add("show");
+  if(ch.correct&&!state.cases.includes(id)){state.cases.push(id);state.xp+=c.xp}
+  const rating=document.getElementById("caseRating");
+  if(rating&&!state.adaptive.caseRatings[id])rating.innerHTML=`<div class="difficulty-rating"><div class="tiny">КАК БЫЛО ПО СЛОЖНОСТИ?</div><div class="btnrow"><button class="btn ghost" onclick="rateCaseDifficulty('${id}','easy')">Слишком легко</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','normal')">Нормально</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','hard')">Сложно</button></div></div>`;
+  localSave();
 }
 
 function selectSimulator(id){
@@ -726,6 +904,8 @@ function renderProfile(){
   document.getElementById("profilePath").textContent=p.title;
   const arch=learningArchetype();
   const badge=document.getElementById("archetypeBadge");
+  const adaptive=document.getElementById("adaptiveProfile");
+  if(adaptive)adaptive.innerHTML=`<div class="label">ADAPTIVE LEVEL</div><div class="adaptive-profile-level">${difficultyName()}</div><div class="copy">BIZONIQ меняет сложность по первым попыткам и твоим оценкам кейсов.</div>`;
   if(badge)badge.innerHTML=`<div class="label">LEARNING ARCHETYPE</div><div style="font-size:22px;font-weight:900;margin-top:8px">${arch[0]}</div><div class="copy" style="margin-top:5px">${arch[2]}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon()">Поделиться профилем</button></div>`;
   const subscriptionPanel=document.getElementById("subscriptionPanel");
   if(subscriptionPanel)subscriptionPanel.innerHTML=isPro()
