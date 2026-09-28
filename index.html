@@ -48,7 +48,7 @@
       <div style="height:9px"></div>
       <input id="authEmail" class="input" type="email" placeholder="Email" autocomplete="email">
       <div style="height:9px"></div>
-      <input id="authPassword" class="input" type="password" placeholder="Пароль (минимум 6 символов)" autocomplete="current-password">
+      <input id="authPassword" class="input" type="password" placeholder="Пароль (для нового аккаунта — минимум 10 символов)" autocomplete="current-password">
       <div id="authStatus" class="auth-status"></div>
       <div class="btnrow">
         <button class="btn primary" onclick="signInUser()">Войти</button>
@@ -337,6 +337,10 @@
         </div>
         <div id="creatorPanelLink" class="creator-panel-link hidden"></div>
         <div id="accountInfo" style="margin-top:13px"></div>
+        <div class="btnrow account-help-links">
+          <a class="btn ghost" href="./faq.html">FAQ</a>
+          <a class="btn ghost" href="./privacy.html">Privacy & Security</a>
+        </div>
         <div id="installCta" class="card soft"></div>
         <div class="section">
           <div class="tiny">СТАТУС</div>
