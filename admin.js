@@ -116,7 +116,7 @@ function renderCodes(){
   const arr=dashboard.codes||[];
   document.getElementById("codesList").innerHTML=arr.length?arr.map(x=>{
     const state=!x.is_active?"disabled":x.expires_at&&new Date(x.expires_at)<new Date()?"expired":"active";
-    return '<div class="code-row"><div><div class="code-name">BZQ-PRO-••••-'+esc(x.code_hint)+'</div><div class="mini">'+esc(x.duration_days)+' дней Pro · '+esc(x.redemption_count)+'/'+esc(x.max_redemptions)+' активаций'+(x.note?" · "+esc(x.note):"")+'</div></div><span class="state '+state+'">'+(state==="active"?"ACTIVE":state.toUpperCase())+'</span><div class="code-actions">'+(x.is_active?'<button class="small-btn danger-btn" onclick="deactivateCode(\''+x.id+'\')">Отключить</button>':"")+'</div></div>';
+    return '<div class="code-row"><div><div class="code-name">BZQ-PRO-••••••-'+esc(x.code_hint)+'</div><div class="mini">'+esc(x.duration_days)+' дней Pro · '+esc(x.redemption_count)+'/'+esc(x.max_redemptions)+' активаций'+(x.note?" · "+esc(x.note):"")+'</div></div><span class="state '+state+'">'+(state==="active"?"ACTIVE":state.toUpperCase())+'</span><div class="code-actions">'+(x.is_active?'<button class="small-btn danger-btn" onclick="deactivateCode(\''+x.id+'\')">Отключить</button>':"")+'</div></div>';
   }).join(""):'<div class="empty">Кодов ещё нет.</div>';
 }
 function renderUsers(){
@@ -142,7 +142,7 @@ async function generateCode(){
   if(error||!data?.ok){status(data?.error||"Не удалось создать код.","bad");return}
   document.getElementById("newCodeBox").classList.remove("hidden");
   document.getElementById("newCodeValue").textContent=data.code;
-  status("Код создан. Скопируй его сейчас — потом в панели останется только последние 4 символа.","good");
+  status("Код создан. Скопируй его сейчас — потом в панели останутся только последние 6 символов.","good");
   await loadDashboard();
 }
 async function copyNewCode(){
