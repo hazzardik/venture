@@ -1,12 +1,22 @@
 {
+  "id":"./",
   "name":"BIZONIQ — Build Business IQ",
   "short_name":"BIZONIQ",
-  "description":"Интерактивный тренажёр бизнес-мышления: уроки, кейсы, симуляторы, Business Coach и проверяемые сертификаты.",
+  "description":"Адаптивный тренажёр бизнес-мышления: 56 уроков, 32 кейса по уровням, 4 симулятора, Business Coach, Skill Score и сертификаты.",
   "start_url":"./",
   "scope":"./",
   "display":"standalone",
+  "orientation":"any",
   "background_color":"#090c11",
   "theme_color":"#090c11",
   "lang":"ru",
-  "icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+  "categories":["education","business","productivity"],
+  "icons":[
+    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ],
+  "shortcuts":[
+    {"name":"Продолжить обучение","short_name":"Учёба","url":"./?page=learn"},
+    {"name":"Практика","short_name":"Практика","url":"./?page=practice"},
+    {"name":"BIZONIQ Pro","short_name":"Pro","url":"./?page=pricing"}
+  ]
 }
