@@ -179,8 +179,17 @@ async function revokePro(){
 }
 function exportDashboard(){
   if(!dashboard)return;
-  const blob=new Blob([JSON.stringify({exported_at:new Date().toISOString(),dashboard},null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="bizoniq-creator-dashboard.json";a.click();URL.revokeObjectURL(a.href);
+  const safeExport={
+    exported_at:new Date().toISOString(),
+    metrics:dashboard.metrics||{},
+    learning_paths:dashboard.learning_paths||[],
+    top_lessons:dashboard.top_lessons||[],
+    top_cases:dashboard.top_cases||[],
+    hardest_cases:dashboard.hardest_cases||[],
+    page_views:dashboard.page_views||[]
+  };
+  const blob=new Blob([JSON.stringify(safeExport,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="bizoniq-product-metrics.json";a.click();URL.revokeObjectURL(a.href);
 }
 
 document.addEventListener("DOMContentLoaded",init);
