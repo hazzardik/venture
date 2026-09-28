@@ -56,6 +56,8 @@ function metricCard(label,value,sub,accent=""){
 }
 function renderAll(){
   const m=dashboard.metrics||{};
+  const ownerTools=document.getElementById("ownerTools");
+  if(ownerTools)ownerTools.classList.toggle("hidden",dashboard.creator?.role!=="owner");
   document.getElementById("metricGrid").innerHTML=[
     metricCard("Пользователи",m.users||0,"всего аккаунтов",""),
     metricCard("Активны сегодня",m.active_today||0,"уникальных пользователей","good"),
@@ -130,11 +132,26 @@ function filterUsers(){
   const q=document.getElementById("userSearch").value.trim().toLowerCase();
   document.querySelectorAll("#usersBody tr[data-search]").forEach(tr=>tr.style.display=tr.dataset.search.includes(q)?"":"none");
 }
-const auditNames={creator_access_activated:"Creator access",access_code_generated:"Код создан",access_code_deactivated:"Код отключён",manual_pro_granted:"Pro выдан",manual_pro_revoked:"Pro отозван"};
+const auditNames={creator_access_activated:"Creator access",creator_invite_generated:"Creator invite создан",access_code_generated:"Код создан",access_code_deactivated:"Код отключён",manual_pro_granted:"Pro выдан",manual_pro_revoked:"Pro отозван"};
 function renderAudit(){
   const arr=dashboard.audit||[];
   document.getElementById("auditList").innerHTML=arr.length?arr.map(x=>'<div class="audit-row"><div><b>'+esc(auditNames[x.action]||x.action)+'</b><div class="mini">'+fmtDateTime(x.created_at)+'</div></div><code>'+esc(JSON.stringify(x.metadata||{}))+'</code></div>').join(""):'<div class="empty">Audit log пуст.</div>';
 }
+async function generateCreatorInvite(){
+  if(dashboard?.creator?.role!=="owner"){status("Только owner может приглашать новых создателей.","bad");return}
+  status("Создаю одноразовый Creator Invite…");
+  const {data,error}=await sb.functions.invoke("creator-admin",{body:{action:"generate_creator_invite",expires_in_days:7}});
+  if(error||!data?.ok){status(data?.error||"Не удалось создать invite.","bad");return}
+  const box=document.getElementById("creatorInviteBox"),value=document.getElementById("creatorInviteValue"),expiry=document.getElementById("creatorInviteExpiry");
+  box.classList.remove("hidden");value.textContent=data.code;expiry.textContent="Действует до "+fmtDateTime(data.expires_at)+" и только для одной активации.";
+  status("Creator Invite создан. Передай его Сергею безопасным способом; после активации он станет недействительным.","good");
+  await loadDashboard();
+}
+async function copyCreatorInvite(){
+  const code=document.getElementById("creatorInviteValue").textContent;
+  try{await navigator.clipboard.writeText(code);status("Creator Invite скопирован.","good")}catch{prompt("Скопируй invite:",code)}
+}
+
 async function generateCode(){
   const duration=Number(document.getElementById("codeDuration").value),max=Number(document.getElementById("codeMax").value),expiry=document.getElementById("codeExpiry").value,note=document.getElementById("codeNote").value.trim();
   status("Генерирую код…");
