@@ -59,6 +59,8 @@ let cloudTimer=null;
 let syncBusy=false;
 let userCertificates=[];
 let userSubscription=null;
+let userEntitlement=null;
+let creatorAccount=null;
 let paddleInitialized=false;
 let pendingCheckoutPlan=null;
 const CERTIFICATE_TYPES=[
@@ -144,6 +146,8 @@ async function initAuth(){
     if(event==="SIGNED_OUT"){
       userCertificates=[];
       userSubscription=null;
+      userEntitlement=null;
+      creatorAccount=null;
       setSyncStatus("Локальный режим",false);
       renderAll();
     }
@@ -283,29 +287,64 @@ async function pushCloud(force=false){
   }catch(e){setSyncStatus("Ошибка облака",false);console.error(e)}
 }
 
+function manualProActive(){
+  if(!userEntitlement||userEntitlement.status!=="active")return false;
+  return !userEntitlement.ends_at || new Date(userEntitlement.ends_at)>new Date();
+}
 function isPro(){
-  return !!userSubscription && ["active","trialing"].includes(userSubscription.status);
+  return (!!userSubscription && ["active","trialing"].includes(userSubscription.status)) || manualProActive();
 }
 function proAccess(){
   return !billingConfigured() || isPro();
 }
 function proLabel(){
-  if(isPro()) return userSubscription.plan_id==="pro_yearly" ? "Pro Yearly" : "Pro Monthly";
+  if(manualProActive())return userEntitlement.source==="code"?"Pro • код доступа":"Pro • выдан создателем";
+  if(userSubscription&&["active","trialing"].includes(userSubscription.status)) return userSubscription.plan_id==="pro_yearly" ? "Pro Yearly" : "Pro Monthly";
   if(userSubscription?.status==="past_due") return "Pro • проблема с оплатой";
   if(userSubscription?.status==="paused") return "Pro • приостановлена";
   return "Free";
 }
 async function loadSubscription(){
-  if(!session){userSubscription=null;renderPricing();renderProfile();return}
-  const {data,error}=await sb.from("subscriptions").select("*").order("updated_at",{ascending:false}).limit(5);
-  if(!error){
-    const rows=data||[];
+  if(!session){userSubscription=null;userEntitlement=null;creatorAccount=null;renderPricing();renderProfile();return}
+  const [subsQ,entQ,creatorQ]=await Promise.all([
+    sb.from("subscriptions").select("*").order("updated_at",{ascending:false}).limit(5),
+    sb.from("manual_entitlements").select("*").eq("user_id",session.user.id).maybeSingle(),
+    sb.from("creator_accounts").select("*").eq("user_id",session.user.id).maybeSingle()
+  ]);
+  if(!subsQ.error){
+    const rows=subsQ.data||[];
     userSubscription=rows.find(x=>["active","trialing"].includes(x.status))||rows[0]||null;
   }
+  userEntitlement=entQ.error?null:entQ.data;
+  creatorAccount=creatorQ.error?null:creatorQ.data;
   renderPricing();
   renderProfile();
   renderAllProtected();
 }
+
+function trackEvent(event_name,properties={}){
+  try{
+    sb.functions.invoke("submit-analytics",{body:{event_name,properties:{
+      ...properties,path:state.goal,adaptive_level:state.adaptive?.level||1
+    }}}).catch(()=>{});
+  }catch{}
+}
+async function redeemAccessCode(){
+  if(!session){openAuth();return}
+  const input=document.getElementById("accessCodeInput"),status=document.getElementById("accessCodeStatus");
+  const code=(input?.value||"").trim().toUpperCase();
+  if(!code){if(status)status.textContent="Введи код.";return}
+  if(status)status.textContent="Проверяю код…";
+  const {data,error}=await sb.functions.invoke("redeem-access-code",{body:{code}});
+  if(error||!data?.ok){
+    if(status)status.textContent=data?.error||"Код не активирован. Проверь его или попробуй позже.";
+    return;
+  }
+  if(status)status.textContent=data.already_lifetime?"У тебя уже бессрочный Pro.":"Готово. Pro продлён на "+(data.duration_days||0)+" дней.";
+  if(input)input.value="";
+  await loadSubscription();
+}
+
 function renderAllProtected(){
   renderLessons();renderCases();renderSimulator();renderCoach();renderCertificates();
 }
@@ -341,6 +380,7 @@ function billingConfigured(){
 }
 function startPaddleCheckout(plan){
   pendingCheckoutPlan=plan;
+  trackEvent("pro_clicked",{plan,source:"pricing"});
   if(!session){openAuth();return}
   if(isPro()){
     modal('<div class="label">BIZONIQ PRO</div><h2>Pro уже активен</h2><div class="copy">Управлять оплатой или отменой можно через Paddle Customer Portal.</div><div class="btnrow"><button class="btn primary" onclick="closeModal();openBillingPortal()">Управлять подпиской</button></div>',true);
@@ -414,6 +454,8 @@ function go(page){
     profile:["Профиль и синхронизация","Смена пути, аккаунт, backup и прогресс."]
   };
   document.getElementById("pageTitle").textContent=meta[page][0];document.getElementById("pageSub").textContent=meta[page][1];
+  trackEvent("page_view",{page});
+  if(page==="pricing")trackEvent("pricing_viewed",{source:"navigation"});
   scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -546,6 +588,7 @@ function renderWeakAreas(){
   el.innerHTML=weak.map((s,i)=>`<div class="weak-row"><div><span class="weak-rank">0${i+1}</span><b>${s.icon} ${s.label}</b><div class="tiny">${s.attempts?`${s.correct}/${s.attempts} кейсов правильно`:"Нужно больше практики для точной оценки"}</div></div><div class="weak-score">${s.score}</div><button class="btn ghost" onclick="activeModule='${s.id}';go('learn');renderLessons()">Прокачать</button></div>`).join("");
 }
 function openBetaFeedback(category){
+  trackEvent("feedback_opened",{category});
   const prompts={
     confusing:"В какой момент ты не понимал, что делать дальше?",
     useless:"Что в BIZONIQ показалось бесполезным?",
@@ -726,11 +769,14 @@ function renderLessons(){
 function findLesson(id){for(const m of C.modules){const l=m.lessons.find(x=>x[0]===id);if(l)return{m,l}}}
 function openLesson(id){
   const {m,l}=findLesson(id),done=state.lessons.includes(id);
+  trackEvent("lesson_opened",{lesson_id:id,module:m.id});
   if(lessonIsPremium(m,l)&&!proAccess()){paywall("Этот урок");return}
   modal(`<div class="label">${m.icon} ${m.title}</div><h2>${l[1]}</h2><div class="copy">${l[2]}</div><div class="card soft section"><div class="tiny">КЛЮЧЕВАЯ МЫСЛЬ</div><div class="copy" style="margin-top:7px">${l[3]}</div></div><div class="card soft section"><div class="tiny">ПРИМЕР</div><div class="copy" style="margin-top:7px">${l[4]}</div></div><div class="card soft section"><div class="tiny">ПРАКТИЧЕСКИЙ ВЫВОД</div><div class="copy" style="margin-top:7px">${l[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson('${id}')">${done?"Уже завершено":"Завершить • +"+l[6]+" XP"}</button></div>`);
 }
 function completeLesson(id){
-  const {l}=findLesson(id);if(!state.lessons.includes(id)){state.lessons.push(id);state.xp+=l[6];localSave()}closeModal();
+  const {m,l}=findLesson(id);
+  if(!state.lessons.includes(id)){state.lessons.push(id);state.xp+=l[6];trackEvent("lesson_completed",{lesson_id:id,module:m.id,xp:l[6]});localSave()}
+  closeModal();
 }
 
 function renderTerms(){
@@ -771,6 +817,7 @@ function renderCases(){
 }
 function openCase(id){
   const c=C.cases.find(x=>x.id===id);
+  trackEvent("case_opened",{case_id:id,category:c.category,difficulty:c.difficulty});
   if(caseIsPremium(c)&&!proAccess()){paywall("Этот кейс");return}
   modal(`<div class="case-badges"><span class="label">CASE • ${c.tag}</span><span class="difficulty d${c.difficulty}">${difficultyName(c.difficulty)}</span></div><h2>${c.title}</h2><div class="copy">${c.copy}</div><div id="caseChoices" class="section">${c.choices.map((ch,i)=>`<button class="choice" onclick="answerCase('${id}',${i},this)">${ch.text}</button>`).join("")}</div><div id="caseFeedback" class="feedback"></div><div id="caseRating"></div>`);
 }
@@ -778,7 +825,10 @@ function answerCase(id,i,el){
   const c=C.cases.find(x=>x.id===id),ch=c.choices[i];
   document.querySelectorAll("#caseChoices .choice").forEach(b=>b.disabled=true);el.classList.add(ch.correct?"good":"bad");
   const firstAttempt=!state.adaptive.caseResults[id];
-  if(firstAttempt)recordCaseAttempt(c,ch.correct);
+  if(firstAttempt){
+    recordCaseAttempt(c,ch.correct);
+    trackEvent("case_answered",{case_id:id,category:c.category,difficulty:c.difficulty,correct:!!ch.correct,first_attempt:true});
+  }
   const f=document.getElementById("caseFeedback");f.textContent=ch.feedback+(ch.correct&&!state.cases.includes(id)?" +"+c.xp+" XP":"");f.classList.add("show");
   if(ch.correct&&!state.cases.includes(id)){state.cases.push(id);state.xp+=c.xp}
   const rating=document.getElementById("caseRating");
@@ -788,6 +838,7 @@ function answerCase(id,i,el){
 
 function selectSimulator(id){
   if(id!=="coffee"&&!proAccess()){paywall("Этот бизнес-симулятор");return}
+  trackEvent("simulator_opened",{simulator_id:id});
   activeSimulator=id;resetSimulator(false);renderSimulator()
 }
 function resetSimulator(render=true){
@@ -890,7 +941,7 @@ async function claimCertificate(type){
   if(error){alert("Не удалось выдать сертификат. Проверь прогресс и попробуй ещё раз.");return}
   if(data?.certificate){await loadCertificates();openCertificate(data.certificate.certificate_code)}
 }
-function openCertificate(code){window.open("./certificate.html?code="+encodeURIComponent(code),"_blank","noopener")}
+function openCertificate(code){trackEvent("certificate_opened",{code_suffix:String(code).slice(-4)});window.open("./certificate.html?code="+encodeURIComponent(code),"_blank","noopener")}
 async function copyCertificateLink(code){
   const url=new URL("./certificate.html?code="+encodeURIComponent(code),location.href).href;
   try{await navigator.clipboard.writeText(url);alert("Ссылка на сертификат скопирована.");}catch{prompt("Скопируй ссылку:",url)}
@@ -908,9 +959,20 @@ function renderProfile(){
   if(adaptive)adaptive.innerHTML=`<div class="label">ADAPTIVE LEVEL</div><div class="adaptive-profile-level">${difficultyName()}</div><div class="copy">BIZONIQ меняет сложность по первым попыткам и твоим оценкам кейсов.</div>`;
   if(badge)badge.innerHTML=`<div class="label">LEARNING ARCHETYPE</div><div style="font-size:22px;font-weight:900;margin-top:8px">${arch[0]}</div><div class="copy" style="margin-top:5px">${arch[2]}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon()">Поделиться профилем</button></div>`;
   const subscriptionPanel=document.getElementById("subscriptionPanel");
-  if(subscriptionPanel)subscriptionPanel.innerHTML=isPro()
-    ?`<div class="subscription-active"><div><div class="tiny good">● BIZONIQ PRO</div><b>${proLabel()}</b></div><button class="btn ghost" onclick="openBillingPortal()">Управлять</button></div>`
-    :`<div class="subscription-free"><div><div class="tiny">Тариф</div><b>Free</b></div><button class="btn primary" onclick="go('pricing')">Pro от 99 ₽</button></div>`;
+  if(subscriptionPanel){
+    if(isPro()){
+      const manual=manualProActive();
+      const end=manual&&userEntitlement.ends_at?new Date(userEntitlement.ends_at).toLocaleDateString("ru-RU"):null;
+      subscriptionPanel.innerHTML=`<div class="subscription-active"><div><div class="tiny good">● BIZONIQ PRO</div><b>${proLabel()}</b>${end?`<div class="tiny">до ${end}</div>`:""}</div>${!manual&&userSubscription?'<button class="btn ghost" onclick="openBillingPortal()">Управлять</button>':""}</div>`;
+    }else{
+      subscriptionPanel.innerHTML=`<div class="subscription-free"><div><div class="tiny">Тариф</div><b>Free</b></div><button class="btn primary" onclick="go('pricing')">Pro от 99 ₽</button></div>`;
+    }
+  }
+  const creatorBox=document.getElementById("creatorPanelLink");
+  if(creatorBox){
+    creatorBox.classList.toggle("hidden",!creatorAccount);
+    if(creatorAccount)creatorBox.innerHTML=`<div><div class="tiny good">● CREATOR ACCESS</div><b>Creator Console</b><div class="copy">Пользователи, аналитика, Pro-коды и beta-feedback.</div></div><a class="btn primary" href="./admin.html">Открыть панель</a>`;
+  }
   document.getElementById("accountInfo").innerHTML=session?`<div class="tiny good">● Облачная синхронизация включена</div><div style="margin-top:7px">${session.user.email}</div><div class="btnrow"><button class="btn secondary" onclick="pushCloud(true)">Синхронизировать сейчас</button><button class="btn danger" onclick="signOutUser()">Выйти</button></div>`:`<div class="tiny warn">● Сейчас прогресс хранится только на этом устройстве.</div><div class="btnrow"><button class="btn primary" onclick="openAuth()">Создать аккаунт / войти</button></div>`;
   const ach=[
     ["Первый рывок","100 XP",state.xp>=100],["Терминатор","10 терминов",state.terms.length>=10],["Практик","5 кейсов",state.cases.length>=5],
@@ -942,6 +1004,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
   document.getElementById("caseSearch").oninput=renderCases;
   document.getElementById("coachInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendCoach()});
   resetSimulator(false);renderAll();setupInstall();initPaddle();await initAuth();
+  trackEvent("page_view",{page:"dashboard",initial:true});
   const requested=new URLSearchParams(location.search).get("page");
   if(["dashboard","learn","dictionary","practice","cases","simulator","coach","certificates","pricing","profile"].includes(requested))go(requested);
 });
