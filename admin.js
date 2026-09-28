@@ -124,7 +124,7 @@ function renderUsers(){
   document.getElementById("usersBody").innerHTML=arr.length?arr.map(u=>{
     const p=u.profile||{};
     return '<tr data-search="'+esc(((u.email||"")+" "+(p.display_name||"")).toLowerCase())+'"><td><b>'+esc(p.display_name||"—")+'</b><div class="mini">'+esc(u.email||"—")+'</div></td><td>'+esc(p.learning_path||"—")+'</td><td>'+esc(p.xp||0)+'</td><td>'+fmtDate(u.created_at)+'</td><td>'+fmtDateTime(u.last_sign_in_at)+'</td><td>'+(u.pro?'<span class="state active">PRO'+(u.pro_until?' · '+fmtDate(u.pro_until):'')+'</span>':'<span class="state">FREE</span>')+'</td><td><button class="small-btn" onclick="quickGrant(\''+esc(u.email||"")+'\',30)">Pro 30д</button></td></tr>';
-  }).join(""):'<tr><td colspan="6" class="empty">Пользователей пока нет.</td></tr>';
+  }).join(""):'<tr><td colspan="7" class="empty">Пользователей пока нет.</td></tr>';
 }
 function filterUsers(){
   const q=document.getElementById("userSearch").value.trim().toLowerCase();
