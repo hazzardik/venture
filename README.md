@@ -67,3 +67,15 @@ BIZONIQ certificates are server-issued after verified progress requirements. Cer
 - User code redemption is server-side and extends an existing manual entitlement.
 - Creator audit log records code creation/deactivation and manual Pro grants/revocations.
 - Direct client access to private code, analytics and audit tables is blocked by RLS.
+
+
+## Security hardening v10
+- Removed unnecessary anonymous SQL privileges from user progress tables and reduced authenticated grants to least privilege.
+- Added rate limiting and payload validation to analytics, feedback, certificate and admin Edge Functions.
+- Pro-code redemption is now atomic in PostgreSQL with row locking to prevent concurrent over-redemption.
+- New Pro codes use 12 random characters; legacy codes remain redeemable.
+- New certificate IDs use 96 bits of randomness; legacy certificate verification remains supported.
+- Public pages include restrictive CSP/referrer policies; Paddle is lazy-loaded only when billing is configured and the user starts checkout.
+- Creator Console aggregate export no longer includes user emails, feedback text or audit log.
+- Backup import is size-limited, allowlisted and normalized before state is applied.
+- Added a public Privacy & Security center.
