@@ -325,6 +325,16 @@
       <div class="card">
         <div class="sectiontitle">Аккаунт и сохранение</div>
         <div id="subscriptionPanel" class="subscription-panel"></div>
+        <div class="section">
+          <div class="sectiontitle" style="font-size:17px">Активировать Pro-код</div>
+          <div class="copy" style="margin-top:6px">Если создатель выдал тебе код вида BZQ-PRO-XXXX-XXXX, введи его здесь. Срок Pro автоматически добавится к текущему доступу.</div>
+          <div class="redeem-row" style="margin-top:10px">
+            <input id="accessCodeInput" class="input" placeholder="BZQ-PRO-XXXX-XXXX" autocomplete="off" spellcheck="false">
+            <button class="btn primary" onclick="redeemAccessCode()">Активировать</button>
+          </div>
+          <div id="accessCodeStatus" class="auth-status"></div>
+        </div>
+        <div id="creatorPanelLink" class="creator-panel-link hidden"></div>
         <div id="accountInfo" style="margin-top:13px"></div>
         <div id="installCta" class="card soft"></div>
         <div class="section">
@@ -355,6 +365,7 @@
     <div class="footer-links">
       <a href="./?page=pricing">Pro • 99 ₽</a>
       <a href="./faq.html">FAQ</a>
+      <a href="./admin.html">Creator Console</a>
       <a href="./verify.html">Проверить сертификат</a>
     </div>
     <div class="footer-legal">
