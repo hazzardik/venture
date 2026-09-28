@@ -1,29 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
 <defs>
-  <linearGradient id="ring" x1="78" y1="72" x2="438" y2="442" gradientUnits="userSpaceOnUse">
+  <linearGradient id="frame" x1="70" y1="60" x2="444" y2="450" gradientUnits="userSpaceOnUse">
     <stop stop-color="#B6FF45"/>
+    <stop offset=".54" stop-color="#83D7A6"/>
     <stop offset="1" stop-color="#6F7CFF"/>
   </linearGradient>
-  <linearGradient id="face" x1="256" y1="145" x2="256" y2="395" gradientUnits="userSpaceOnUse">
-    <stop stop-color="#F5F8FC"/>
-    <stop offset="1" stop-color="#DDE5EE"/>
+  <linearGradient id="arrow" x1="188" y1="353" x2="387" y2="171" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#B6FF45"/>
+    <stop offset="1" stop-color="#D9FF88"/>
   </linearGradient>
-  <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-    <feGaussianBlur stdDeviation="9" result="blur"/>
-    <feColorMatrix in="blur" values="0 0 0 0 0.714 0 0 0 0 1 0 0 0 0 0.271 0 0 0 .28 0"/>
-  </filter>
+  <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(360 148) rotate(133) scale(245)">
+    <stop stop-color="#6F7CFF" stop-opacity=".22"/>
+    <stop offset="1" stop-color="#6F7CFF" stop-opacity="0"/>
+  </radialGradient>
 </defs>
+
 <rect width="512" height="512" rx="116" fill="#090C11"/>
-<rect x="57" y="57" width="398" height="398" rx="108" stroke="url(#ring)" stroke-width="13" opacity=".9"/>
-<path d="M122 204C139 145 187 113 238 128L256 153L274 128C325 113 373 145 390 204L341 190L316 222C297 210 277 204 256 204C235 204 215 210 196 222L171 190L122 204Z" fill="#B6FF45" filter="url(#glow)" opacity=".7"/>
-<path d="M122 204C139 145 187 113 238 128L256 153L274 128C325 113 373 145 390 204L341 190L316 222C297 210 277 204 256 204C235 204 215 210 196 222L171 190L122 204Z" fill="#B6FF45"/>
-<path d="M177 226C197 194 224 180 256 180C288 180 315 194 335 226L321 344C317 382 291 407 256 407C221 407 195 382 191 344L177 226Z" fill="url(#face)"/>
-<path d="M207 261C218 250 231 245 244 245" stroke="#090C11" stroke-width="18" stroke-linecap="round"/>
-<path d="M305 261C294 250 281 245 268 245" stroke="#090C11" stroke-width="18" stroke-linecap="round"/>
-<circle cx="229" cy="278" r="8" fill="#6F7CFF"/>
-<circle cx="283" cy="278" r="8" fill="#6F7CFF"/>
-<path d="M222 326H290" stroke="#090C11" stroke-width="22" stroke-linecap="round"/>
-<path d="M230 362L256 337L282 362" stroke="#6F7CFF" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M256 337V294" stroke="#B6FF45" stroke-width="19" stroke-linecap="round"/>
-<path d="M237 313L256 294L275 313" stroke="#B6FF45" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="48" y="48" width="416" height="416" rx="112" fill="url(#glow)"/>
+<rect x="61" y="61" width="390" height="390" rx="104" stroke="url(#frame)" stroke-width="12" opacity=".78"/>
+
+<!-- BIZONIQ B monogram -->
+<path d="M151 132V380M151 137H272C326 137 357 162 357 202C357 240 330 260 283 266H151M151 266H287C343 266 375 291 375 331C375 370 343 380 286 380H151"
+      stroke="#F3F7FB" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+
+<!-- Subtle business bars -->
+<path d="M205 350V322M245 350V295M285 350V269" stroke="#6F7CFF" stroke-width="13" stroke-linecap="round" opacity=".82"/>
+
+<!-- Growth trajectory -->
+<path d="M190 347L247 292L296 321L389 211" stroke="url(#arrow)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M342 211H389V258" stroke="#B6FF45" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+
+<circle cx="190" cy="347" r="10" fill="#B6FF45"/>
+<circle cx="247" cy="292" r="9" fill="#F3F7FB"/>
+<circle cx="296" cy="321" r="9" fill="#6F7CFF"/>
 </svg>
