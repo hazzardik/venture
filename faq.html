@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090c11">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer">
 <title>FAQ — BIZONIQ</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./styles.css">
 <style>
@@ -56,18 +58,20 @@
       <details><summary>Кто создал BIZONIQ?</summary><div class="answer">Создатели проекта: Лобов Максим и Сагал Сергей.</div></details>
       <details><summary>Сколько стоит BIZONIQ Pro?</summary><div class="answer">Планируемая цена: 99 ₽ в месяц или 799 ₽ в год. Годовой вариант эквивалентен примерно 67 ₽ в месяц и экономит 389 ₽ относительно ежемесячной оплаты.</div></details>
       <details><summary>Оплата уже работает?</summary><div class="answer">Инфраструктура подписок и тарифы уже подготовлены, но реальные списания включатся только после подключения и проверки merchant-аккаунта Paddle. До этого платные ограничения не блокируют текущий контент.</div></details>
-      <details><summary>Можно ли активировать Pro кодом?</summary><div class="answer">Да. Создатели BIZONIQ могут выдавать коды формата BZQ-PRO-XXXX-XXXX на определённый срок. После входа введи код в профиле — срок Pro добавится к уже действующему ручному доступу.</div></details>
+      <details><summary>Можно ли активировать Pro кодом?</summary><div class="answer">Да. Создатели BIZONIQ могут выдавать коды формата BZQ-PRO-XXXXXX-XXXXXX на определённый срок. После входа введи код в профиле — срок Pro добавится к уже действующему ручному доступу.</div></details>
     </div>
   </section>
 
   <div class="btnrow" style="margin-top:30px">
     <a class="btn primary" href="./">Открыть BIZONIQ</a>
     <a class="btn ghost" href="./verify.html">Проверить сертификат</a>
+    <a class="btn ghost" href="./privacy.html">Privacy & Security</a>
   </div>
 
   <footer class="help-footer">
     <div>Создатели: <b>Лобов Максим</b> · <b>Сагал Сергей</b></div>
     <div>© 2026 BIZONIQ. All rights reserved.</div>
+    <div><a href="./privacy.html" style="color:inherit">Privacy & Security</a></div>
     <div>Аккаунты и учебный прогресс защищены Supabase Auth и политиками Row Level Security (RLS). Абсолютная безопасность любой онлайн-системы не может быть гарантирована.</div>
   </footer>
 </main>
