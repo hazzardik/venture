@@ -242,3 +242,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .lesson-related{margin-top:14px;padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02)}
 .term-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
 .metric .tiny:last-child{line-height:1.45}
+
+.practice-fresh{border-color:rgba(182,255,69,.22);background:linear-gradient(180deg,rgba(182,255,69,.055),rgba(255,255,255,.018))}
+.practice-fresh .practice-icon{border-color:rgba(182,255,69,.22);background:rgba(182,255,69,.055)}
