@@ -158,7 +158,11 @@ function renderAll(){
     metricCard("Activation",String(m.activation_rate||0)+"%",AL("начали проходить уроки","started lessons"),"good"),
     metricCard("Practice",String(m.practice_rate||0)+"%",AL("дошли до кейсов","reached cases"),""),
     metricCard("Pro intent",String(m.pro_click_rate||0)+"%",AL("клики Pro / просмотры Pricing","Pro clicks / Pricing views"),""),
-    metricCard("Pro users",(m.manual_pro||0)+(m.paddle_pro||0),"manual "+(m.manual_pro||0)+" · Paddle "+(m.paddle_pro||0),"pro")
+    metricCard("Pro users",(m.manual_pro||0)+(m.paddle_pro||0),"manual "+(m.manual_pro||0)+" · Paddle "+(m.paddle_pro||0),"pro"),
+    metricCard(AL("Вернулись 7 дней","Repeat 7 days"),String(m.repeat_rate_7d||0)+"%",AL("активны минимум в 2 разные даты","active on at least 2 different days"),"good"),
+    metricCard("AI Coach",m.ai_users_7d||0,AL((m.ai_messages_7d||0)+" сообщений / 7д",(m.ai_messages_7d||0)+" messages / 7d"),""),
+    metricCard("Daily Duel",m.duel_users_7d||0,AL((m.duel_answers_7d||0)+" решений / 7д",(m.duel_answers_7d||0)+" decisions / 7d"),""),
+    metricCard(AL("Повторные пользователи","Repeat users"),m.repeat_users_7d||0,AL("за последние 7 дней","in the last 7 days"),"")
   ].join("");
   renderProductHealth();
   renderPaths();
@@ -176,6 +180,7 @@ function renderProductHealth(){
   const items=[
     ["Activation rate",m.activation_rate||0,AL("Доля зарегистрированных, начавших хотя бы один урок.","Share of registered users who started at least one lesson.")],
     ["Practice rate",m.practice_rate||0,AL("Доля зарегистрированных, решивших хотя бы один кейс.","Share of registered users who solved at least one case.")],
+    ["Repeat rate 7d",m.repeat_rate_7d||0,AL("Доля активных за 7 дней, которые были активны минимум в две разные даты.","Share of 7-day active users who were active on at least two different dates.")],
     ["Pro click rate",m.pro_click_rate||0,AL("Доля кликов Pro от просмотров страницы тарифов за 30 дней.","Share of Pro clicks from Pricing page views over 30 days.")]
   ];
   document.getElementById("healthBars").innerHTML=items.map(x=>'<div class="health-row"><div class="health-head"><b>'+esc(x[0])+'</b><span>'+pct(x[1])+'%</span></div><div class="bar"><span style="width:'+pct(x[1])+'%"></span></div><div class="mini">'+esc(x[2])+'</div></div>').join("");
