@@ -74,7 +74,7 @@
     "Тренировка решений на финансах, маркетинге, продажах, стратегии и команде.":"Decision practice across finance, marketing, sales, strategy and teams.",
     "Выбери бизнес":"Choose a business",
     "Каждый сценарий — три последовательных решения с изменением метрик.":"Each scenario has three sequential decisions that change the metrics.",
-    "Смотри не на одну красивую цифру, а на систему: cash, revenue, profit и клиентов.":"Look at the system, not one pretty number: cash, revenue, profit and customers.",
+    "Смотри не на одну красивую цифру, а на систему: деньги, выручку, прибыль и клиентов.":"Look at the system, not one pretty number: cash, revenue, profit and customers.",
     "Шаг 1":"Step 1",
     "Начать заново":"Restart",
     "Интерактивный бизнес-наставник: помогает разбирать идею, экономику, маркетинг и сложные решения пошагово.":"Interactive business coach for ideas, economics, marketing and difficult decisions.",
@@ -429,12 +429,12 @@
     "Decision Cases • 32 ситуации":"Decision Cases • 32 situations",
     "Не тест на память: оценивай trade-offs, выбирай сильнейший вариант и смотри, какую метрику решение меняет.":"Not a memory test: evaluate trade-offs, choose the strongest option and see which metric the decision changes.",
     "Business Simulations":"Business Simulations",
-    "Каждый бизнес — серия взаимосвязанных решений. Можно вырасти, застрять в cash-flow или разрушить экономику неправильным масштабированием.":"Each business is a chain of connected decisions. You can grow, hit a cash-flow wall or break the economics by scaling badly.",
+    "Каждый бизнес — серия взаимосвязанных решений. Можно вырасти, попасть в кассовый разрыв или разрушить экономику неправильным масштабированием.":"Each business is a chain of connected decisions. You can grow, hit a cash-flow wall or break the economics by scaling badly.",
     "BIZONIQ AI Coach":"BIZONIQ AI Coach",
     "Настоящий AI-разбор: Coach читает твой ответ, учитывает прогресс и задаёт вопросы по слабым местам вместо заранее прописанного сценария.":"Real AI analysis: Coach reads your answer, uses your progress as context and challenges weak areas instead of following a canned script.",
     "Новый разбор":"New analysis",
     "AI Coach может ошибаться. Для финансовых, юридических и налоговых решений проверяй критичные факты отдельно.":"AI Coach can make mistakes. Verify critical facts separately for financial, legal and tax decisions.",
-    "AI Coach • до 8 сообщений в день":"AI Coach • up to 8 messages per day",
+    "AI Coach • до 12 сообщений в день":"AI Coach • up to 12 messages per day",
     "Все режимы AI Coach • расширенный лимит":"All AI Coach modes • higher daily limit",
     "Тренажёр бизнес-решений":"Business Decision Trainer",
     "Business Dictionary":"Business Dictionary",
@@ -459,8 +459,14 @@
     "Симулятор кофейни • 10 решений":"Coffee Shop simulator • 10 decisions",
     "16 микро-уроков":"16 micro-lessons",
     "Все 4 симулятора • по 10 решений":"All 4 simulations • 10 decisions each",
-    "Все режимы AI Coach • до 60 сообщений в день":"All AI Coach modes • up to 60 messages per day",
+    "Все режимы AI Coach • до 50 сообщений в день":"All AI Coach modes • up to 50 messages per day",
     "Все 56 микро-уроков":"All 56 micro-lessons"
+  });
+
+  Object.assign(STATIC_EN,{
+    "Бизнес-симуляции":"Business Simulations",
+    "Режим решений":"Decision mode",
+    "Не тест на память: оценивай компромиссы, выбирай сильнейший вариант и смотри, какую метрику решение меняет.":"Not a memory test: evaluate trade-offs, choose the strongest option and see which metric the decision changes."
   });
 
   const REPLACERS_EN=[
@@ -536,7 +542,7 @@
       const map={
         "Поиск по урокам...":"Search lessons...",
         "CAC, EBITDA, Burn Rate...":"CAC, EBITDA, Burn Rate...",
-        "Найти кейс: cash flow, pricing, retention...":"Find a case: cash flow, pricing, retention...",
+        "Найти кейс: денежный поток, ценообразование, удержание...":"Find a case: cash flow, pricing, retention...",
         "Напиши ответ...":"Write your answer...",
         "Опиши решение, идею или цифры...":"Describe a decision, idea or numbers...",
         "Имя":"First name",
