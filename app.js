@@ -20,20 +20,21 @@ function localizeUI(){
 
 const NAV=[
   ["dashboard","home",L("Главная","Home")],
-  ["learn","learn",L("Учёба","Learn")],
-  ["dictionary","dictionary",L("Словарь","Dictionary")],
+  ["practice","practice",L("Практика","Practice")],
   ["cases","cases",L("Кейсы","Cases")],
   ["simulator","simulator",L("Симулятор","Simulator")],
-  ["coach","coach","Coach"],
+  ["coach","coach",L("AI Coach","AI Coach")],
+  ["learn","learn",L("База знаний","Learn")],
+  ["dictionary","dictionary",L("Словарь","Dictionary")],
   ["certificates","certificate",L("Сертификаты","Certificates")],
   ["pricing","pro","Pro"],
   ["profile","profile",L("Профиль","Profile")]
 ];
 const MOBILE_NAV=[
   ["dashboard","home",L("Главная","Home")],
-  ["learn","learn",L("Курсы","Courses")],
-  ["dictionary","dictionary",L("Словарь","Dictionary")],
   ["practice","practice",L("Практика","Practice")],
+  ["coach","coach",L("AI Coach","AI Coach")],
+  ["learn","learn",L("Учёба","Learn")],
   ["profile","profile",L("Профиль","Profile")]
 ];
 const ICONS={
@@ -63,7 +64,15 @@ const PRACTICE_CARDS=[
   {id:"coach",title:"Business Coach",desc:L("Структурируй идею и решения","Structure an idea and decisions")},
   {id:"certificates",title:L("Сертификаты","Certificates"),desc:L("Проверяемые достижения BIZONIQ","Verifiable BIZONIQ achievements")}
 ];
-const LEVELS=[["Apprentice",0],["Builder",300],["Operator",800],["Founder",1500],["Scaler",2500],["Visionary",4000],["Titan",6500]];
+const LEVELS=[
+  {name:"Apprentice",xp:0,cases:0,sims:0,lessons:0},
+  {name:"Builder",xp:250,cases:3,sims:0,lessons:2},
+  {name:"Operator",xp:700,cases:8,sims:1,lessons:5},
+  {name:"Founder",xp:1400,cases:15,sims:2,lessons:10},
+  {name:"Scaler",xp:2600,cases:22,sims:3,lessons:16},
+  {name:"Visionary",xp:4200,cases:28,sims:4,lessons:24},
+  {name:"Titan",xp:6500,cases:32,sims:4,lessons:32}
+];
 const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:[],terms:[],saved:[],cases:[],simDone:{},name:"",dailyDone:{},version:9,
   diagnostic:{completed:false,answers:[],recommended:""},
   challenge:{started:false,startDate:"",completedDays:[]},
@@ -581,12 +590,27 @@ function renderPricing(){
   localizeUI(el);
 }
 
-function level(){
-  let cur=LEVELS[0],next=LEVELS[1];
-  for(let i=0;i<LEVELS.length;i++){if(state.xp>=LEVELS[i][1]){cur=LEVELS[i];next=LEVELS[i+1]||LEVELS[i]}}
-  const pct=next[1]===cur[1]?100:Math.max(0,Math.min(100,(state.xp-cur[1])/(next[1]-cur[1])*100));
-  return {name:cur[0],pct};
+function levelRequirementsMet(l){
+  const sims=Object.values(state.simDone||{}).filter(Boolean).length;
+  return state.xp>=l.xp&&state.cases.length>=l.cases&&sims>=l.sims&&state.lessons.length>=l.lessons;
 }
+function level(){
+  let idx=0;
+  for(let i=0;i<LEVELS.length;i++){if(levelRequirementsMet(LEVELS[i]))idx=i}
+  const cur=LEVELS[idx],next=LEVELS[Math.min(idx+1,LEVELS.length-1)];
+  if(cur===next)return {name:cur.name,pct:100,next:null,requirements:cur};
+  const sims=Object.values(state.simDone||{}).filter(Boolean).length;
+  const ratios=[
+    next.xp?state.xp/next.xp:1,
+    next.cases?state.cases.length/next.cases:1,
+    next.sims?sims/next.sims:1,
+    next.lessons?state.lessons.length/next.lessons:1
+  ].map(x=>Math.max(0,Math.min(1,x)));
+  const pct=Math.round(ratios.reduce((a,b)=>a+b,0)/ratios.length*100);
+  return {name:cur.name,pct,next:next.name,requirements:next};
+}
+function lessonXp(l){return Math.max(10,Math.min(20,Math.round((Number(l?.[6])||30)*0.35)))}
+function termXp(){return 5}
 function pathObj(){return C.paths.find(p=>p.id===state.goal)||C.paths[3]}
 function rub(n){return PREFS.money?PREFS.money(n):Math.round(n).toLocaleString("ru-RU")+" ₽"}
 function proPrice(plan){return PREFS.price?PREFS.price(plan):(plan==="yearly"?"799 ₽":"99 ₽")}
@@ -677,13 +701,20 @@ function difficultyRu(level){
 }
 function skillScores(){
   const out={};
+  const seeds=state.diagnostic?.skillSeed||{};
   C.modules.forEach(m=>{
     const done=m.lessons.filter(l=>state.lessons.includes(l[0])).length;
     const lessonScore=done/m.lessons.length*100;
     const results=Object.values(state.adaptive.caseResults||{}).filter(r=>r.category===m.id);
-    const accuracy=results.length?(results.filter(r=>r.correct).length/results.length*100):lessonScore;
-    const score=Math.round(lessonScore*.6+accuracy*.4);
-    out[m.id]={id:m.id,label:SKILL_LABELS[m.id]||m.title,icon:m.icon,score,lessons:done,total:m.lessons.length,attempts:results.length,correct:results.filter(r=>r.correct).length};
+    const weightedTotal=results.reduce((s,r)=>s+(Number(r.difficulty)||1),0);
+    const weightedCorrect=results.reduce((s,r)=>s+(r.correct?(Number(r.difficulty)||1):0),0);
+    const caseScore=weightedTotal?weightedCorrect/weightedTotal*100:lessonScore;
+    const coverage=Math.min(100,results.length/4*100);
+    const seed=Number(seeds[m.id]??50);
+    const score=results.length
+      ?Math.round(lessonScore*.25+caseScore*.45+coverage*.20+seed*.10)
+      :Math.round(lessonScore*.55+seed*.45);
+    out[m.id]={id:m.id,label:SKILL_LABELS[m.id]||m.title,icon:m.icon,score,lessons:done,total:m.lessons.length,attempts:results.length,correct:results.filter(r=>r.correct).length,caseScore:Math.round(caseScore),coverage:Math.round(coverage)};
   });
   return out;
 }
@@ -980,8 +1011,8 @@ function openLesson(id){
   modal(`<div class="label">${m.icon} ${m.title}</div><h2>${l[1]}</h2><div class="copy">${l[2]}</div><div class="card soft section"><div class="tiny">${L("КЛЮЧЕВАЯ МЫСЛЬ","KEY IDEA")}</div><div class="copy" style="margin-top:7px">${l[3]}</div></div><div class="card soft section"><div class="tiny">${L("ПРИМЕР","EXAMPLE")}</div><div class="copy" style="margin-top:7px">${l[4]}</div></div><div class="card soft section"><div class="tiny">${L("ПРАКТИЧЕСКИЙ ВЫВОД","PRACTICAL TAKEAWAY")}</div><div class="copy" style="margin-top:7px">${l[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson('${id}')">${done?L("Уже завершено","Completed"):L("Завершить","Complete")+" • +"+l[6]+" XP"}</button></div>`);
 }
 function completeLesson(id){
-  const {m,l}=findLesson(id);
-  if(!state.lessons.includes(id)){state.lessons.push(id);state.xp+=l[6];trackEvent("lesson_completed",{lesson_id:id,module:m.id,xp:l[6]});localSave()}
+  const {m,l}=findLesson(id),xp=lessonXp(l);
+  if(!state.lessons.includes(id)){state.lessons.push(id);state.xp+=xp;trackEvent("lesson_completed",{lesson_id:id,module:m.id,xp});localSave()}
   closeModal();
 }
 
@@ -1001,7 +1032,7 @@ function openTerm(name){
   const t=C.terms.find(x=>x[0]===name);
   modal(`<div class="label">${t[2]}</div><h2>${t[0]}</h2><div class="card soft section"><div class="tiny">${L("ПО-ПРОСТОМУ","IN SIMPLE TERMS")}</div><div class="copy" style="margin-top:7px">${t[3]}</div></div><div class="card soft section"><div class="tiny">${L("ЗАЧЕМ ПРЕДПРИНИМАТЕЛЮ","WHY IT MATTERS")}</div><div class="copy" style="margin-top:7px">${t[4]}</div></div><div class="card soft section"><div class="tiny">${L("ПРИМЕР","EXAMPLE")}</div><div class="copy" style="margin-top:7px">${t[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="learnTerm('${t[0]}');closeModal()">${L("Понял","Got it")} • +25 XP</button></div>`);
 }
-function learnTerm(name){if(!state.terms.includes(name)){state.terms.push(name);state.xp+=25;localSave()}}
+function learnTerm(name){if(!state.terms.includes(name)){state.terms.push(name);state.xp+=termXp();localSave()}}
 function toggleSave(name){state.saved=state.saved.includes(name)?state.saved.filter(x=>x!==name):[...state.saved,name];localSave()}
 
 function renderCases(){
