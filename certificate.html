@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#090c11">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://qmjtmhtmbaseykmwttvn.supabase.co; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
-<title>Certificate — BIZONIQ</title>
+<title id="pageTitle">Certificate — BIZONIQ</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
 :root{--ink:#10141c;--lime:#96d93a;--indigo:#5868e8;--paper:#f7f5ef;--muted:#6d7380}
@@ -16,44 +16,130 @@
 </head>
 <body>
 <div class="wrap">
-<div class="actions"><a class="btn" href="./">← BIZONIQ</a><div><a class="btn" id="verifyLink" href="./verify.html">Проверить</a> <button class="btn primary" onclick="window.print()">Сохранить / PDF</button></div></div>
-<div id="status" class="status">Проверяю сертификат…</div>
+<div class="actions"><a class="btn" href="./">← BIZONIQ</a><div><a class="btn" id="verifyLink" href="./verify.html">Verify</a> <button id="printButton" class="btn primary" onclick="window.print()">Save / PDF</button></div></div>
+<div id="status" class="status">Verifying certificate…</div>
 <div id="certificate" class="cert" hidden>
  <div class="frame"></div><div class="accent"></div>
  <div class="top"><div class="brand">BIZONIQ</div><div class="seal">B/IQ</div></div>
- <div class="kicker">Certificate of Completion</div>
- <div class="heading">Certificate</div>
- <div class="for">This certifies that</div>
+ <div id="certKicker" class="kicker">Certificate of Completion</div>
+ <div id="certHeading" class="heading">Certificate</div>
+ <div id="certFor1" class="for">This certifies that</div>
  <div id="name" class="name"></div>
- <div class="for">has successfully completed</div>
+ <div id="certFor2" class="for">has successfully completed</div>
  <div id="title" class="title"></div>
- <div class="copy">The certificate confirms completion of the required learning modules, business cases and simulations inside BIZONIQ according to the criteria version shown below.</div>
+ <div id="certCopy" class="copy">The certificate confirms completion of the required learning modules, business cases and simulations inside BIZONIQ according to the criteria version shown below.</div>
  <div class="bottom">
-   <div class="sig"><b>Лобов Максим</b>Creator, BIZONIQ</div>
-   <div class="sig"><b>Сагал Сергей</b>Creator, BIZONIQ</div>
+   <div class="sig"><b>Лобов Максим</b><span id="creator1Role">Creator, BIZONIQ</span></div>
+   <div class="sig"><b>Сагал Сергей</b><span id="creator2Role">Creator, BIZONIQ</span></div>
    <div class="code"><b id="issued"></b><span id="code"></span><br><span id="version"></span></div>
  </div>
 </div>
-<div class="notice">BIZONIQ certificates are certificates of completion issued by the platform. They are not state-accredited diplomas, licenses or professional qualifications.</div>
+<div id="certNotice" class="notice">BIZONIQ certificates are certificates of completion issued by the platform. They are not state-accredited diplomas, licenses or professional qualifications.</div>
 </div>
 <script>
 const endpoint="https://qmjtmhtmbaseykmwttvn.supabase.co/functions/v1/verify-certificate";
-const code=new URLSearchParams(location.search).get("code")||"";
+const params=new URLSearchParams(location.search);
+const code=params.get("code")||"";
+const stored=localStorage.getItem("bizoniq_lang");
+const browser=(navigator.language||"en").toLowerCase().startsWith("ru")?"ru":"en";
+const lang=["ru","en"].includes(params.get("lang"))?params.get("lang"):(["ru","en"].includes(stored)?stored:browser);
+document.documentElement.lang=lang;
+
+const COPY={
+  ru:{
+    pageTitle:"Сертификат — BIZONIQ",
+    verify:"Проверить",
+    print:"Сохранить / PDF",
+    checking:"Проверяю сертификат…",
+    notFound:"Сертификат не найден или код недействителен.",
+    kicker:"Сертификат о прохождении",
+    heading:"Сертификат",
+    for1:"Настоящий сертификат выдан",
+    for2:"за успешное прохождение программы",
+    copy:"Сертификат подтверждает выполнение необходимых учебных модулей, бизнес-кейсов и симуляций внутри BIZONIQ в соответствии с версией критериев, указанной ниже.",
+    creator:"Создатель, BIZONIQ",
+    notice:"Сертификат BIZONIQ подтверждает прохождение программы внутри платформы. Он не является государственным дипломом, лицензией или аккредитованной профессиональной квалификацией.",
+    issued:"Выдан",
+    criteria:"Критерии"
+  },
+  en:{
+    pageTitle:"Certificate — BIZONIQ",
+    verify:"Verify",
+    print:"Save / PDF",
+    checking:"Verifying certificate…",
+    notFound:"Certificate not found or the code is invalid.",
+    kicker:"Certificate of Completion",
+    heading:"Certificate",
+    for1:"This certificate is awarded to",
+    for2:"for successfully completing",
+    copy:"The certificate confirms completion of the required learning modules, business cases and simulations inside BIZONIQ according to the criteria version shown below.",
+    creator:"Creator, BIZONIQ",
+    notice:"BIZONIQ certificates confirm completion inside the platform. They are not state-accredited diplomas, licenses or professional qualifications.",
+    issued:"Issued",
+    criteria:"Criteria"
+  }
+};
+const TITLES={
+  ru:{
+    foundation:"Основы бизнеса",
+    finance:"Финансы бизнеса",
+    growth:"Рост: маркетинг и продажи",
+    operator:"Управление бизнесом",
+    mastery:"Мастерство бизнес-решений"
+  },
+  en:{
+    foundation:"Business Foundations",
+    finance:"Business Finance",
+    growth:"Growth: Marketing & Sales",
+    operator:"Business Operations",
+    mastery:"Business Decision Mastery"
+  }
+};
+const FALLBACK_RU={
+  "Business Foundations":"Основы бизнеса",
+  "Business Finance":"Финансы бизнеса",
+  "Growth: Marketing & Sales":"Рост: маркетинг и продажи",
+  "Business Operations":"Управление бизнесом",
+  "Business Decision Mastery":"Мастерство бизнес-решений"
+};
+
+function applyLanguage(){
+  const x=COPY[lang];
+  document.title=x.pageTitle;
+  document.getElementById("verifyLink").textContent=x.verify;
+  document.getElementById("printButton").textContent=x.print;
+  document.getElementById("status").textContent=x.checking;
+  document.getElementById("certKicker").textContent=x.kicker;
+  document.getElementById("certHeading").textContent=x.heading;
+  document.getElementById("certFor1").textContent=x.for1;
+  document.getElementById("certFor2").textContent=x.for2;
+  document.getElementById("certCopy").textContent=x.copy;
+  document.getElementById("creator1Role").textContent=x.creator;
+  document.getElementById("creator2Role").textContent=x.creator;
+  document.getElementById("certNotice").textContent=x.notice;
+}
+function localizedTitle(c){
+  if(c.certificate_type&&TITLES[lang][c.certificate_type])return TITLES[lang][c.certificate_type];
+  if(lang==="ru")return FALLBACK_RU[c.title]||c.title;
+  return c.title||"BIZONIQ Certificate";
+}
+applyLanguage();
+
 async function init(){
  try{
   const r=await fetch(endpoint+"?code="+encodeURIComponent(code));const d=await r.json();
   if(!r.ok||!d.valid)throw new Error();
   const c=d.certificate;
   document.getElementById("name").textContent=c.display_name;
-  document.getElementById("title").textContent=c.title;
+  document.getElementById("title").textContent=localizedTitle(c);
   document.getElementById("code").textContent=c.certificate_code;
-  document.getElementById("version").textContent="Criteria "+c.criteria_version;
-  document.getElementById("issued").textContent="Issued "+new Date(c.issued_at).toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"});
-  document.getElementById("verifyLink").href="./verify.html?code="+encodeURIComponent(c.certificate_code);
+  document.getElementById("version").textContent=COPY[lang].criteria+" "+c.criteria_version;
+  const date=new Date(c.issued_at).toLocaleDateString(lang==="ru"?"ru-RU":"en-GB",{day:"2-digit",month:"long",year:"numeric"});
+  document.getElementById("issued").textContent=COPY[lang].issued+" "+date;
+  document.getElementById("verifyLink").href="./verify.html?code="+encodeURIComponent(c.certificate_code)+"&lang="+encodeURIComponent(lang);
   document.getElementById("status").hidden=true;document.getElementById("certificate").hidden=false;
- }catch{document.getElementById("status").textContent="Сертификат не найден или код недействителен."}
+ }catch{document.getElementById("status").textContent=COPY[lang].notFound}
 }
 init();
 </script>
-<script src="./preferences.js"></script>
 </body></html>
