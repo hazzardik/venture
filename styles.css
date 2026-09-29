@@ -245,3 +245,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 .practice-fresh{border-color:rgba(182,255,69,.22);background:linear-gradient(180deg,rgba(182,255,69,.055),rgba(255,255,255,.018))}
 .practice-fresh .practice-icon{border-color:rgba(182,255,69,.22);background:rgba(182,255,69,.055)}
+
+.referral-panel{display:grid;gap:10px}.referral-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.referral-head strong{font-size:30px;color:var(--green)}.referral-link{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.referral-link .input{min-width:0}.weekly-feature{border-color:rgba(182,255,69,.22);background:linear-gradient(180deg,rgba(182,255,69,.055),rgba(255,255,255,.018))}
+@media(max-width:700px){.referral-link{grid-template-columns:1fr}.referral-link .btn{width:100%}}
