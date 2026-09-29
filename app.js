@@ -1320,9 +1320,13 @@ async function sendCoach(){
   if(status)status.textContent=L("● AI AGENT • анализ","● AI AGENT • analyzing");
   try{
     const {data,error}=await sb.functions.invoke("ai-coach",{body:{message:text,mode:coachMode,lang:LANG,context:coachContext()}});
+    let payload=data;
+    if(error?.context){
+      try{payload=await error.context.clone().json()}catch{}
+    }
     document.getElementById("coachThinking")?.remove();
-    if(error||!data?.ok){
-      const code=data?.error||"";
+    if(error||!payload?.ok){
+      const code=payload?.error||"";
       const msg=code==="AI_NOT_CONFIGURED"
         ?L("AI Coach подготовлен, но в Supabase ещё не добавлен OPENAI_API_KEY.","AI Coach is ready, but OPENAI_API_KEY has not been added to Supabase yet.")
         :code==="AI_DAILY_LIMIT"
@@ -1332,14 +1336,14 @@ async function sendCoach(){
       if(status)status.textContent=L("● AI AGENT • недоступен","● AI AGENT • unavailable");
       return;
     }
-    const insight=data.insight?`<div class="coach-insight"><b>${L("Insight","Insight")}:</b> ${escapeHtml(data.insight)}</div>`:"";
-    const next=data.next_action?`<div class="coach-next"><b>${L("Следующий шаг","Next action")}:</b> ${escapeHtml(data.next_action)}</div>`:"";
-    const training=coachTrainingCta(data.skill,data.training_action);
-    box.insertAdjacentHTML("beforeend",`<div class="msg bot">${escapeHtml(data.reply)}${insight}${next}${training}</div>`);
+    const insight=payload.insight?`<div class="coach-insight"><b>${L("Insight","Insight")}:</b> ${escapeHtml(payload.insight)}</div>`:"";
+    const next=payload.next_action?`<div class="coach-next"><b>${L("Следующий шаг","Next action")}:</b> ${escapeHtml(payload.next_action)}</div>`:"";
+    const training=coachTrainingCta(payload.skill,payload.training_action);
+    box.insertAdjacentHTML("beforeend",`<div class="msg bot">${escapeHtml(payload.reply)}${insight}${next}${training}</div>`);
     const usage=document.getElementById("coachUsage");
-    if(usage&&data.usage)usage.textContent=`${data.usage.used}/${data.usage.limit} ${L("AI сообщений сегодня","AI messages today")}`;
+    if(usage&&payload.usage)usage.textContent=`${payload.usage.used}/${payload.usage.limit} ${L("AI сообщений сегодня","AI messages today")}`;
     if(status)status.textContent=L("● AI AGENT • контекст включён","● AI AGENT • context enabled");
-    trackEvent("ai_coach_message",{mode:coachMode,skill:data.skill,confidence:data.confidence});
+    trackEvent("ai_coach_message",{mode:coachMode,skill:payload.skill,confidence:payload.confidence,training_action:payload.training_action});
     coachHistoryMode=coachMode;
   }catch(e){
     document.getElementById("coachThinking")?.remove();
