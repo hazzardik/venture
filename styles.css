@@ -237,3 +237,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .chat{min-height:62vh}
   .messages{max-height:54vh}
 }
+
+.coach-training-btn{margin-top:10px;width:100%;justify-content:center}
+.lesson-related{margin-top:14px;padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02)}
+.term-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.metric .tiny:last-child{line-height:1.45}
