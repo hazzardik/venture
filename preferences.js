@@ -130,6 +130,8 @@
     "Учебный профиль строится только по твоим действиям внутри BIZONIQ — это не тест личности.":"Your learning profile is based only on actions inside BIZONIQ — it is not a personality test.",
     "Проверить сертификат":"Verify certificate",
     "Создатели:":"Creators:",
+    "Лобов Максим":"Maksim Lobov",
+    "Сагал Сергей":"Sergey Sagal",
     "Аккаунты и учебный прогресс защищены Supabase Auth и политиками Row Level Security (RLS). Абсолютная безопасность любой онлайн-системы не может быть гарантирована.":"Accounts and learning progress use Supabase Auth and Row Level Security (RLS). No online system can guarantee absolute security.",
     "Главная":"Home",
     "Учёба":"Learn",
@@ -393,7 +395,7 @@
   }
   function injectControls(){
     if(document.getElementById("bizPrefs"))return;
-    const host=document.querySelector(".pills,.public-actions,.help-nav,.privacy-nav .btnrow,.console-actions,.verify-head,.actions");
+    const host=document.querySelector(".pills,.public-actions,.help-nav,.privacy-nav,.console-actions,.verify-head,.actions");
     if(!host)return;
     const wrap=document.createElement("div");wrap.id="bizPrefs";wrap.className="biz-prefs";
     wrap.innerHTML='<button type="button" class="pref-btn'+(lang==="ru"?" active":"")+'" data-lang="ru">RU</button><button type="button" class="pref-btn'+(lang==="en"?" active":"")+'" data-lang="en">EN</button><span class="pref-sep"></span><button type="button" class="pref-btn'+(currency==="RUB"?" active":"")+'" data-currency="RUB">₽</button><button type="button" class="pref-btn'+(currency==="USD"?" active":"")+'" data-currency="USD">$</button>';
