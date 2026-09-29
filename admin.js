@@ -94,6 +94,12 @@ function fmtDate(s){if(!s)return"—";return new Date(s).toLocaleDateString(ADMI
 function fmtDateTime(s){if(!s)return"—";return new Date(s).toLocaleString(ADMIN_LANG==="en"?"en-US":"ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}
 function pct(n){return Math.max(0,Math.min(100,Number(n)||0))}
 function status(msg,type=""){const el=document.getElementById("globalStatus");if(!el)return;el.textContent=msg;el.className="console-status "+type}
+function apiError(raw,ruFallback,enFallback){
+  const msg=String(raw||"").trim();
+  if(!msg)return AL(ruFallback,enFallback);
+  if(ADMIN_LANG==="en"&&/[А-Яа-яЁё]/.test(msg))return enFallback;
+  return msg;
+}
 function show(id){["loginGate","activateGate","consoleApp"].forEach(x=>document.getElementById(x)?.classList.toggle("hidden",x!==id))}
 
 async function init(){
@@ -125,14 +131,14 @@ async function activateCreator(){
   const code=document.getElementById("creatorCode").value.trim(),display_name=document.getElementById("creatorName").value.trim();
   const el=document.getElementById("creatorStatus");el.textContent=AL("Активирую доступ…","Activating access…");
   const {data,error}=await sb.functions.invoke("creator-bootstrap",{body:{code,display_name}});
-  if(error||!data?.ok){el.textContent=data?.error||AL("Не удалось активировать Creator-доступ.","Could not activate Creator access.");return}
+  if(error||!data?.ok){el.textContent=apiError(data?.error,"Не удалось активировать Creator-доступ.","Could not activate Creator access.");return}
   el.textContent=AL("Готово.","Done.");
   await route();
 }
 async function loadDashboard(){
   status(AL("Обновляю данные…","Refreshing data…"));
   const {data,error}=await sb.functions.invoke("creator-dashboard",{body:{}});
-  if(error||!data?.ok){status(data?.error||AL("Не удалось загрузить Creator Console.","Could not load Creator Console."),"bad");return}
+  if(error||!data?.ok){status(apiError(data?.error,"Не удалось загрузить Creator Console.","Could not load Creator Console."),"bad");return}
   dashboard=data;
   status(AL("Данные обновлены · ","Updated · ")+new Date().toLocaleTimeString(ADMIN_LANG==="en"?"en-US":"ru-RU",{hour:"2-digit",minute:"2-digit"}),"good");
   renderAll();
@@ -231,7 +237,7 @@ async function generateCreatorInvite(){
   if(dashboard?.creator?.role!=="owner"){status(AL("Только owner может приглашать новых создателей.","Only the owner can invite new creators."),"bad");return}
   status(AL("Создаю одноразовый Creator Invite…","Creating one-time Creator Invite…"));
   const {data,error}=await sb.functions.invoke("creator-admin",{body:{action:"generate_creator_invite",expires_in_days:7}});
-  if(error||!data?.ok){status(data?.error||AL("Не удалось создать invite.","Could not create the invite."),"bad");return}
+  if(error||!data?.ok){status(apiError(data?.error,"Не удалось создать invite.","Could not create the invite."),"bad");return}
   const box=document.getElementById("creatorInviteBox"),value=document.getElementById("creatorInviteValue"),expiry=document.getElementById("creatorInviteExpiry");
   box.classList.remove("hidden");value.textContent=data.code;expiry.textContent=AL("Действует до ","Valid until ")+fmtDateTime(data.expires_at)+AL(" и только для одной активации."," and valid for one activation only.");
   status(AL("Creator Invite создан. Передай код человеку, которому хочешь выдать доступ создателя. После первой активации код станет недействительным.","Creator Invite created. Send it to the person you want to add as a creator. It becomes invalid after the first activation."),"good");
@@ -246,7 +252,7 @@ async function generateCode(){
   const duration=Number(document.getElementById("codeDuration").value),max=Number(document.getElementById("codeMax").value),expiry=document.getElementById("codeExpiry").value,note=document.getElementById("codeNote").value.trim();
   status(AL("Генерирую код…","Generating code…"));
   const {data,error}=await sb.functions.invoke("creator-admin",{body:{action:"generate_code",duration_days:duration,max_redemptions:max,expires_in_days:expiry?Number(expiry):null,note}});
-  if(error||!data?.ok){status(data?.error||AL("Не удалось создать код.","Could not create the code."),"bad");return}
+  if(error||!data?.ok){status(apiError(data?.error,"Не удалось создать код.","Could not create the code."),"bad");return}
   document.getElementById("newCodeBox").classList.remove("hidden");
   document.getElementById("newCodeValue").textContent=data.code;
   status(AL("Код создан. Скопируй его сейчас — потом в панели останутся только последние 6 символов.","Code created. Copy it now — later the console will show only the last 6 characters."),"good");
@@ -259,7 +265,7 @@ async function copyNewCode(){
 async function deactivateCode(id){
   if(!confirm(AL("Отключить этот код? Уже активированные подписки останутся у пользователей.","Disable this code? Existing activated subscriptions will remain active.")))return;
   const {data,error}=await sb.functions.invoke("creator-admin",{body:{action:"deactivate_code",code_id:id}});
-  if(error||!data?.ok){status(data?.error||AL("Не удалось отключить код.","Could not disable the code."),"bad");return}
+  if(error||!data?.ok){status(apiError(data?.error,"Не удалось отключить код.","Could not disable the code."),"bad");return}
   status(AL("Код отключён.","Code disabled."),"good");await loadDashboard();
 }
 async function grantPro(){
@@ -267,21 +273,21 @@ async function grantPro(){
   if(!email){status(AL("Укажи email пользователя.","Enter the user's email."),"bad");return}
   status(AL("Выдаю Pro…","Granting Pro…"));
   const {data,error}=await sb.functions.invoke("creator-admin",{body:{action:"grant_pro",email,duration_days:days,lifetime,note}});
-  if(error||!data?.ok){status(data?.error||AL("Не удалось выдать Pro.","Could not grant Pro."),"bad");return}
+  if(error||!data?.ok){status(apiError(data?.error,"Не удалось выдать Pro.","Could not grant Pro."),"bad");return}
   status(AL("Pro выдан: ","Pro granted: ")+data.email+(lifetime?AL(" · бессрочно"," · lifetime"):" · "+days+AL(" дней"," days")),"good");
   await loadDashboard();
 }
 async function quickGrant(email,days){
   if(!confirm(AL("Выдать ","Grant ")+email+AL(" Pro на "," Pro for ")+days+AL(" дней?"," days?")))return;
   const {data,error}=await sb.functions.invoke("creator-admin",{body:{action:"grant_pro",email,duration_days:days,lifetime:false,note:"Quick grant from Creator Console"}});
-  if(error||!data?.ok){status(data?.error||AL("Не удалось выдать Pro.","Could not grant Pro."),"bad");return}
+  if(error||!data?.ok){status(apiError(data?.error,"Не удалось выдать Pro.","Could not grant Pro."),"bad");return}
   status(AL("Pro выдан ","Pro granted to ")+email+AL(" на "," for ")+days+AL(" дней."," days."),"good");await loadDashboard();
 }
 async function revokePro(){
   const email=document.getElementById("grantEmail").value.trim();if(!email){status(AL("Укажи email пользователя.","Enter the user's email."),"bad");return}
   if(!confirm(AL("Отозвать ручной Pro у ","Revoke manual Pro from ")+email+AL("? Paddle-подписку это не отменяет.","? This does not cancel a Paddle subscription.")))return;
   const {data,error}=await sb.functions.invoke("creator-admin",{body:{action:"revoke_pro",email,note:"Revoked from Creator Console"}});
-  if(error||!data?.ok){status(data?.error||AL("Не удалось отозвать Pro.","Could not revoke Pro."),"bad");return}
+  if(error||!data?.ok){status(apiError(data?.error,"Не удалось отозвать Pro.","Could not revoke Pro."),"bad");return}
   status(AL("Ручной Pro отозван у ","Manual Pro revoked from ")+data.email+".","good");await loadDashboard();
 }
 function exportDashboard(){
