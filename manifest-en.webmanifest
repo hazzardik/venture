@@ -1,22 +1,43 @@
 {
-  "id":"./",
-  "name":"BIZONIQ — Build Business IQ",
-  "short_name":"BIZONIQ",
-  "description":"Adaptive business-thinking trainer with 56 lessons, 32 leveled cases, 4 simulations, Business Coach, Skill Score and certificates.",
-  "start_url":"./?lang=en",
-  "scope":"./",
-  "display":"standalone",
-  "orientation":"any",
-  "background_color":"#090c11",
-  "theme_color":"#090c11",
-  "lang":"en",
-  "categories":["education","business","productivity"],
-  "icons":[
-    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  "id": "./",
+  "name": "BIZONIQ — Build Business IQ",
+  "short_name": "BIZONIQ",
+  "description": "Business decision trainer with 32 cases, 4 multi-step simulations, personalized AI Coach, Skill Score and micro-lessons.",
+  "start_url": "./?lang=en",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#090c11",
+  "theme_color": "#090c11",
+  "lang": "en",
+  "categories": [
+    "education",
+    "business",
+    "productivity"
   ],
-  "shortcuts":[
-    {"name":"Continue learning","short_name":"Learn","url":"./?page=learn&lang=en"},
-    {"name":"Practice","short_name":"Practice","url":"./?page=practice&lang=en"},
-    {"name":"BIZONIQ Pro","short_name":"Pro","url":"./?page=pricing&lang=en"}
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Solve a business case",
+      "short_name": "Cases",
+      "url": "./?page=cases&lang=en"
+    },
+    {
+      "name": "BIZONIQ AI Coach",
+      "short_name": "AI Coach",
+      "url": "./?page=coach&lang=en"
+    },
+    {
+      "name": "Practice",
+      "short_name": "Practice",
+      "url": "./?page=practice&lang=en"
+    }
   ]
 }
