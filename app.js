@@ -893,6 +893,19 @@ async function submitBetaFeedback(category){
   setTimeout(closeModal,700);
 }
 
+function openTeamsInterest(){
+  modal(`<div class="label">BIZONIQ FOR EDUCATION / TEAMS</div><h2>${L("Пилот для группы","Pilot for your group")}</h2><div class="copy">${L("Напиши школу, кружок, университет или команду, примерное число участников и контакт для связи.","Tell us the school, club, university or team, approximate group size, and a contact method.")}</div><textarea id="teamsInterestText" class="textarea" maxlength="1500" placeholder="${L("Например: бизнес-кружок, 20 человек, Telegram @...","Example: business club, 20 people, Telegram @...")}"></textarea><div id="teamsInterestStatus" class="auth-status"></div><div class="btnrow"><button class="btn primary" onclick="submitTeamsInterest()">${L("Отправить заявку","Send request")}</button><button class="btn ghost" onclick="closeModal()">${L("Закрыть","Close")}</button></div>`,true);
+}
+async function submitTeamsInterest(){
+  const input=document.getElementById("teamsInterestText"),status=document.getElementById("teamsInterestStatus"),message=(input?.value||"").trim();
+  if(message.length<5){if(status)status.textContent=L("Добавь немного деталей.","Add a few details.");return}
+  if(status)status.textContent=L("Отправляю…","Sending…");
+  const {data,error}=await sb.functions.invoke("submit-feedback",{body:{category:"general",message,context:{intent:"teams_interest",path:state.goal,xp:state.xp,cases:state.cases.length}}});
+  if(error||!data?.ok){if(status)status.textContent=L("Не получилось отправить заявку.","Could not send the request.");return}
+  trackEvent("teams_interest_submitted",{});
+  if(status)status.textContent=L("Заявка сохранена. Свяжемся по указанному контакту.","Request saved. We’ll use the contact you provided.");
+}
+
 function renderStats(){
   const l=level(),path=pathObj();
   document.getElementById("sideLevel").textContent=l.name;document.getElementById("sideProgress").style.width=l.pct+"%";
@@ -1100,7 +1113,7 @@ function drawShareCard(type){
 }
 async function shareResultCard(type="app"){
   const canvas=drawShareCard(type),blob=await new Promise(r=>canvas.toBlob(r,"image/png",.95));if(!blob)return;
-  const file=new File([blob],"bizoniq-result.png",{type:"image/png"}),url=location.origin+location.pathname;
+  const file=new File([blob],"bizoniq-result.png",{type:"image/png"}),shareUrl=new URL(location.origin+location.pathname);if(referralState?.code)shareUrl.searchParams.set("ref",referralState.code);const url=shareUrl.toString();
   trackEvent("share_card_created",{type});
   try{
     if(navigator.canShare?.({files:[file]})&&navigator.share){await navigator.share({title:"BIZONIQ",text:L("Мой результат в BIZONIQ","My BIZONIQ result"),url,files:[file]});return}
