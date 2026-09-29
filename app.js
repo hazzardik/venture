@@ -1242,11 +1242,34 @@ async function loadCoachHistory(){
       const extra=row.role==="assistant"&&meta.next_action
         ?`<div class="coach-next"><b>${L("Следующий шаг","Next action")}:</b> ${escapeHtml(meta.next_action)}</div>`
         :"";
-      return `<div class="msg ${row.role==="user"?"user":"bot"}">${escapeHtml(row.content)}${extra}</div>`;
+      const training=row.role==="assistant"?coachTrainingCta(meta.skill,meta.training_action):"";
+      return `<div class="msg ${row.role==="user"?"user":"bot"}">${escapeHtml(row.content)}${extra}${training}</div>`;
     }).join("");
   }
   box.scrollTop=box.scrollHeight;
 }
+function coachOpenTraining(skill,action){
+  closeModal?.();
+  if(action==="case"){
+    const next=nextAdaptiveCase(skill==="general"?null:skill);
+    go("cases");
+    if(next)setTimeout(()=>openCase(next.id),120);
+    return;
+  }
+  if(action==="lesson"){
+    const target=skill==="general"?(weakSkills()[0]?.id||"basics"):skill;
+    const next=nextLessonForSkill(target);
+    if(next){
+      activeModule=next.m.id;go("learn");renderLessons();setTimeout(()=>openLesson(next.l[0]),120);
+    }else go("learn");
+  }
+}
+function coachTrainingCta(skill,action){
+  if(!["case","lesson"].includes(action))return "";
+  const label=action==="case"?L("Перейти к кейсу","Open recommended case"):L("Открыть микро-урок","Open micro-lesson");
+  return `<button class="btn ghost coach-training-btn" onclick="coachOpenTraining('${escapeHtml(skill||"general")}','${action}')">${label} →</button>`;
+}
+
 async function clearCoachConversation(){
   if(!session){openAuth();return}
   if(coachBusy)return;
@@ -1294,7 +1317,8 @@ async function sendCoach(){
     }
     const insight=data.insight?`<div class="coach-insight"><b>${L("Insight","Insight")}:</b> ${escapeHtml(data.insight)}</div>`:"";
     const next=data.next_action?`<div class="coach-next"><b>${L("Следующий шаг","Next action")}:</b> ${escapeHtml(data.next_action)}</div>`:"";
-    box.insertAdjacentHTML("beforeend",`<div class="msg bot">${escapeHtml(data.reply)}${insight}${next}</div>`);
+    const training=coachTrainingCta(data.skill,data.training_action);
+    box.insertAdjacentHTML("beforeend",`<div class="msg bot">${escapeHtml(data.reply)}${insight}${next}${training}</div>`);
     const usage=document.getElementById("coachUsage");
     if(usage&&data.usage)usage.textContent=`${data.usage.used}/${data.usage.limit} ${L("AI сообщений сегодня","AI messages today")}`;
     if(status)status.textContent=L("● AI AGENT • контекст включён","● AI AGENT • context enabled");
