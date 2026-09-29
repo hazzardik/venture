@@ -49,6 +49,20 @@ const ICONS={
   profile:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>'
 };
 function iconSvg(id){return '<span class="nav-svg">'+(ICONS[id]||ICONS.practice)+'</span>'}
+
+const PRACTICE_ICONS={
+  cases:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7l5 5v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M14 4v5h5"/><path d="M9 13h6M9 16h4"/></svg>',
+  simulator:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4.5" width="16" height="15" rx="3"/><path d="M8 15l3-3 2.2 2.2L17 9.5"/><path d="M8 8.5h.01"/></svg>',
+  coach:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.7 4.3 4.3 1.7-4.3 1.7-1.7 4.3-1.7-4.3L6 9.5l4.3-1.7z"/><path d="M18.5 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>',
+  certificates:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="14" height="16" rx="2.5"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/><path d="M15.2 16.2l1.1.55 1.2-.55-.2 1.3.9.9-1.3.2-.6 1.2-.6-1.2-1.3-.2.9-.9z"/></svg>'
+};
+
+const PRACTICE_CARDS=[
+  {id:"cases",title:L("Бизнес-кейсы","Business cases"),desc:L("32 ситуации и разбор решений","32 situations with decision breakdowns")},
+  {id:"simulator",title:L("Симуляторы","Simulations"),desc:L("Управляй цифрами и последствиями","Manage numbers and consequences")},
+  {id:"coach",title:"Business Coach",desc:L("Структурируй идею и решения","Structure an idea and decisions")},
+  {id:"certificates",title:L("Сертификаты","Certificates"),desc:L("Проверяемые достижения BIZONIQ","Verifiable BIZONIQ achievements")}
+];
 const LEVELS=[["Apprentice",0],["Builder",300],["Operator",800],["Founder",1500],["Scaler",2500],["Visionary",4000],["Titan",6500]];
 const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:[],terms:[],saved:[],cases:[],simDone:{},name:"",dailyDone:{},version:9,
   diagnostic:{completed:false,answers:[],recommended:""},
@@ -586,16 +600,16 @@ function go(page){
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===page));
   document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
   const meta={
-    dashboard:["Главная","Следующий шаг, прогресс и практика — без лишних поисков."],
-    learn:["Обучение","56 коротких уроков, адаптированных под твою траекторию."],
-    dictionary:["Business Dictionary","Термины с примерами, поиском и избранным."],
-    practice:["Практика","Кейсы, симуляторы, Coach и сертификаты."],
-    cases:["Бизнес-кейсы","32 ситуации для тренировки решений."],
-    simulator:["Business Simulator","Четыре бизнеса, где решения меняют экономику."],
-    coach:["Business Coach","Интерактивный тренер: идея, финансы, маркетинг и сложные кейсы."],
-    certificates:["Сертификаты","Проверяемые сертификаты прохождения с уникальным ID."],
+    dashboard:[L("Главная","Home"),L("Следующий шаг, прогресс и практика — без лишних поисков.","Your next step, progress and practice — without unnecessary searching.")],
+    learn:[L("Обучение","Courses"),L("56 коротких уроков, адаптированных под твою траекторию.","56 short lessons adapted to your learning path.")],
+    dictionary:["Business Dictionary",L("Термины с примерами, поиском и избранным.","Terms with examples, search and favorites.")],
+    practice:[L("Практика","Practice"),L("Кейсы, симуляторы, Coach и сертификаты.","Cases, simulations, Coach and certificates.")],
+    cases:[L("Бизнес-кейсы","Business cases"),L("32 ситуации для тренировки решений.","32 situations for decision-making practice.")],
+    simulator:["Business Simulator",L("Четыре бизнеса, где решения меняют экономику.","Four businesses where your decisions change the economics.")],
+    coach:["Business Coach",L("Интерактивный тренер: идея, финансы, маркетинг и сложные кейсы.","Interactive coaching for ideas, finance, marketing and difficult cases.")],
+    certificates:[L("Сертификаты","Certificates"),L("Проверяемые сертификаты прохождения с уникальным ID.","Verifiable completion certificates with a unique ID.")],
     pricing:["BIZONIQ Pro",L("Полный доступ по месячному или годовому тарифу.","Full access with monthly or yearly billing.")],
-    profile:["Профиль и синхронизация","Смена пути, аккаунт, backup и прогресс."]
+    profile:[L("Профиль и синхронизация","Profile & sync"),L("Смена пути, аккаунт, backup и прогресс.","Learning path, account, backup and progress.")]
   };
   document.getElementById("pageTitle").textContent=T(meta[page][0]);
   document.getElementById("pageSub").textContent=T(meta[page][1]);
@@ -603,6 +617,22 @@ function go(page){
   trackEvent("page_view",{page});
   if(page==="pricing")trackEvent("pricing_viewed",{source:"navigation"});
   scrollTo({top:0,behavior:"smooth"});
+}
+
+function renderPractice(){
+  const title=document.getElementById("practiceSectionTitle");
+  const copy=document.getElementById("practiceSectionCopy");
+  const wrap=document.getElementById("practiceCards");
+  if(title)title.textContent=L("Практика","Practice");
+  if(copy)copy.textContent=L("Кейсы, симуляторы, Coach и сертификаты — в одном месте.","Cases, simulations, Coach and certificates — all in one place.");
+  if(!wrap)return;
+  wrap.innerHTML=PRACTICE_CARDS.map(card=>`
+    <button class="card practice-card" onclick="go('${card.id}')">
+      <span class="practice-icon">${PRACTICE_ICONS[card.id]||PRACTICE_ICONS.cases}</span>
+      <span class="practice-card-copy"><b>${card.title}</b><small>${card.desc}</small></span>
+      <span class="practice-arrow" aria-hidden="true">→</span>
+    </button>
+  `).join("");
 }
 
 function renderOnboarding(){
@@ -1204,7 +1234,7 @@ function importProgressFile(ev){
 }
 
 function renderAll(){
-  renderStats();renderDashboard();renderLessons();renderTerms();renderCases();renderSimulator();renderCoach();renderCertificates();renderPricing();renderProfile();renderAuthState();renderInstallButton();
+  renderStats();renderDashboard();renderPractice();renderLessons();renderTerms();renderCases();renderSimulator();renderCoach();renderCertificates();renderPricing();renderProfile();renderAuthState();renderInstallButton();
   localStorage.setItem("forge_v3_state",JSON.stringify(state));
   localizeUI();
 }
