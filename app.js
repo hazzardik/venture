@@ -55,10 +55,12 @@ const PRACTICE_ICONS={
   cases:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7l5 5v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M14 4v5h5"/><path d="M9 13h6M9 16h4"/></svg>',
   simulator:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4.5" width="16" height="15" rx="3"/><path d="M8 15l3-3 2.2 2.2L17 9.5"/><path d="M8 8.5h.01"/></svg>',
   coach:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.7 4.3 4.3 1.7-4.3 1.7-1.7 4.3-1.7-4.3L6 9.5l4.3-1.7z"/><path d="M18.5 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>',
-  certificates:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="14" height="16" rx="2.5"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/><path d="M15.2 16.2l1.1.55 1.2-.55-.2 1.3.9.9-1.3.2-.6 1.2-.6-1.2-1.3-.2.9-.9z"/></svg>'
+  certificates:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="14" height="16" rx="2.5"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/><path d="M15.2 16.2l1.1.55 1.2-.55-.2 1.3.9.9-1.3.2-.6 1.2-.6-1.2-1.3-.2.9-.9z"/></svg>',
+  fresh:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><path d="M6.2 6.2l2.2 2.2M15.6 15.6l2.2 2.2M17.8 6.2l-2.2 2.2M8.4 15.6l-2.2 2.2"/><circle cx="12" cy="12" r="3.2"/></svg>'
 };
 
 const PRACTICE_CARDS=[
+  {id:"fresh",title:L("Weekly Lab","Weekly Lab"),desc:L("5 новых AI-кейсов каждую неделю","5 fresh AI-generated cases every week")},
   {id:"cases",title:L("Бизнес-кейсы","Business cases"),desc:L("32 ситуации и разбор решений","32 situations with decision breakdowns")},
   {id:"simulator",title:L("Симуляторы","Simulations"),desc:L("Управляй цифрами и последствиями","Manage numbers and consequences")},
   {id:"coach",title:"AI Coach",desc:L("Разбирай решения с персональным AI-агентом","Analyze decisions with a personalized AI agent")},
@@ -73,8 +75,9 @@ const LEVELS=[
   {name:"Visionary",xp:4200,cases:28,sims:4,lessons:24},
   {name:"Titan",xp:6500,cases:32,sims:4,lessons:32}
 ];
-const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:[],terms:[],saved:[],cases:[],simDone:{},name:"",dailyDone:{},version:9,
+const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:[],terms:[],saved:[],cases:[],simDone:{},name:"",dailyDone:{},version:10,
   diagnostic:{completed:false,answers:[],recommended:""},
+  freshWeekly:{weekKey:"",completed:[]},
   challenge:{started:false,startDate:"",completedDays:[]},
   duel:{date:"",answered:false,choice:null},
   weekly:{weekKey:"",xpStart:0,target:400},
@@ -104,11 +107,11 @@ let paddleInitialized=false;
 let paddleLoadPromise=null;
 let pendingCheckoutPlan=null;
 const CERTIFICATE_TYPES=[
-  {id:"foundation",title:"Business Foundations",desc:L("База предпринимательства и первые решения.","Business foundations and first decisions."),modules:["basics"],minCases:3,minSims:0},
-  {id:"finance",title:"Business Finance",desc:L("Cash flow, маржа, unit economics и финансовая дисциплина.","Cash flow, margin, unit economics and financial discipline."),modules:["finance"],minCases:5,minSims:1},
-  {id:"growth",title:"Growth: Marketing & Sales",desc:L("Привлечение, удержание, продажи и переговоры.","Acquisition, retention, sales and negotiation."),modules:["marketing","sales"],minCases:8,minSims:1},
-  {id:"operator",title:"Business Operations",desc:L("Финансы + менеджмент + операционные решения.","Finance + management and operating decisions."),modules:["finance","management"],minCases:12,minSims:2},
-  {id:"mastery",title:"Business Decision Mastery",desc:L("Главный сертификат BIZONIQ за комплексное прохождение.","The flagship BIZONIQ certificate for comprehensive completion."),modules:["*"],minCases:24,minSims:4}
+  {id:"foundation",title:L("Основы бизнеса","Business Foundations"),desc:L("База предпринимательства и первые решения.","Business foundations and first decisions."),modules:["basics"],minCases:3,minSims:0},
+  {id:"finance",title:L("Финансы бизнеса","Business Finance"),desc:L("Денежный поток, маржа, юнит-экономика и финансовая дисциплина.","Cash flow, margin, unit economics and financial discipline."),modules:["finance"],minCases:5,minSims:1},
+  {id:"growth",title:L("Рост: маркетинг и продажи","Growth: Marketing & Sales"),desc:L("Привлечение, удержание, продажи и переговоры.","Acquisition, retention, sales and negotiation."),modules:["marketing","sales"],minCases:8,minSims:1},
+  {id:"operator",title:L("Управление бизнесом","Business Operations"),desc:L("Финансы, менеджмент и операционные решения.","Finance + management and operating decisions."),modules:["finance","management"],minCases:12,minSims:2},
+  {id:"mastery",title:L("Мастерство бизнес-решений","Business Decision Mastery"),desc:L("Главный сертификат BIZONIQ за комплексное прохождение.","The flagship BIZONIQ certificate for comprehensive completion."),modules:["*"],minCases:24,minSims:4}
 ];
 
 function loadLocalState(){
@@ -126,6 +129,7 @@ function normalizeGrowthState(s){
   s.diagnostic={...DEFAULT_STATE.diagnostic,...(s.diagnostic||{})};
   s.challenge={...DEFAULT_STATE.challenge,...(s.challenge||{}),completedDays:[...new Set((s.challenge&&s.challenge.completedDays)||[])]};
   s.duel={...DEFAULT_STATE.duel,...(s.duel||{})};
+  s.freshWeekly={...DEFAULT_STATE.freshWeekly,...(s.freshWeekly||{}),completed:[...new Set((s.freshWeekly&&s.freshWeekly.completed)||[])]};
   s.weekly={...DEFAULT_STATE.weekly,...(s.weekly||{})};
   s.adaptive={...DEFAULT_STATE.adaptive,...(s.adaptive||{})};
   s.adaptive.recent=[...(s.adaptive.recent||[])];
@@ -368,6 +372,7 @@ async function mergeCloud(){
         state.diagnostic={...state.diagnostic,...(remote.extras.diagnostic||{})};
         state.challenge={...state.challenge,...(remote.extras.challenge||{}),completedDays:[...new Set([...(state.challenge.completedDays||[]),...((remote.extras.challenge||{}).completedDays||[])])]};
         state.duel={...state.duel,...(remote.extras.duel||{})};
+        state.freshWeekly={...state.freshWeekly,...(remote.extras.freshWeekly||{}),completed:[...new Set([...(state.freshWeekly.completed||[]),...((remote.extras.freshWeekly||{}).completed||[])])]};
         state.weekly={...state.weekly,...(remote.extras.weekly||{})};
         if(remote.extras.adaptive){
           const ra=remote.extras.adaptive;
@@ -417,7 +422,7 @@ async function pushCloud(force=false){
       user_id:uid,display_name:state.name||L("Пользователь","User"),learning_path:state.goal||"curious",
       xp:state.xp||0,streak:state.streak||1,last_active_date:todayKey(),
       simulator_finished:Object.values(state.simDone||{}).some(Boolean),
-      extras:{diagnostic:state.diagnostic,challenge:state.challenge,duel:state.duel,weekly:state.weekly,adaptive:state.adaptive},
+      extras:{diagnostic:state.diagnostic,challenge:state.challenge,duel:state.duel,freshWeekly:state.freshWeekly,weekly:state.weekly,adaptive:state.adaptive},
       updated_at:new Date().toISOString()
     },{onConflict:"user_id"});
     if(state.lessons.length) await sb.from("lesson_progress").upsert(state.lessons.map(id=>({user_id:uid,lesson_id:id})),{onConflict:"user_id,lesson_id"});
@@ -663,12 +668,64 @@ function renderPractice(){
   if(copy)copy.textContent=L("Кейсы, симуляторы, AI Coach и сертификаты — в одном месте.","Cases, simulations, AI Coach and certificates — all in one place.");
   if(!wrap)return;
   wrap.innerHTML=PRACTICE_CARDS.map(card=>`
-    <button class="card practice-card" onclick="go('${card.id}')">
+    <button class="card practice-card ${card.id==="fresh"?"practice-fresh":""}" onclick="${card.id==="fresh"?"openWeeklyLab()":`go('${card.id}')`}">
       <span class="practice-icon">${PRACTICE_ICONS[card.id]||PRACTICE_ICONS.cases}</span>
       <span class="practice-card-copy"><b>${card.title}</b><small>${card.desc}</small></span>
       <span class="practice-arrow" aria-hidden="true">→</span>
     </button>
   `).join("");
+}
+
+let weeklyPackCache=null;
+let weeklyCaseIndex=0;
+
+function weeklyCaseProgress(pack){
+  if(!pack)return {done:0,total:0};
+  const ids=(pack.cases||[]).map(x=>x.id);
+  const completed=state.freshWeekly?.weekKey===pack.week_key?(state.freshWeekly.completed||[]):[];
+  return {done:ids.filter(id=>completed.includes(id)).length,total:ids.length};
+}
+async function openWeeklyLab(){
+  if(!session){openAuth();return}
+  modal(`<div class="label">WEEKLY LAB</div><h2>${L("Загружаю свежую практику…","Loading fresh practice…")}</h2><div class="copy">${L("Каждую неделю BIZONIQ формирует новый набор из 5 бизнес-ситуаций. Словарь и база знаний остаются стабильными для повторения.","Every week BIZONIQ creates a new pack of 5 business situations. The dictionary and knowledge base remain stable for revision.")}</div>`,true);
+  const {data,error}=await sb.functions.invoke("weekly-practice",{body:{lang:LANG}});
+  if(error||!data?.ok){
+    modal(`<div class="label">WEEKLY LAB</div><h2>${L("Не удалось загрузить новую практику","Could not load fresh practice")}</h2><div class="copy">${L("Попробуй ещё раз через минуту.","Try again in a minute.")}</div><div class="btnrow"><button class="btn ghost" onclick="openWeeklyLab()">${L("Повторить","Retry")}</button></div>`,true);
+    return;
+  }
+  weeklyPackCache=data.pack;
+  if(state.freshWeekly.weekKey!==weeklyPackCache.week_key){
+    state.freshWeekly={weekKey:weeklyPackCache.week_key,completed:[]};
+    localSave(false);
+  }
+  const first=(weeklyPackCache.cases||[]).findIndex(x=>!state.freshWeekly.completed.includes(x.id));
+  weeklyCaseIndex=first>=0?first:0;
+  renderWeeklyCase(weeklyCaseIndex);
+}
+function renderWeeklyCase(index){
+  const pack=weeklyPackCache;if(!pack?.cases?.length)return;
+  weeklyCaseIndex=Math.max(0,Math.min(pack.cases.length-1,index));
+  const item=pack.cases[weeklyCaseIndex],p=weeklyCaseProgress(pack),done=state.freshWeekly.completed.includes(item.id);
+  modal(`<div class="label">WEEKLY LAB • ${weeklyCaseIndex+1}/${pack.cases.length}</div>
+    <h2>${escapeHtml(item.title)}</h2>
+    <div class="copy">${escapeHtml(item.scenario)}</div>
+    <div class="card soft section"><b>${escapeHtml(item.question)}</b></div>
+    <div id="weeklyChoices" class="section">${item.options.map((o,i)=>`<button class="choice" ${done?"disabled":""} onclick="answerWeeklyCase(${i},this)">${escapeHtml(o.text)}</button>`).join("")}</div>
+    <div id="weeklyFeedback" class="feedback ${done?"show":""}">${done?L("Этот кейс уже разобран на этой неделе.","This case is already completed this week."):""}</div>
+    <div class="meta"><span>${p.done}/${p.total} ${L("кейсов недели","weekly cases")}</span><span>${pack.week_key}</span></div>
+    <div class="btnrow"><button class="btn ghost" onclick="renderWeeklyCase(Math.max(0,weeklyCaseIndex-1))">← ${L("Назад","Back")}</button><button class="btn ghost" onclick="renderWeeklyCase(Math.min(weeklyPackCache.cases.length-1,weeklyCaseIndex+1))">${L("Дальше","Next")} →</button></div>`,true);
+}
+function answerWeeklyCase(i,el){
+  const item=weeklyPackCache?.cases?.[weeklyCaseIndex];if(!item||state.freshWeekly.completed.includes(item.id))return;
+  const o=item.options[i],best=!!o.best;
+  document.querySelectorAll("#weeklyChoices .choice").forEach(b=>b.disabled=true);
+  el.classList.add(best?"good":"bad");
+  const xp=best?60:20;
+  const f=document.getElementById("weeklyFeedback");
+  f.innerHTML=`<div class="decision-verdict ${best?"good-text":"warn-text"}">${best?L("Сильнейший вариант","Strongest option"):L("Более слабый вариант","Weaker option")}</div><div class="copy">${escapeHtml(o.consequence)}</div><div class="review-grid" style="margin-top:10px"><div><span>${L("Trade-off","Trade-off")}</span><b>${escapeHtml(o.tradeoff)}</b></div><div><span>${L("Метрика","Metric")}</span><b>${escapeHtml(o.metric)}</b></div></div><div class="tiny" style="margin-top:8px">+${xp} XP</div>`;
+  f.classList.add("show");
+  state.freshWeekly.completed.push(item.id);state.xp+=xp;localSave();
+  trackEvent("weekly_case_completed",{week:weeklyPackCache.week_key,case_id:item.id,category:item.category,strongest:best});
 }
 
 function renderOnboarding(){
@@ -1480,6 +1537,7 @@ function sanitizeImportedState(raw){
   clean.diagnostic={...DEFAULT_STATE.diagnostic,completed:!!raw.diagnostic?.completed,recommended:normalizeGoal(raw.diagnostic?.recommended),answers:Array.isArray(raw.diagnostic?.answers)?raw.diagnostic.answers.slice(0,8).map(x=>Math.max(0,Math.min(3,Number(x)||0))):[]};
   clean.challenge={...DEFAULT_STATE.challenge,started:!!raw.challenge?.started,startDate:cleanPlainText(raw.challenge?.startDate,10),completedDays:Array.isArray(raw.challenge?.completedDays)?raw.challenge.completedDays.filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(String(x))).slice(0,366):[]};
   clean.duel={...DEFAULT_STATE.duel,date:cleanPlainText(raw.duel?.date,10),answered:!!raw.duel?.answered,choice:Number.isFinite(Number(raw.duel?.choice))?Math.max(0,Math.min(5,Number(raw.duel.choice))):null};
+  clean.freshWeekly={...DEFAULT_STATE.freshWeekly,weekKey:cleanPlainText(raw.freshWeekly?.weekKey,10),completed:Array.isArray(raw.freshWeekly?.completed)?[...new Set(raw.freshWeekly.completed.map(x=>cleanPlainText(x,80)).filter(Boolean))].slice(0,20):[]};
   clean.weekly={...DEFAULT_STATE.weekly,weekKey:cleanPlainText(raw.weekly?.weekKey,10),xpStart:Math.max(0,Math.min(10000000,Number(raw.weekly?.xpStart)||0)),target:Math.max(100,Math.min(5000,Number(raw.weekly?.target)||400))};
   const ad=raw.adaptive&&typeof raw.adaptive==="object"?raw.adaptive:{};
   clean.adaptive={...DEFAULT_STATE.adaptive,level:Math.max(1,Math.min(3,Number(ad.level)||initialAdaptiveLevel(clean.goal))),recent:Array.isArray(ad.recent)?ad.recent.slice(-5).map(Boolean):[],recentDifficulty:Array.isArray(ad.recentDifficulty)?ad.recentDifficulty.slice(-3).filter(x=>["easy","normal","hard"].includes(x)):[],caseResults:{},caseRatings:{}};
