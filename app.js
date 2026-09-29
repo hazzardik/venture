@@ -440,8 +440,8 @@ function renderPricing(){
   if(isPro()){
     const manual=manualProActive();
     const end=manual
-      ? (userEntitlement?.ends_at?new Date(userEntitlement.ends_at).toLocaleDateString("ru-RU"):"")
-      : (userSubscription?.current_period_end?new Date(userSubscription.current_period_end).toLocaleDateString("ru-RU"):"");
+      ? (userEntitlement?.ends_at?new Date(userEntitlement.ends_at).toLocaleDateString(LANG==="en"?"en-US":"ru-RU"):"")
+      : (userSubscription?.current_period_end?new Date(userSubscription.current_period_end).toLocaleDateString(LANG==="en"?"en-US":"ru-RU"):"");
     el.innerHTML=`<div class="pricing-status-row"><div><div class="tiny good">● PRO ACTIVE</div><h3>${proLabel()}</h3><div class="copy">Доступ активен${end?" до "+end:""}.</div></div>${!manual&&userSubscription?'<button class="btn secondary" onclick="openBillingPortal()">Управлять подпиской</button>':""}</div>`;
   }else{
     el.innerHTML=`<div class="pricing-status-row"><div><div class="tiny">CURRENT PLAN</div><h3>Free</h3><div class="copy">${L("Базовый доступ остаётся бесплатным.","Core access stays free.")}</div></div><span class="pill" data-price-summary>${proPriceSummary()}</span></div>`;
@@ -624,7 +624,7 @@ function openBetaFeedback(category){
     confusing:"В какой момент ты не понимал, что делать дальше?",
     useless:"Что в BIZONIQ показалось бесполезным?",
     return:"Что реально заставило бы тебя зайти завтра?",
-    willing_to_pay:"За какую конкретно функцию ты бы отдал 99 ₽?",
+    willing_to_pay:L("За какую конкретно функцию ты был бы готов платить?","Which specific feature would you pay for?"),
     general:"Что нам обязательно нужно улучшить?"
   };
   modal(`<div class="label">BETA FEEDBACK</div><h2>${prompts[category]||prompts.general}</h2><div class="copy">Пиши прямо. Нам сейчас полезнее критика, чем «всё классно».</div><textarea id="betaFeedbackText" class="textarea" maxlength="1500" placeholder="Твой ответ..."></textarea><div id="betaFeedbackStatus" class="auth-status"></div><div class="btnrow"><button class="btn primary" onclick="submitBetaFeedback('${category}')">Отправить</button><button class="btn ghost" onclick="closeModal()">Закрыть</button></div>`,true);
@@ -644,8 +644,8 @@ function renderStats(){
   const l=level(),path=pathObj();
   document.getElementById("sideLevel").textContent=l.name;document.getElementById("sideProgress").style.width=l.pct+"%";
   document.getElementById("sideXp").textContent=state.xp;document.getElementById("sideStreak").textContent=state.streak;
-  document.getElementById("hello").textContent="👋 "+(state.name||"Гость");
-  document.getElementById("streak").textContent="🔥 "+state.streak+" дн.";
+  document.getElementById("hello").textContent="👋 "+(state.name||L("Гость","Guest"));
+  document.getElementById("streak").textContent="🔥 "+state.streak+L(" дн."," d.");
   document.getElementById("goalPill").textContent="🎯 "+path.title;
   document.getElementById("stats").innerHTML=[
     ["Level",l.name,"Текущий уровень"],["Case Level",difficultyName(),"Адаптивная сложность"],
@@ -995,7 +995,7 @@ function renderProfile(){
   const l=level(),p=pathObj();
   document.getElementById("profileLevel").textContent=l.name;document.getElementById("profileProgress").style.width=l.pct+"%";
   document.getElementById("profileXp").textContent=state.xp;document.getElementById("profileStreak").textContent=state.streak;document.getElementById("profileLessons").textContent=state.lessons.length;document.getElementById("profileTerms").textContent=state.terms.length;
-  document.getElementById("profileName").textContent=state.name||"Гость";
+  document.getElementById("profileName").textContent=state.name||L("Гость","Guest");
   document.getElementById("profilePath").textContent=p.title;
   const arch=learningArchetype();
   const badge=document.getElementById("archetypeBadge");
@@ -1006,10 +1006,10 @@ function renderProfile(){
   if(subscriptionPanel){
     if(isPro()){
       const manual=manualProActive();
-      const end=manual&&userEntitlement.ends_at?new Date(userEntitlement.ends_at).toLocaleDateString("ru-RU"):null;
+      const end=manual&&userEntitlement.ends_at?new Date(userEntitlement.ends_at).toLocaleDateString(LANG==="en"?"en-US":"ru-RU"):null;
       subscriptionPanel.innerHTML=`<div class="subscription-active"><div><div class="tiny good">● BIZONIQ PRO</div><b>${proLabel()}</b>${end?`<div class="tiny">до ${end}</div>`:""}</div>${!manual&&userSubscription?'<button class="btn ghost" onclick="openBillingPortal()">Управлять</button>':""}</div>`;
     }else{
-      subscriptionPanel.innerHTML=`<div class="subscription-free"><div><div class="tiny">Тариф</div><b>Free</b></div><button class="btn primary" onclick="go('pricing')">Pro от 99 ₽</button></div>`;
+      subscriptionPanel.innerHTML=`<div class="subscription-free"><div><div class="tiny">${L("Тариф","Plan")}</div><b>Free</b></div><button class="btn primary" onclick="go('pricing')">Pro · ${proPrice("monthly")}${L("/мес","/mo")}</button></div>`;
     }
   }
   const creatorBox=document.getElementById("creatorPanelLink");
