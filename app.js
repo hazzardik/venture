@@ -239,7 +239,7 @@ async function initAuth(){
       return;
     }
     if(sess&&(event==="SIGNED_IN"||event==="INITIAL_SESSION"||event==="TOKEN_REFRESHED")){
-      await mergeCloud(); await Promise.all([loadCertificates(),loadSubscription()]);
+      await mergeCloud(); await Promise.all([loadCertificates(),loadSubscription()]); await claimPendingReferral();
     }
     if(event==="SIGNED_OUT"){
       userCertificates=[];
@@ -252,7 +252,7 @@ async function initAuth(){
   });
   renderAuthState();
   if(new URLSearchParams(location.search).get("recovery")==="1"&&session)openAuth("new-password");
-  if(session){ await mergeCloud(); await Promise.all([loadCertificates(),loadSubscription()]); }
+  if(session){ await mergeCloud(); await Promise.all([loadCertificates(),loadSubscription()]); await claimPendingReferral(); }
 }
 
 async function registerUser(){
@@ -275,9 +275,9 @@ async function registerUser(){
     status.textContent=L("Эта почта уже используется. Войди в аккаунт или восстанови пароль.","This email is already in use. Sign in or reset your password.");
     return;
   }
-  state.name=name; localSave(false);
+  state.name=name; localSave(false);trackEvent("registration_completed",{language:LANG});
   if(data.session){
-    session=data.session; status.textContent=L("Аккаунт создан и вход выполнен.","Account created and signed in."); await mergeCloud(); closeAuth();
+    session=data.session; status.textContent=L("Аккаунт создан и вход выполнен.","Account created and signed in."); await mergeCloud(); await claimPendingReferral(); closeAuth();
   }else{
     status.textContent=L("Аккаунт создан. Проверь почту и подтверди email, затем войди.","Account created. Check your email, confirm it, then sign in.");
   }
@@ -291,7 +291,7 @@ async function signInUser(){
   status.textContent=L("Вхожу…","Signing in…");
   const {data,error}=await sb.auth.signInWithPassword({email,password});
   if(error){status.textContent=authErrorMessage(error,"login");return}
-  session=data.session; status.textContent=L("Вход выполнен.","Signed in."); await mergeCloud(); closeAuth();
+  session=data.session; status.textContent=L("Вход выполнен.","Signed in."); await mergeCloud(); await claimPendingReferral(); closeAuth();
 }
 
 async function sendPasswordReset(){
@@ -678,6 +678,7 @@ function renderPractice(){
 
 let weeklyPackCache=null;
 let weeklyCaseIndex=0;
+let referralState=null;
 
 function weeklyCaseProgress(pack){
   if(!pack)return {done:0,total:0};
@@ -715,17 +716,24 @@ function renderWeeklyCase(index){
     <div class="meta"><span>${p.done}/${p.total} ${L("кейсов недели","weekly cases")}</span><span>${pack.week_key}</span></div>
     <div class="btnrow"><button class="btn ghost" onclick="renderWeeklyCase(Math.max(0,weeklyCaseIndex-1))">← ${L("Назад","Back")}</button><button class="btn ghost" onclick="renderWeeklyCase(Math.min(weeklyPackCache.cases.length-1,weeklyCaseIndex+1))">${L("Дальше","Next")} →</button></div>`,true);
 }
-function answerWeeklyCase(i,el){
+async function answerWeeklyCase(i,el){
   const item=weeklyPackCache?.cases?.[weeklyCaseIndex];if(!item||state.freshWeekly.completed.includes(item.id))return;
   const o=item.options[i],best=!!o.best;
   document.querySelectorAll("#weeklyChoices .choice").forEach(b=>b.disabled=true);
   el.classList.add(best?"good":"bad");
   const xp=best?60:20;
   const f=document.getElementById("weeklyFeedback");
-  f.innerHTML=`<div class="decision-verdict ${best?"good-text":"warn-text"}">${best?L("Сильнейший вариант","Strongest option"):L("Более слабый вариант","Weaker option")}</div><div class="copy">${escapeHtml(o.consequence)}</div><div class="review-grid" style="margin-top:10px"><div><span>${L("Trade-off","Trade-off")}</span><b>${escapeHtml(o.tradeoff)}</b></div><div><span>${L("Метрика","Metric")}</span><b>${escapeHtml(o.metric)}</b></div></div><div class="tiny" style="margin-top:8px">+${xp} XP</div>`;
+  f.innerHTML=`<div class="decision-verdict ${best?"good-text":"warn-text"}">${best?L("Сильнейший вариант","Strongest option"):L("Более слабый вариант","Weaker option")}</div><div class="copy">${escapeHtml(o.consequence)}</div><div class="review-grid" style="margin-top:10px"><div><span>${L("Компромисс","Trade-off")}</span><b>${escapeHtml(o.tradeoff)}</b></div><div><span>${L("Метрика","Metric")}</span><b>${escapeHtml(o.metric)}</b></div></div><div id="weeklyCommunity" class="duel-community"></div><div class="tiny" style="margin-top:8px">+${xp} XP</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon('weekly')">${L("Поделиться результатом","Share result")}</button></div>`;
   f.classList.add("show");
   state.freshWeekly.completed.push(item.id);state.xp+=xp;localSave();
-  trackEvent("weekly_case_completed",{week:weeklyPackCache.week_key,case_id:item.id,category:item.category,strongest:best});
+  trackEvent("weekly_case_completed",{week:weeklyPackCache.week_key,case_id:item.id,category:item.category,strongest:best,featured:item.id===weeklyPackCache.featured_case_id});
+  if(session){
+    const {data}=await sb.functions.invoke("weekly-case-stats",{body:{week_key:weeklyPackCache.week_key,case_id:item.id,choice:i,is_best:best}});
+    if(data?.ok&&data.total){
+      const same=Number(data.choices?.[i]||0),pct=Math.round(same/data.total*100),box=document.getElementById("weeklyCommunity");
+      if(box)box.innerHTML=`<div class="duel-community-title">${L("Решения сообщества","Community decisions")}</div><div class="copy">${LANG==="en"?pct+"% of "+data.total+" participants chose the same option.":pct+"% из "+data.total+" участников выбрали тот же вариант."}</div>`;
+    }
+  }
 }
 
 function renderOnboarding(){
@@ -1041,15 +1049,67 @@ function learningArchetype(){
   ].sort((x,y)=>y[1]-x[1]);
   return groups[0][1]>0?groups[0]:["Explorer",0,L("Ты только начинаешь собирать свой учебный профиль.","You are just starting to build your learning profile.")];
 }
+function captureReferral(){
+  const u=new URL(location.href),code=(u.searchParams.get("ref")||"").trim().toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,20);
+  if(code){localStorage.setItem("bizoniq_ref",code);trackEvent("referral_opened",{code_hint:code.slice(-4)});}
+}
+async function claimPendingReferral(){
+  if(!session)return;
+  const code=localStorage.getItem("bizoniq_ref");if(!code)return;
+  const {data,error}=await sb.functions.invoke("referral-system",{body:{action:"claim",code}});
+  if(!error&&data?.ok){localStorage.removeItem("bizoniq_ref");trackEvent("referral_claimed",{already_claimed:!!data.already_claimed});await loadReferralPanel();}
+}
+async function loadReferralPanel(){
+  const box=document.getElementById("referralPanel");if(!box)return;
+  if(!session){box.innerHTML=`<div class="tiny">${L("Войди в аккаунт, чтобы получить персональную ссылку.","Sign in to get your personal referral link.")}</div>`;return}
+  const {data,error}=await sb.functions.invoke("referral-system",{body:{action:"status"}});
+  if(error||!data?.ok){box.innerHTML=`<div class="tiny">${L("Не удалось загрузить реферальную систему.","Could not load referral system.")}</div>`;return}
+  referralState=data;
+  const link=new URL(location.origin+location.pathname);link.searchParams.set("ref",data.code);
+  const next=(data.milestones||[]).find(x=>Number(x.count)>Number(data.qualified_referrals||0));
+  box.innerHTML=`<div class="referral-head"><div><div class="tiny good">● REFERRAL</div><b>${L("Приглашай друзей — получай Pro","Invite friends — earn Pro")}</b></div><strong>${data.qualified_referrals||0}</strong></div><div class="copy">${L("Новый пользователь получает ","A new user gets ")}${data.welcome_days} ${L("дня Pro. Твои награды растут по milestones.","days of Pro. Your rewards grow with milestones.")}</div><div class="referral-link"><input class="input" readonly value="${escapeHtml(link.toString())}"><button class="btn primary" onclick="copyReferralLink()">${L("Копировать","Copy")}</button></div>${next?`<div class="tiny">${L("Следующая награда: ","Next reward: ")}${next.total_days} ${L("дней суммарно при ","days total at ")}${next.count} ${L("приглашениях","referrals")}.</div>`:""}`;
+}
+async function copyReferralLink(){
+  if(!referralState)return;
+  const link=new URL(location.origin+location.pathname);link.searchParams.set("ref",referralState.code);
+  try{await navigator.clipboard.writeText(link.toString());trackEvent("referral_link_copied",{});alert(L("Реферальная ссылка скопирована.","Referral link copied."));}catch{}
+}
+function shareCardData(type){
+  const scores=Object.values(skillScores()).sort((a,b)=>b.score-a.score);
+  if(type==="weekly"){
+    const p=weeklyCaseProgress(weeklyPackCache),featured=weeklyPackCache?.featured_case_id;
+    return {kicker:"BIZONIQ WEEKLY LAB",title:`${p.done}/${p.total} ${L("кейсов недели","weekly cases")}`,sub:featured?L("Challenge of the Week пройден","Challenge of the Week completed"):L("Свежая практика каждую неделю","Fresh practice every week")};
+  }
+  if(type==="challenge")return {kicker:"30-DAY FOUNDER CHALLENGE",title:`${state.challenge.completedDays.length}/30 ${L("дней","days")}`,sub:L("Тренирую бизнес-решения каждый день","Training business decisions every day")};
+  if(type==="duel")return {kicker:"DAILY BUSINESS DUEL",title:L("Решение принято","Decision made"),sub:learningArchetype()[0]};
+  return {kicker:"BIZONIQ SKILL MAP",title:`${scores[0]?.label||"Business"} · ${scores[0]?.score||0}`,sub:L("Мой прогресс в тренажёре бизнес-решений","My progress in the business decision trainer")};
+}
+function roundRect(ctx,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath()}
+function drawShareCard(type){
+  const d=shareCardData(type),canvas=document.createElement("canvas");canvas.width=1200;canvas.height=630;const ctx=canvas.getContext("2d");
+  const g=ctx.createLinearGradient(0,0,1200,630);g.addColorStop(0,"#090c11");g.addColorStop(.55,"#101722");g.addColorStop(1,"#0b1410");ctx.fillStyle=g;ctx.fillRect(0,0,1200,630);
+  ctx.strokeStyle="rgba(182,255,69,.18)";ctx.lineWidth=2;roundRect(ctx,54,54,1092,522,30);ctx.stroke();
+  ctx.fillStyle="#b6ff45";ctx.font="900 34px Inter,Arial,sans-serif";ctx.fillText("BIZONIQ",92,125);
+  ctx.fillStyle="#9ea8b6";ctx.font="800 18px Inter,Arial,sans-serif";ctx.fillText(d.kicker,92,190);
+  ctx.fillStyle="#f4f7fb";ctx.font="900 60px Inter,Arial,sans-serif";ctx.fillText(d.title,92,292);
+  ctx.fillStyle="#aab4c2";ctx.font="500 28px Inter,Arial,sans-serif";ctx.fillText(d.sub,92,350);
+  ctx.fillStyle="rgba(182,255,69,.08)";roundRect(ctx,92,410,430,86,22);ctx.fill();
+  ctx.fillStyle="#b6ff45";ctx.font="800 22px Inter,Arial,sans-serif";ctx.fillText("TRAIN DECISIONS. BUILD BUSINESS IQ.",120,461);
+  ctx.fillStyle="#7f8998";ctx.font="500 18px Inter,Arial,sans-serif";ctx.fillText("hazzardik.github.io/venture",92,535);
+  return canvas;
+}
+async function shareResultCard(type="app"){
+  const canvas=drawShareCard(type),blob=await new Promise(r=>canvas.toBlob(r,"image/png",.95));if(!blob)return;
+  const file=new File([blob],"bizoniq-result.png",{type:"image/png"}),url=location.origin+location.pathname;
+  trackEvent("share_card_created",{type});
+  try{
+    if(navigator.canShare?.({files:[file]})&&navigator.share){await navigator.share({title:"BIZONIQ",text:L("Мой результат в BIZONIQ","My BIZONIQ result"),url,files:[file]});return}
+  }catch{}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="bizoniq-result.png";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
 async function shareTyqon(type="app"){
-  const arch=learningArchetype()[0];
-  const text=type==="challenge"
-    ?L(`Я прохожу 30-Day Founder Challenge в BIZONIQ: ${state.challenge.completedDays.length}/30 дней.`,`I’m taking the 30-Day Founder Challenge in BIZONIQ: ${state.challenge.completedDays.length}/30 days.`)
-    :type==="duel"
-      ?L(`Я прошёл сегодняшнюю Business Duel в BIZONIQ. Мой учебный профиль: ${arch}.`,`I completed today’s Business Duel in BIZONIQ. My learning profile: ${arch}.`)
-      :L(`BIZONIQ — бизнес-тренажёр с кейсами и симуляциями. Мой учебный профиль: ${arch}.`,`BIZONIQ is a business-thinking trainer with cases and simulations. My learning profile: ${arch}.`);
-  const data={title:"BIZONIQ",text,url:location.origin+location.pathname};
-  try{if(navigator.share)await navigator.share(data);else{await navigator.clipboard.writeText(text+" "+data.url);alert(L("Ссылка скопирована.","Link copied."));}}catch(e){}
+  await shareResultCard(type);
 }
 function weeklyProgress(){
   resetWeeklyIfNeeded();return Math.max(0,state.xp-state.weekly.xpStart);
@@ -1057,9 +1117,18 @@ function weeklyProgress(){
 function setWeeklyTarget(){
   const val=Number(prompt(L("Цель XP на неделю","Weekly XP target"),state.weekly.target||400));if(val>=100&&val<=5000){state.weekly.target=val;localSave();}
 }
+async function openWeeklyChallenge(){
+  if(!session){openAuth();return}
+  await openWeeklyLab();
+  if(weeklyPackCache?.featured_case_id){
+    const idx=weeklyPackCache.cases.findIndex(x=>x.id===weeklyPackCache.featured_case_id);
+    if(idx>=0)renderWeeklyCase(idx);
+  }
+}
 function renderGrowthHub(){
   const arch=learningArchetype(),wp=weeklyProgress(),target=state.weekly.target||400,pct=Math.min(100,wp/target*100),challenge=state.challenge.completedDays.length;
   document.getElementById("growthHub").innerHTML=`
+    <div class="card growth-card weekly-feature"><div class="growth-icon">★</div><div class="label">CHALLENGE OF THE WEEK</div><h3>${L("Главный кейс недели","The featured case of the week")}</h3><div class="copy">${L("Один сложный выбор из Weekly Lab + статистика решений сообщества.","One difficult Weekly Lab decision plus community decision stats.")}</div><div class="btnrow"><button class="btn primary" onclick="openWeeklyChallenge()">${L("Принять вызов","Take the challenge")}</button></div></div>
     <div class="card growth-card duel-card"><div class="growth-icon">⚔️</div><div class="label">DAILY DUEL</div><h3>${L("60 секунд на бизнес-решение","60 seconds for a business decision")}</h3><div class="copy">${L("Один новый управленческий выбор каждый день.","One new management decision every day.")}</div><div class="btnrow"><button class="btn primary" onclick="dailyDuel()">${state.duel.date===todayKey()&&state.duel.answered?L("Посмотреть","View"):L("Принять вызов","Take the challenge")}</button></div></div>
     <div class="card growth-card"><div class="growth-icon">🧭</div><div class="label">DECISION DIAGNOSTIC</div><h3>${state.diagnostic.completed?L("Путь уже рассчитан","Your path is ready"):L("Найди свою траекторию","Find your path")}</h3><div class="copy">${L("2 вопроса + 4 реальные задачи → стартовая карта навыков.","2 questions + 4 real decision tasks → your starting skill map.")}</div><div class="btnrow"><button class="btn ghost" onclick="startDiagnostic()">${state.diagnostic.completed?L("Пройти заново","Retake"):L("Начать","Start")}</button></div></div>
     <div class="card growth-card ${state.cases.length<3?"challenge-locked":""}"><div class="growth-icon">🔥</div><div class="label">30-DAY CHALLENGE</div><h3>${state.cases.length<3?L("Откроется после 3 кейсов","Unlocks after 3 cases"):challenge+"/30 "+L("дней","days")}</h3><div class="progress"><span style="width:${state.cases.length<3?Math.min(100,state.cases.length/3*100):Math.min(100,challenge/30*100)}%"></span></div><div class="btnrow"><button class="btn ghost" onclick="startChallenge()">${state.cases.length<3?L("Сначала практика","Practice first"):state.challenge.started?L("Продолжить","Continue"):L("Войти в челлендж","Join challenge")}</button></div></div>
@@ -1224,7 +1293,7 @@ function answerCase(id,i,el){
   const f=document.getElementById("caseFeedback");
   const earned=ch.correct&&!state.cases.includes(id)?c.xp:0;
   f.innerHTML=caseReview(c,ch,!!ch.correct)+(earned?`<div class="tiny case-xp">+${earned} XP</div>`:"");f.classList.add("show");
-  if(ch.correct&&!state.cases.includes(id)){state.cases.push(id);state.xp+=c.xp}
+  if(ch.correct&&!state.cases.includes(id)){state.cases.push(id);state.xp+=c.xp;if(state.cases.length===1)trackEvent("first_case_completed",{case_id:id});if(state.cases.length===3)trackEvent("three_cases_completed",{case_id:id})}
   const rating=document.getElementById("caseRating");
   if(rating&&!state.adaptive.caseRatings[id])rating.innerHTML=`<div class="difficulty-rating"><div class="tiny">${L("КАК БЫЛО ПО СЛОЖНОСТИ?","HOW DID THE DIFFICULTY FEEL?")}</div><div class="btnrow"><button class="btn ghost" onclick="rateCaseDifficulty('${id}','easy')">${L("Слишком легко","Too easy")}</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','normal')">${L("Нормально","About right")}</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','hard')">${L("Сложно","Hard")}</button></div></div>`;
   localSave();
@@ -1495,6 +1564,7 @@ function renderProfile(){
     if(creatorAccount)creatorBox.innerHTML=`<div><div class="tiny good">● CREATOR ACCESS</div><b>Creator Console</b><div class="copy">${L("Пользователи, аналитика, Pro-коды и beta-feedback.","Users, analytics, Pro codes and beta feedback.")}</div></div><a class="btn primary" href="./admin.html">${L("Открыть панель","Open console")}</a>`;
   }
   document.getElementById("accountInfo").innerHTML=session?`<div class="tiny good">● ${L("Облачная синхронизация включена","Cloud sync is active")}</div><div style="margin-top:7px">${escapeHtml(session.user.email||"")}</div><div class="btnrow"><button class="btn secondary" onclick="pushCloud(true)">${L("Синхронизировать сейчас","Sync now")}</button><button class="btn danger" onclick="signOutUser()">${L("Выйти","Sign out")}</button></div>`:`<div class="tiny warn">● ${L("Сейчас прогресс хранится только на этом устройстве.","Progress is currently stored only on this device.")}</div><div class="btnrow"><button class="btn primary" onclick="openAuth()">${L("Создать аккаунт / войти","Create account / sign in")}</button></div>`;
+  loadReferralPanel();
   const ach=[
     [L("Первый рывок","First momentum"),"100 XP",state.xp>=100],[L("Терминатор","Term learner"),L("10 терминов","10 terms"),state.terms.length>=10],[L("Практик","Practitioner"),L("5 кейсов","5 cases"),state.cases.length>=5],
     [L("Дисциплина","Discipline"),L("10 уроков","10 lessons"),state.lessons.length>=10],[L("Оператор","Operator"),L("2 симулятора","2 simulators"),Object.values(state.simDone).filter(Boolean).length>=2],["Titan track","3000 XP",state.xp>=3000]
@@ -1561,7 +1631,7 @@ function renderAll(){
   localizeUI();
 }
 document.addEventListener("DOMContentLoaded",async()=>{
-  buildNav();renderOnboarding();
+  captureReferral();buildNav();renderOnboarding();
   document.getElementById("termSearch").oninput=renderTerms;document.getElementById("termFilter").onchange=renderTerms;
   document.getElementById("caseSearch").oninput=renderCases;
   document.getElementById("coachInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendCoach()});
