@@ -1105,9 +1105,9 @@ function certificateProgress(def){
   const lessonDone=requiredLessons.filter(id=>state.lessons.includes(id)).length;
   const simDone=Object.values(state.simDone||{}).filter(Boolean).length;
   const parts=[
-    {label:"Уроки",value:lessonDone,need:requiredLessons.length},
-    {label:"Кейсы",value:state.cases.length,need:def.minCases},
-    {label:"Симуляторы",value:simDone,need:def.minSims}
+    {label:L("Уроки","Lessons"),value:lessonDone,need:requiredLessons.length},
+    {label:L("Кейсы","Cases"),value:state.cases.length,need:def.minCases},
+    {label:L("Симуляторы","Simulators"),value:simDone,need:def.minSims}
   ];
   return {eligible:parts.every(x=>x.value>=x.need),parts};
 }
@@ -1129,8 +1129,8 @@ function renderCertificates(){
       <div class="copy">${def.desc}</div>
       <div class="cert-progress">${detail}</div>
       ${cert?
-        `<div class="certificate-code">${cert.certificate_code}</div><div class="btnrow"><button class="btn primary" onclick="openCertificate('${cert.certificate_code}')">Открыть сертификат</button><button class="btn ghost" onclick="copyCertificateLink('${cert.certificate_code}')">Скопировать ссылку</button></div>`:
-        `<div class="btnrow"><button class="btn ${proRequired?"secondary":p.eligible?"primary":"secondary"}" ${(!proRequired&&p.eligible)?"":"disabled"} onclick="claimCertificate('${def.id}')">${proRequired?"Доступно в Pro":p.eligible?"Получить сертификат":"Сначала выполни критерии"}</button>${proRequired?'<button class="btn ghost" onclick="go(\'pricing\')">Посмотреть Pro</button>':""}</div>`}
+        `<div class="certificate-code">${cert.certificate_code}</div><div class="btnrow"><button class="btn primary" onclick="openCertificate('${cert.certificate_code}')">${L("Открыть сертификат","Open certificate")}</button><button class="btn ghost" onclick="copyCertificateLink('${cert.certificate_code}')">${L("Скопировать ссылку","Copy link")}</button></div>`:
+        `<div class="btnrow"><button class="btn ${proRequired?"secondary":p.eligible?"primary":"secondary"}" ${(!proRequired&&p.eligible)?"":"disabled"} onclick="claimCertificate('${def.id}')">${proRequired?L("Доступно в Pro","Available in Pro"):p.eligible?L("Получить сертификат","Claim certificate"):L("Сначала выполни критерии","Complete the requirements first")}</button>${proRequired?`<button class="btn ghost" onclick="go('pricing')">${L("Посмотреть Pro","View Pro")}</button>`:""}</div>`}
     </div>`;
   }).join("");
   localizeUI(grid);
@@ -1140,7 +1140,7 @@ async function claimCertificate(type){
   if(!session){openAuth();return}
   await pushCloud(true);
   const {data,error}=await sb.functions.invoke("issue-certificate",{body:{type}});
-  if(error){alert("Не удалось выдать сертификат. Проверь прогресс и попробуй ещё раз.");return}
+  if(error){alert(L("Не удалось выдать сертификат. Проверь прогресс и попробуй ещё раз.","Could not issue the certificate. Check your progress and try again."));return}
   if(data?.certificate){await loadCertificates();openCertificate(data.certificate.certificate_code)}
 }
 function openCertificate(code){
@@ -1149,7 +1149,7 @@ function openCertificate(code){
 }
 async function copyCertificateLink(code){
   const url=new URL("./certificate.html?code="+encodeURIComponent(code)+"&lang="+encodeURIComponent(LANG),location.href).href;
-  try{await navigator.clipboard.writeText(url);alert("Ссылка на сертификат скопирована.");}catch{prompt("Скопируй ссылку:",url)}
+  try{await navigator.clipboard.writeText(url);alert(L("Ссылка на сертификат скопирована.","Certificate link copied."));}catch{prompt(L("Скопируй ссылку:","Copy this link:"),url)}
 }
 
 function renderProfile(){
@@ -1161,14 +1161,14 @@ function renderProfile(){
   const arch=learningArchetype();
   const badge=document.getElementById("archetypeBadge");
   const adaptive=document.getElementById("adaptiveProfile");
-  if(adaptive)adaptive.innerHTML=`<div class="label">СЛОЖНОСТЬ КЕЙСОВ</div><div class="adaptive-profile-level">${difficultyName()}</div><div class="copy">BIZONIQ меняет сложность по первым попыткам и твоим оценкам кейсов.</div>`;
-  if(badge)badge.innerHTML=`<div class="label">ПРОФИЛЬ ОБУЧЕНИЯ</div><div style="font-size:22px;font-weight:900;margin-top:8px">${arch[0]}</div><div class="copy" style="margin-top:5px">${arch[2]}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon()">Поделиться профилем</button></div>`;
+  if(adaptive)adaptive.innerHTML=`<div class="label">${L("СЛОЖНОСТЬ КЕЙСОВ","CASE DIFFICULTY")}</div><div class="adaptive-profile-level">${difficultyName()}</div><div class="copy">${L("BIZONIQ меняет сложность по первым попыткам и твоим оценкам кейсов.","BIZONIQ adjusts case difficulty based on your first attempts and difficulty ratings.")}</div>`;
+  if(badge)badge.innerHTML=`<div class="label">${L("ПРОФИЛЬ ОБУЧЕНИЯ","LEARNING PROFILE")}</div><div style="font-size:22px;font-weight:900;margin-top:8px">${arch[0]}</div><div class="copy" style="margin-top:5px">${arch[2]}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon()">${L("Поделиться профилем","Share profile")}</button></div>`;
   const subscriptionPanel=document.getElementById("subscriptionPanel");
   if(subscriptionPanel){
     if(isPro()){
       const manual=manualProActive();
       const end=manual&&userEntitlement.ends_at?new Date(userEntitlement.ends_at).toLocaleDateString(LANG==="en"?"en-US":"ru-RU"):null;
-      subscriptionPanel.innerHTML=`<div class="subscription-active"><div><div class="tiny good">● BIZONIQ PRO</div><b>${proLabel()}</b>${end?`<div class="tiny">до ${end}</div>`:""}</div>${!manual&&userSubscription?'<button class="btn ghost" onclick="openBillingPortal()">Управлять</button>':""}</div>`;
+      subscriptionPanel.innerHTML=`<div class="subscription-active"><div><div class="tiny good">● BIZONIQ PRO</div><b>${proLabel()}</b>${end?`<div class="tiny">${L("до","until")} ${end}</div>`:""}</div>${!manual&&userSubscription?`<button class="btn ghost" onclick="openBillingPortal()">${L("Управлять","Manage")}</button>`:""}</div>`;
     }else{
       subscriptionPanel.innerHTML=`<div class="subscription-free"><div><div class="tiny">${L("Тариф","Plan")}</div><b>Free</b></div><button class="btn primary" onclick="go('pricing')">Pro · ${proPrice("monthly")}${L("/мес","/mo")}</button></div>`;
     }
@@ -1176,17 +1176,17 @@ function renderProfile(){
   const creatorBox=document.getElementById("creatorPanelLink");
   if(creatorBox){
     creatorBox.classList.toggle("hidden",!creatorAccount);
-    if(creatorAccount)creatorBox.innerHTML=`<div><div class="tiny good">● CREATOR ACCESS</div><b>Creator Console</b><div class="copy">Пользователи, аналитика, Pro-коды и beta-feedback.</div></div><a class="btn primary" href="./admin.html">Открыть панель</a>`;
+    if(creatorAccount)creatorBox.innerHTML=`<div><div class="tiny good">● CREATOR ACCESS</div><b>Creator Console</b><div class="copy">${L("Пользователи, аналитика, Pro-коды и beta-feedback.","Users, analytics, Pro codes and beta feedback.")}</div></div><a class="btn primary" href="./admin.html">${L("Открыть панель","Open console")}</a>`;
   }
-  document.getElementById("accountInfo").innerHTML=session?`<div class="tiny good">● Облачная синхронизация включена</div><div style="margin-top:7px">${escapeHtml(session.user.email||"")}</div><div class="btnrow"><button class="btn secondary" onclick="pushCloud(true)">Синхронизировать сейчас</button><button class="btn danger" onclick="signOutUser()">Выйти</button></div>`:`<div class="tiny warn">● Сейчас прогресс хранится только на этом устройстве.</div><div class="btnrow"><button class="btn primary" onclick="openAuth()">Создать аккаунт / войти</button></div>`;
+  document.getElementById("accountInfo").innerHTML=session?`<div class="tiny good">● ${L("Облачная синхронизация включена","Cloud sync is active")}</div><div style="margin-top:7px">${escapeHtml(session.user.email||"")}</div><div class="btnrow"><button class="btn secondary" onclick="pushCloud(true)">${L("Синхронизировать сейчас","Sync now")}</button><button class="btn danger" onclick="signOutUser()">${L("Выйти","Sign out")}</button></div>`:`<div class="tiny warn">● ${L("Сейчас прогресс хранится только на этом устройстве.","Progress is currently stored only on this device.")}</div><div class="btnrow"><button class="btn primary" onclick="openAuth()">${L("Создать аккаунт / войти","Create account / sign in")}</button></div>`;
   const ach=[
-    ["Первый рывок","100 XP",state.xp>=100],["Терминатор","10 терминов",state.terms.length>=10],["Практик","5 кейсов",state.cases.length>=5],
-    ["Дисциплина","10 уроков",state.lessons.length>=10],["Оператор","2 симулятора",Object.values(state.simDone).filter(Boolean).length>=2],["Titan track","3000 XP",state.xp>=3000]
+    [L("Первый рывок","First momentum"),"100 XP",state.xp>=100],[L("Терминатор","Term learner"),L("10 терминов","10 terms"),state.terms.length>=10],[L("Практик","Practitioner"),L("5 кейсов","5 cases"),state.cases.length>=5],
+    [L("Дисциплина","Discipline"),L("10 уроков","10 lessons"),state.lessons.length>=10],[L("Оператор","Operator"),L("2 симулятора","2 simulators"),Object.values(state.simDone).filter(Boolean).length>=2],["Titan track","3000 XP",state.xp>=3000]
   ];
   document.getElementById("achievements").innerHTML=ach.map(a=>`<div class="achievement"><b>${a[2]?"✅":"🔒"} ${a[0]}</b><div class="tiny" style="margin-top:5px">${a[1]}</div></div>`).join("");
 }
 function editName(){
-  modal(`<div class="label">ПРОФИЛЬ</div><h2>Как тебя показывать в BIZONIQ?</h2><input id="nameEdit" class="input" value="${escapeHtml(state.name||"")}"><div class="btnrow"><button class="btn primary" onclick="saveName()">Сохранить</button></div>`,true);
+  modal(`<div class="label">${L("ПРОФИЛЬ","PROFILE")}</div><h2>${L("Как тебя показывать в BIZONIQ?","How should BIZONIQ display your name?")}</h2><input id="nameEdit" class="input" value="${escapeHtml(state.name||"")}"><div class="btnrow"><button class="btn primary" onclick="saveName()">${L("Сохранить","Save")}</button></div>`,true);
 }
 function cleanPlainText(value,max=80){
   return String(value??"").replace(/[\u0000-\u001F\u007F]/g," ").replace(/\s+/g," ").trim().slice(0,max);
