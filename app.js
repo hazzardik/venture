@@ -952,12 +952,12 @@ function moduleOrder(){
 }
 function renderLessons(){
   const modules=moduleOrder();
-  document.getElementById("moduleBar").innerHTML=`<button class="modulechip ${activeModule==="all"?"active":""}" onclick="activeModule='all';renderLessons()">Все 56</button>`+modules.map(m=>`<button class="modulechip ${activeModule===m.id?"active":""}" onclick="activeModule='${m.id}';renderLessons()">${m.icon} ${m.title}</button>`).join("");
+  document.getElementById("moduleBar").innerHTML=`<button class="modulechip ${activeModule==="all"?"active":""}" onclick="activeModule='all';renderLessons()">${L("Все 56","All 56")}</button>`+modules.map(m=>`<button class="modulechip ${activeModule===m.id?"active":""}" onclick="activeModule='${m.id}';renderLessons()">${m.icon} ${m.title}</button>`).join("");
   const lessons=modules.flatMap(m=>m.lessons.map(l=>({m,l}))).filter(x=>activeModule==="all"||x.m.id===activeModule);
   document.getElementById("lessons").innerHTML=lessons.map(({m,l})=>{
     const done=state.lessons.includes(l[0]);
     const locked=lessonIsPremium(m,l)&&!proAccess();
-    return `<div class="card item ${locked?"pro-locked":""}"><div class="label">${m.icon} ${m.title}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${l[1]}</h3><div class="copy">${l[2]}</div><div class="meta"><span>3–5 мин</span><span>${locked?"Pro":done?"✓ завершено":"+"+l[6]+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openLesson('${l[0]}')">${locked?"Открыть с Pro":done?"Повторить":"Открыть урок"}</button></div></div>`;
+    return `<div class="card item ${locked?"pro-locked":""}"><div class="label">${m.icon} ${m.title}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${l[1]}</h3><div class="copy">${l[2]}</div><div class="meta"><span>3–5 ${L("мин","min")}</span><span>${locked?"Pro":done?L("✓ завершено","✓ completed"):"+"+l[6]+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openLesson('${l[0]}')">${locked?L("Открыть с Pro","Unlock with Pro"):done?L("Повторить","Review"):L("Открыть урок","Open lesson")}</button></div></div>`;
   }).join("");
   localizeUI(document.getElementById("learn"));
 }
@@ -966,7 +966,7 @@ function openLesson(id){
   const {m,l}=findLesson(id),done=state.lessons.includes(id);
   trackEvent("lesson_opened",{lesson_id:id,module:m.id});
   if(lessonIsPremium(m,l)&&!proAccess()){paywall("Этот урок","This lesson");return}
-  modal(`<div class="label">${m.icon} ${m.title}</div><h2>${l[1]}</h2><div class="copy">${l[2]}</div><div class="card soft section"><div class="tiny">КЛЮЧЕВАЯ МЫСЛЬ</div><div class="copy" style="margin-top:7px">${l[3]}</div></div><div class="card soft section"><div class="tiny">ПРИМЕР</div><div class="copy" style="margin-top:7px">${l[4]}</div></div><div class="card soft section"><div class="tiny">ПРАКТИЧЕСКИЙ ВЫВОД</div><div class="copy" style="margin-top:7px">${l[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson('${id}')">${done?"Уже завершено":"Завершить • +"+l[6]+" XP"}</button></div>`);
+  modal(`<div class="label">${m.icon} ${m.title}</div><h2>${l[1]}</h2><div class="copy">${l[2]}</div><div class="card soft section"><div class="tiny">${L("КЛЮЧЕВАЯ МЫСЛЬ","KEY IDEA")}</div><div class="copy" style="margin-top:7px">${l[3]}</div></div><div class="card soft section"><div class="tiny">${L("ПРИМЕР","EXAMPLE")}</div><div class="copy" style="margin-top:7px">${l[4]}</div></div><div class="card soft section"><div class="tiny">${L("ПРАКТИЧЕСКИЙ ВЫВОД","PRACTICAL TAKEAWAY")}</div><div class="copy" style="margin-top:7px">${l[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson('${id}')">${done?L("Уже завершено","Completed"):L("Завершить","Complete")+" • +"+l[6]+" XP"}</button></div>`);
 }
 function completeLesson(id){
   const {m,l}=findLesson(id);
@@ -982,13 +982,13 @@ function renderTerms(){
   });
   document.getElementById("terms").innerHTML=list.map(t=>{
     const learned=state.terms.includes(t[0]),saved=state.saved.includes(t[0]);
-    return `<div class="card item"><div class="termhead"><div><div class="termname">${t[0]}</div><div class="tiny">${t[2]}</div></div><button class="star ${saved?"on":""}" onclick="toggleSave('${t[0]}')">${saved?"★":"☆"}</button></div><div class="copy" style="margin-top:10px">${t[3]}</div><div class="meta"><span>Связано: ${t[6]}</span><span>${learned?"✓ изучено":"+25 XP"}</span></div><div class="btnrow"><button class="btn ghost" onclick="openTerm('${t[0]}')">Открыть</button><button class="btn ${learned?"secondary":"primary"}" onclick="learnTerm('${t[0]}')">${learned?"Понял":"Понял • +25 XP"}</button></div></div>`;
+    return `<div class="card item"><div class="termhead"><div><div class="termname">${t[0]}</div><div class="tiny">${t[2]}</div></div><button class="star ${saved?"on":""}" onclick="toggleSave('${t[0]}')">${saved?"★":"☆"}</button></div><div class="copy" style="margin-top:10px">${t[3]}</div><div class="meta"><span>${L("Связано:","Related:")} ${t[6]}</span><span>${learned?L("✓ изучено","✓ learned"):"+25 XP"}</span></div><div class="btnrow"><button class="btn ghost" onclick="openTerm('${t[0]}')">${L("Открыть","Open")}</button><button class="btn ${learned?"secondary":"primary"}" onclick="learnTerm('${t[0]}')">${learned?L("Понял","Got it"):L("Понял","Got it")+" • +25 XP"}</button></div></div>`;
   }).join("");
   localizeUI(document.getElementById("dictionary"));
 }
 function openTerm(name){
   const t=C.terms.find(x=>x[0]===name);
-  modal(`<div class="label">${t[2]}</div><h2>${t[0]}</h2><div class="card soft section"><div class="tiny">ПО-ПРОСТОМУ</div><div class="copy" style="margin-top:7px">${t[3]}</div></div><div class="card soft section"><div class="tiny">ЗАЧЕМ ПРЕДПРИНИМАТЕЛЮ</div><div class="copy" style="margin-top:7px">${t[4]}</div></div><div class="card soft section"><div class="tiny">ПРИМЕР</div><div class="copy" style="margin-top:7px">${t[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="learnTerm('${t[0]}');closeModal()">Понял • +25 XP</button></div>`);
+  modal(`<div class="label">${t[2]}</div><h2>${t[0]}</h2><div class="card soft section"><div class="tiny">${L("ПО-ПРОСТОМУ","IN SIMPLE TERMS")}</div><div class="copy" style="margin-top:7px">${t[3]}</div></div><div class="card soft section"><div class="tiny">${L("ЗАЧЕМ ПРЕДПРИНИМАТЕЛЮ","WHY IT MATTERS")}</div><div class="copy" style="margin-top:7px">${t[4]}</div></div><div class="card soft section"><div class="tiny">${L("ПРИМЕР","EXAMPLE")}</div><div class="copy" style="margin-top:7px">${t[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="learnTerm('${t[0]}');closeModal()">${L("Понял","Got it")} • +25 XP</button></div>`);
 }
 function learnTerm(name){if(!state.terms.includes(name)){state.terms.push(name);state.xp+=25;localSave()}}
 function toggleSave(name){state.saved=state.saved.includes(name)?state.saved.filter(x=>x!==name):[...state.saved,name];localSave()}
