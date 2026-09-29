@@ -1251,14 +1251,14 @@ function renderSimulator(){
   if(!sim)resetSimulator(false);
   const s=C.simulators[activeSimulator];
   document.getElementById("simTitleMain").textContent=s.icon+" "+s.title;
-  document.getElementById("simStats").innerHTML=[["Cash",rub(sim.cash)],[L("Revenue / мес","Revenue / mo"),rub(sim.revenue)],[L("Profit / мес","Profit / mo"),rub(sim.profit)],["Customers",Math.round(sim.customers).toLocaleString(LANG==="en"?"en-US":"ru-RU")]].map(x=>`<div class="simstat"><div class="tiny">${x[0]}</div><b>${x[1]}</b></div>`).join("");
+  document.getElementById("simStats").innerHTML=[[L("Деньги","Cash"),rub(sim.cash)],[L("Выручка / мес","Revenue / mo"),rub(sim.revenue)],[L("Прибыль / мес","Profit / mo"),rub(sim.profit)],[L("Клиенты","Customers"),Math.round(sim.customers).toLocaleString(LANG==="en"?"en-US":"ru-RU")]].map(x=>`<div class="simstat"><div class="tiny">${x[0]}</div><b>${x[1]}</b></div>`).join("");
   const fb=document.getElementById("simFeedback");fb.classList.remove("show");
   if(sim.step>=s.steps.length){
     document.getElementById("simStep").textContent=L("ФИНАЛ","FINISH");
     const outcome=simulatorOutcome(sim,s);
     document.getElementById("simEvent").textContent=outcome.label;
     document.getElementById("simText").textContent=outcome.copy;
-    document.getElementById("simChoices").innerHTML=`<div class="card soft section sim-result"><div class="sim-result-score"><b>${sim.strong}/${s.steps.length}</b><span>${L("сильных решений","strong decisions")}</span></div><div class="copy">${L("Итог","Result")}: ${rub(sim.cash)} cash • ${rub(sim.revenue)} revenue • ${rub(sim.profit)} profit</div></div>`;
+    document.getElementById("simChoices").innerHTML=`<div class="card soft section sim-result"><div class="sim-result-score"><b>${sim.strong}/${s.steps.length}</b><span>${L("сильных решений","strong decisions")}</span></div><div class="copy">${L("Итог","Result")}: ${rub(sim.cash)} ${L("деньги","cash")} • ${rub(sim.revenue)} ${L("выручка","revenue")} • ${rub(sim.profit)} ${L("прибыль","profit")}</div></div>`;
     if(!state.simDone[s.id]){state.simDone[s.id]=true;state.xp+=120;trackEvent("simulator_completed",{simulator_id:s.id,strong:sim.strong,total:s.steps.length,cash:sim.cash,profit:sim.profit});localSave()}
     localizeUI(document.getElementById("simulator"));
     return;
