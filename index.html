@@ -41,20 +41,59 @@
   <div class="dialog small">
     <button class="close" onclick="closeAuth()">✕</button>
     <div class="label">BIZONIQ ACCOUNT</div>
-    <h2 style="font-size:28px;margin:10px 0">Сохраняй прогресс между устройствами</h2>
-    <div class="copy">Без аккаунта BIZONIQ сохраняет прогресс локально. С аккаунтом обучение синхронизируется через Supabase между iPhone и ПК.</div>
-    <div class="section">
-      <input id="authName" class="input" placeholder="Имя" autocomplete="name">
+    <h2 id="authTitle" style="font-size:28px;margin:10px 0">Вход в аккаунт</h2>
+    <div id="authIntro" class="copy">Войди, чтобы синхронизировать прогресс между устройствами.</div>
+
+    <div id="authTabs" class="tabs">
+      <button id="authLoginTab" class="tab active" type="button" onclick="setAuthMode('login')">Войти</button>
+      <button id="authRegisterTab" class="tab" type="button" onclick="setAuthMode('register')">Регистрация</button>
+    </div>
+
+    <div id="authLoginPanel" class="section">
+      <input id="loginEmail" class="input" type="email" placeholder="Email" autocomplete="email">
       <div style="height:9px"></div>
-      <input id="authEmail" class="input" type="email" placeholder="Email" autocomplete="email">
-      <div style="height:9px"></div>
-      <input id="authPassword" class="input" type="password" placeholder="Пароль (для нового аккаунта — минимум 10 символов)" autocomplete="current-password">
-      <div id="authStatus" class="auth-status"></div>
-      <div class="btnrow">
+      <input id="loginPassword" class="input" type="password" placeholder="Пароль" autocomplete="current-password">
+      <div class="btnrow" style="justify-content:space-between;align-items:center">
         <button class="btn primary" onclick="signInUser()">Войти</button>
-        <button class="btn secondary" onclick="registerUser()">Создать аккаунт</button>
+        <button class="linkbtn" type="button" onclick="setAuthMode('recovery')">Забыли пароль?</button>
       </div>
     </div>
+
+    <div id="authRegisterPanel" class="section hidden">
+      <input id="registerFirstName" class="input" placeholder="Имя" autocomplete="given-name">
+      <div style="height:9px"></div>
+      <input id="registerLastName" class="input" placeholder="Фамилия" autocomplete="family-name">
+      <div style="height:9px"></div>
+      <input id="registerEmail" class="input" type="email" placeholder="Email" autocomplete="email">
+      <div style="height:9px"></div>
+      <input id="registerPassword" class="input" type="password" placeholder="Пароль — минимум 10 символов" autocomplete="new-password">
+      <div class="btnrow">
+        <button class="btn primary" onclick="registerUser()">Создать аккаунт</button>
+      </div>
+    </div>
+
+    <div id="authRecoveryPanel" class="section hidden">
+      <div class="copy">Укажи почту аккаунта — мы отправим ссылку для создания нового пароля.</div>
+      <div style="height:12px"></div>
+      <input id="recoveryEmail" class="input" type="email" placeholder="Email" autocomplete="email">
+      <div class="btnrow">
+        <button class="btn primary" onclick="sendPasswordReset()">Отправить ссылку</button>
+        <button class="btn ghost" type="button" onclick="setAuthMode('login')">Назад ко входу</button>
+      </div>
+    </div>
+
+    <div id="authNewPasswordPanel" class="section hidden">
+      <div class="copy">Придумай новый пароль для аккаунта.</div>
+      <div style="height:12px"></div>
+      <input id="recoveryNewPassword" class="input" type="password" placeholder="Новый пароль — минимум 10 символов" autocomplete="new-password">
+      <div style="height:9px"></div>
+      <input id="recoveryNewPassword2" class="input" type="password" placeholder="Повтори новый пароль" autocomplete="new-password">
+      <div class="btnrow">
+        <button class="btn primary" onclick="updateRecoveredPassword()">Сохранить новый пароль</button>
+      </div>
+    </div>
+
+    <div id="authStatus" class="auth-status"></div>
   </div>
 </div>
 
