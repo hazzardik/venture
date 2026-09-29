@@ -267,7 +267,7 @@
       </div>
       <div class="card price-card pro">
         <div class="best-badge">PRO • MONTHLY</div>
-        <div class="price"><b>99 ₽</b><span>/ месяц</span></div>
+        <div class="price"><b data-price-monthly>99 ₽</b><span>/ месяц</span></div>
         <div class="copy">Полный доступ ко всей практике и обучению.</div>
         <ul class="feature-list">
           <li>Все 56 уроков</li>
@@ -277,19 +277,19 @@
           <li>Система сертификатов</li>
           <li>Расширенный прогресс</li>
         </ul>
-        <button class="btn primary" onclick="startPaddleCheckout('pro_monthly')">Получить Pro • 99 ₽</button>
+        <button class="btn primary" data-pro-monthly-button onclick="startPaddleCheckout('pro_monthly')">Получить Pro • 99 ₽</button>
       </div>
       <div class="card price-card yearly">
         <div class="best-badge">ЛУЧШАЯ ЦЕНА</div>
-        <div class="price"><b>799 ₽</b><span>/ год</span></div>
-        <div class="saving">≈ 67 ₽/мес · экономия 389 ₽</div>
+        <div class="price"><b data-price-yearly>799 ₽</b><span>/ год</span></div>
+        <div class="saving" data-yearly-saving>≈ 67 ₽/мес · экономия 389 ₽</div>
         <div class="copy">Тот же Pro, но заметно дешевле при оплате за год.</div>
         <ul class="feature-list">
           <li>Всё из BIZONIQ Pro</li>
           <li>12 месяцев полного доступа</li>
-          <li>Экономия ≈ 33% против 99 ₽/мес</li>
+          <li>Экономия ≈ 33% против помесячной оплаты</li>
         </ul>
-        <button class="btn primary" onclick="startPaddleCheckout('pro_yearly')">Pro на год • 799 ₽</button>
+        <button class="btn primary" data-pro-yearly-button onclick="startPaddleCheckout('pro_yearly')">Pro на год • 799 ₽</button>
       </div>
     </div>
     <div class="card section">
@@ -368,7 +368,7 @@
       <div class="tiny" style="margin-top:5px">Build Business IQ.</div>
     </div>
     <div class="footer-links">
-      <a href="./?page=pricing">Pro • 99 ₽</a>
+      <a href="./?page=pricing">Pro · <span data-price-monthly>99 ₽</span></a>
       <a href="./faq.html">FAQ</a>
       <a href="./privacy.html">Privacy & Security</a>
       <a href="./verify.html">Проверить сертификат</a>
@@ -385,8 +385,10 @@
 <nav id="mobileNav" class="mobile"></nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="./preferences.js"></script>
 <script src="./billing-config.js"></script>
 <script src="./content.js"></script>
+<script src="./content-en.js"></script>
 <script src="./app.js"></script>
 <script>
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
