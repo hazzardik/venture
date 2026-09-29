@@ -455,6 +455,14 @@
     "OpenAI API key не размещается в JavaScript сайта. Запросы к модели идут через Supabase Edge Function с проверкой авторизации, дневными лимитами и ограничением размера сообщений.":"The OpenAI API key is never placed in the site's JavaScript. Model requests go through a Supabase Edge Function with authentication checks, daily limits and message-size limits."
   });
 
+  Object.assign(STATIC_EN,{
+    "Симулятор кофейни • 10 решений":"Coffee Shop simulator • 10 decisions",
+    "16 микро-уроков":"16 micro-lessons",
+    "Все 4 симулятора • по 10 решений":"All 4 simulations • 10 decisions each",
+    "Все режимы AI Coach • до 60 сообщений в день":"All AI Coach modes • up to 60 messages per day",
+    "Все 56 микро-уроков":"All 56 micro-lessons"
+  });
+
   const REPLACERS_EN=[
     [/^Завершить • \+(\d+) XP$/,"Complete • +$1 XP"],
     [/^Связано: (.+)$/,"Related: $1"],
@@ -575,7 +583,7 @@
 
   const titleMap={
     "/venture/":lang==="en"?"BIZONIQ — Business Decision Trainer":"BIZONIQ — тренажёр бизнес-решений",
-    "/venture/index.html":lang==="en"?"BIZONIQ — Business Thinking Trainer":"BIZONIQ — тренажёр бизнес-мышления",
+    "/venture/index.html":lang==="en"?"BIZONIQ — Business Decision Trainer":"BIZONIQ — тренажёр бизнес-решений",
     "/venture/pricing.html":lang==="en"?"BIZONIQ Pro — Pricing":"BIZONIQ Pro — Тарифы",
     "/venture/faq.html":"FAQ — BIZONIQ",
     "/venture/privacy.html":"Privacy & Security — BIZONIQ",
