@@ -325,6 +325,13 @@ function renderAuthState(){
   setSyncStatus(session?"Облако подключено":"Локальный режим",!!session);
 }
 
+function authFullDisplayName(){
+  const md=session?.user?.user_metadata||{};
+  const first=cleanPlainText(md.first_name||"",50);
+  const last=cleanPlainText(md.last_name||"",60);
+  const full=(first+" "+last).trim();
+  return full||cleanPlainText(md.display_name||"",110);
+}
 async function mergeCloud(){
   if(!session||syncBusy)return;
   syncBusy=true; setSyncStatus(L("Загружаю облако…","Loading cloud data…"),false);
@@ -338,8 +345,12 @@ async function mergeCloud(){
       sb.from("simulator_runs").select("simulator_id").eq("user_id",uid)
     ]);
     const remote=p.data;
+    const authName=authFullDisplayName();
     if(remote){
-      state.name=remote.display_name||state.name||session.user.user_metadata?.display_name||L("Пользователь","User");
+      const remoteName=cleanPlainText(remote.display_name||"",110);
+      const authHasFullName=authName.split(/\s+/).filter(Boolean).length>=2;
+      const remoteHasFullName=remoteName.split(/\s+/).filter(Boolean).length>=2;
+      state.name=(authHasFullName&&!remoteHasFullName)?authName:(remoteName||state.name||authName||L("Пользователь","User"));
       state.goal=remote.learning_path||state.goal||"curious";
       state.onboarded=true;
       state.xp=Math.max(state.xp||0,remote.xp||0);
@@ -361,7 +372,7 @@ async function mergeCloud(){
         }
       }
     }else{
-      state.name=state.name||session.user.user_metadata?.display_name||L("Пользователь","User");
+      state.name=authName||state.name||L("Пользователь","User");
       state.goal=state.goal||"curious";
       state.onboarded=true;
     }
