@@ -187,3 +187,53 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .top .pills .biz-prefs{width:auto}
   .pref-btn{height:29px;min-width:30px;padding:0 7px}
 }
+
+/* BIZONIQ v12 — decision-first product */
+.learn-tools{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;box-shadow:none}
+.learn-tools .tiny{margin-top:4px;max-width:720px}
+
+.coach-statusbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:11px 14px;box-shadow:none}
+.coach-mode{position:relative;overflow:hidden;transition:border-color .18s ease,transform .18s ease}
+.coach-mode:hover{transform:translateY(-1px)}
+.coach-mode-kicker{font-size:9px;font-weight:950;letter-spacing:.12em;color:var(--cyan);margin-bottom:8px}
+.coach-insight,.coach-next{margin-top:10px;padding:10px 11px;border-radius:11px;font-size:12px;line-height:1.5}
+.coach-insight{background:rgba(101,222,255,.07);border:1px solid rgba(101,222,255,.14)}
+.coach-next{background:rgba(182,255,69,.065);border:1px solid rgba(182,255,69,.16)}
+.coach-disclaimer{margin-top:10px;line-height:1.5}
+.msg.thinking{color:var(--muted);position:relative}
+.msg.thinking:after{content:"";display:inline-block;width:12px;height:12px;margin-left:8px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--green);border-radius:50%;vertical-align:-2px;animation:bizSpin .75s linear infinite}
+.msg.error-msg{border-color:rgba(255,133,133,.2);background:rgba(255,133,133,.06)}
+@keyframes bizSpin{to{transform:rotate(360deg)}}
+
+.decision-verdict{font-size:11px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.good-text{color:var(--green)}
+.warn-text{color:var(--amber)}
+.case-review{display:grid;gap:12px}
+.review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.review-grid>div{padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025)}
+.review-grid span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.review-grid b{font-size:12px;line-height:1.45}
+.case-xp{margin-top:9px;color:var(--green);font-weight:850}
+
+.duel-community{margin-top:13px;padding:12px 13px;border-radius:14px;border:1px solid rgba(111,124,255,.18);background:rgba(111,124,255,.055)}
+.duel-community:empty{display:none}
+.duel-community-title{font-size:10px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;color:#cfd4ff;margin-bottom:5px}
+
+.sim-result{display:grid;gap:10px}
+.sim-result-score{display:flex;align-items:baseline;gap:10px}
+.sim-result-score b{font-size:34px;color:var(--green)}
+.sim-result-score span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+.diagnostic-result{display:flex;align-items:center;gap:12px;margin:16px 0;padding:13px;border:1px solid rgba(182,255,69,.18);border-radius:14px;background:rgba(182,255,69,.045)}
+.diagnostic-result b{font-size:28px;color:var(--green)}
+.diagnostic-result span{font-size:12px;color:var(--muted);line-height:1.4}
+.challenge-locked{opacity:.76}
+.challenge-locked .growth-icon{filter:grayscale(.25)}
+
+@media(max-width:900px){
+  .learn-tools,.coach-statusbar{align-items:flex-start;flex-direction:column}
+  .learn-tools .btn{width:100%}
+  .review-grid{grid-template-columns:1fr}
+  .chat{min-height:62vh}
+  .messages{max-height:54vh}
+}
