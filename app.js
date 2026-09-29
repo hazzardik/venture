@@ -61,7 +61,7 @@ const PRACTICE_ICONS={
 const PRACTICE_CARDS=[
   {id:"cases",title:L("Бизнес-кейсы","Business cases"),desc:L("32 ситуации и разбор решений","32 situations with decision breakdowns")},
   {id:"simulator",title:L("Симуляторы","Simulations"),desc:L("Управляй цифрами и последствиями","Manage numbers and consequences")},
-  {id:"coach",title:"Business Coach",desc:L("Структурируй идею и решения","Structure an idea and decisions")},
+  {id:"coach",title:"AI Coach",desc:L("Разбирай решения с персональным AI-агентом","Analyze decisions with a personalized AI agent")},
   {id:"certificates",title:L("Сертификаты","Certificates"),desc:L("Проверяемые достижения BIZONIQ","Verifiable BIZONIQ achievements")}
 ];
 const LEVELS=[
@@ -639,10 +639,10 @@ function go(page){
     dashboard:[L("Главная","Home"),L("Следующий шаг, прогресс и практика — без лишних поисков.","Your next step, progress and practice — without unnecessary searching.")],
     learn:[L("Обучение","Courses"),L("56 коротких уроков, адаптированных под твою траекторию.","56 short lessons adapted to your learning path.")],
     dictionary:["Business Dictionary",L("Термины с примерами, поиском и избранным.","Terms with examples, search and favorites.")],
-    practice:[L("Практика","Practice"),L("Кейсы, симуляторы, Coach и сертификаты.","Cases, simulations, Coach and certificates.")],
+    practice:[L("Практика","Practice"),L("Кейсы, симуляторы, AI Coach и сертификаты.","Cases, simulations, AI Coach and certificates.")],
     cases:[L("Бизнес-кейсы","Business cases"),L("32 ситуации для тренировки решений.","32 situations for decision-making practice.")],
     simulator:["Business Simulator",L("Четыре бизнеса, где решения меняют экономику.","Four businesses where your decisions change the economics.")],
-    coach:["Business Coach",L("Интерактивный тренер: идея, финансы, маркетинг и сложные кейсы.","Interactive coaching for ideas, finance, marketing and difficult cases.")],
+    coach:["BIZONIQ AI Coach",L("Персональный AI-разбор идей, цифр и сложных бизнес-решений.","Personal AI analysis for ideas, numbers and difficult business decisions.")],
     certificates:[L("Сертификаты","Certificates"),L("Проверяемые сертификаты прохождения с уникальным ID.","Verifiable completion certificates with a unique ID.")],
     pricing:["BIZONIQ Pro",L("Полный доступ по месячному или годовому тарифу.","Full access with monthly or yearly billing.")],
     profile:[L("Профиль и синхронизация","Profile & sync"),L("Смена пути, аккаунт, backup и прогресс.","Learning path, account, backup and progress.")]
@@ -660,7 +660,7 @@ function renderPractice(){
   const copy=document.getElementById("practiceSectionCopy");
   const wrap=document.getElementById("practiceCards");
   if(title)title.textContent=L("Практика","Practice");
-  if(copy)copy.textContent=L("Кейсы, симуляторы, Coach и сертификаты — в одном месте.","Cases, simulations, Coach and certificates — all in one place.");
+  if(copy)copy.textContent=L("Кейсы, симуляторы, AI Coach и сертификаты — в одном месте.","Cases, simulations, AI Coach and certificates — all in one place.");
   if(!wrap)return;
   wrap.innerHTML=PRACTICE_CARDS.map(card=>`
     <button class="card practice-card" onclick="go('${card.id}')">
