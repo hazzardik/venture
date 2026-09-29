@@ -70,7 +70,18 @@ const ADMIN_STATIC_EN={
   "Accuracy первых попыток. Появляется по мере накопления v9 analytics.":"First-attempt accuracy. Appears as v9 analytics accumulates.",
   "Просмотры разделов":"Page views",
   "За последние 30 дней.":"Last 30 days.",
-  "Все выдачи Pro, генерации и отключения кодов фиксируются.":"All Pro grants, code creation and code deactivation are logged."
+  "Все выдачи Pro, генерации и отключения кодов фиксируются.":"All Pro grants, code creation and code deactivation are logged.",
+  "Воронка продукта":"Product funnel",
+  "Регистрация → первый кейс → 3 кейса → Weekly Lab → интерес к Pro.":"Registration → first case → 3 cases → Weekly Lab → Pro intent.",
+  "Referral Growth":"Referral Growth",
+  "Сколько пользователей пришло по приглашениям и сколько людей приводят друзей.":"How many users joined through referrals and how many users invite others.",
+  "Weekly Lab Editor":"Weekly Lab Editor",
+  "AI создаёт draft. Публикация происходит только после проверки создателем.":"AI creates a draft. Publishing happens only after creator review.",
+  "AI Agent Settings":"AI Agent Settings",
+  "Owner меняет дневные лимиты без редактирования кода.":"The owner can change daily limits without editing code.",
+  "Free / день":"Free / day",
+  "Pro / день":"Pro / day",
+  "Сохранить AI-настройки":"Save AI settings"
 };
 function adminTranslateTree(root=document.body){
   if(ADMIN_LANG!=="en"||!root)return;
@@ -166,6 +177,10 @@ function renderAll(){
   ].join("");
   renderProductHealth();
   renderPaths();
+  renderFunnel();
+  renderReferralStats();
+  renderWeeklyAdmin();
+  renderAiSettings();
   renderTopList("topLessons",dashboard.top_lessons||[],AL("Урок","Lesson"),AL("завершений","completions"));
   renderTopList("topCases",dashboard.top_cases||[],AL("Кейс","Case"),AL("решений","solutions"));
   renderHardest();
@@ -194,6 +209,53 @@ function renderPaths(){
   const arr=dashboard.learning_paths||[],max=Math.max(1,...arr.map(x=>Number(x.count)||0));
   document.getElementById("paths").innerHTML=arr.length?arr.map(x=>'<div class="rank-row"><div><b>'+esc(names[x.path]||x.path)+'</b></div><div class="rank-bar"><span style="width:'+Math.round((x.count/max)*100)+'%"></span></div><strong>'+esc(x.count)+'</strong></div>').join(""):'<div class="empty">'+AL("Пока нет данных.","No data yet.")+'</div>';
 }
+function renderFunnel(){
+  const arr=dashboard.funnel||[],max=Math.max(1,Number(arr[0]?.count)||1);
+  const box=document.getElementById("funnelList");if(!box)return;
+  box.innerHTML=arr.length?arr.map((x,i)=>{
+    const count=Number(x.count)||0,p=Math.round(count/max*100);
+    return '<div class="funnel-row"><div><b>'+esc(x.label)+'</b><div class="mini">'+(i===0?AL("база","base"):p+"%")+'</div></div><div class="funnel-track"><span style="width:'+p+'%"></span></div><strong>'+esc(count)+'</strong></div>';
+  }).join(""):'<div class="empty">'+AL("Пока нет данных.","No data yet.")+'</div>';
+}
+function renderReferralStats(){
+  const x=dashboard.referral_summary||{},m=dashboard.metrics||{},box=document.getElementById("referralStats");if(!box)return;
+  box.innerHTML='<div class="volume-grid"><div class="volume"><span>'+AL("Успешных приглашений","Qualified referrals")+'</span><b>'+esc(x.qualified||0)+'</b></div><div class="volume"><span>'+AL("Пользователей-рефереров","Users referring")+'</span><b>'+esc(x.referrers||0)+'</b></div></div><div class="mini" style="margin-top:10px">'+AL("Referral Pro выдаётся сервером и не зависит от клиента.","Referral Pro is granted server-side and cannot be forged by the client.")+'</div>';
+}
+function renderWeeklyAdmin(){
+  const arr=dashboard.weekly_packs||[],box=document.getElementById("weeklyAdminList");if(!box)return;
+  box.innerHTML=arr.length?arr.map(p=>{
+    const cases=Array.isArray(p.cases)?p.cases:[],preview=cases.slice(0,3).map(x=>esc(x.title)).join(" · ");
+    const pub=p.status==="published";
+    return '<div class="weekly-admin-card '+(pub?"published":"")+'"><div class="weekly-admin-head"><div><b>'+esc(p.week_key)+' · '+esc(String(p.lang).toUpperCase())+'</b><div class="mini">'+esc(p.status)+' · '+fmtDateTime(p.generated_at)+'</div></div><span class="state '+(pub?"active":"")+'">'+esc(String(p.status).toUpperCase())+'</span></div><div class="weekly-case-preview">'+preview+'</div><div class="btnrow">'+(!pub?'<button class="small-btn" onclick="publishWeeklyPack(\''+esc(p.lang)+'\',\''+esc(p.week_key)+'\',\''+esc(p.featured_case_id||cases[0]?.id||"")+'\')">'+AL("Опубликовать","Publish")+'</button>':'')+'<button class="small-btn" onclick="generateWeeklyPack(\''+esc(p.lang)+'\',\''+esc(p.week_key)+'\')">'+AL("Перегенерировать draft","Regenerate draft")+'</button></div></div>';
+  }).join(""):'<div class="empty">'+AL("Weekly Lab ещё не создан.","Weekly Lab has not been created yet.")+'</div>';
+}
+function renderAiSettings(){
+  const s=dashboard.product_settings||{},owner=dashboard.creator?.role==="owner";
+  const panel=document.getElementById("aiSettingsPanel");
+  if(panel)panel.classList.toggle("hidden",!owner);
+  if(!owner)return;
+  const free=document.getElementById("aiFreeLimit"),pro=document.getElementById("aiProLimit"),model=document.getElementById("aiModel");
+  if(free)free.value=s.ai_free_daily_limit||12;if(pro)pro.value=s.ai_pro_daily_limit||50;if(model)model.value=s.ai_model||"openai/gpt-oss-120b";
+}
+async function generateWeeklyPack(lang,week_key=""){
+  status(AL("AI создаёт Weekly Lab draft…","AI is creating the Weekly Lab draft…"));
+  const {data,error}=await sb.functions.invoke("creator-product-admin",{body:{action:"generate_weekly",lang,week_key:week_key||undefined}});
+  if(error||!data?.ok){status(apiError(data?.error,"Не удалось создать Weekly Lab draft.","Could not create Weekly Lab draft."),"bad");return}
+  status(AL("Draft создан. Проверь его и опубликуй.","Draft created. Review it and publish when ready."),"good");await loadDashboard();
+}
+async function publishWeeklyPack(lang,week_key,featured_case_id){
+  if(!confirm(AL("Опубликовать этот Weekly Lab для пользователей?","Publish this Weekly Lab to users?")))return;
+  const {data,error}=await sb.functions.invoke("creator-product-admin",{body:{action:"publish_weekly",lang,week_key,featured_case_id}});
+  if(error||!data?.ok){status(apiError(data?.error,"Не удалось опубликовать Weekly Lab.","Could not publish Weekly Lab."),"bad");return}
+  status(AL("Weekly Lab опубликован.","Weekly Lab published."),"good");await loadDashboard();
+}
+async function saveAiSettings(){
+  const free=Number(document.getElementById("aiFreeLimit").value),pro=Number(document.getElementById("aiProLimit").value),model=document.getElementById("aiModel").value.trim();
+  const {data,error}=await sb.functions.invoke("creator-product-admin",{body:{action:"update_settings",ai_free_daily_limit:free,ai_pro_daily_limit:pro,ai_model:model}});
+  if(error||!data?.ok){status(apiError(data?.error,"Не удалось сохранить AI-настройки.","Could not save AI settings."),"bad");return}
+  status(AL("AI-настройки сохранены.","AI settings saved."),"good");await loadDashboard();
+}
+
 function renderTopList(id,arr,label,countLabel){
   const max=Math.max(1,...arr.map(x=>Number(x.count)||0));
   document.getElementById(id).innerHTML=arr.length?arr.map((x,i)=>'<div class="rank-row"><span class="rank-index">'+String(i+1).padStart(2,"0")+'</span><div><b>'+esc(x.id)+'</b><div class="mini">'+esc(label)+'</div></div><div class="rank-bar"><span style="width:'+Math.round((x.count/max)*100)+'%"></span></div><strong>'+esc(x.count)+' '+esc(countLabel)+'</strong></div>').join(""):'<div class="empty">'+AL("Данных пока мало.","Not enough data yet.")+'</div>';
