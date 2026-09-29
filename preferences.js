@@ -482,6 +482,17 @@
     "Оставить заявку в приложении":"Apply in the app"
   });
 
+  Object.assign(STATIC_EN,{
+    "Реферальная программа":"Referral program",
+    "Для приглашений BIZONIQ хранит персональный referral-код и связь между пригласившим и новым аккаунтом. Это нужно для начисления Pro-бонусов и защиты от повторной активации одной и той же награды.":"For invitations, BIZONIQ stores a personal referral code and the link between the referrer and the new account. This is used to grant Pro bonuses and prevent the same reward from being activated repeatedly.",
+    "Weekly Lab и Challenge of the Week":"Weekly Lab and Challenge of the Week",
+    "Ответы на еженедельные кейсы могут сохраняться в агрегированном виде для показа статистики решений сообщества. Другим пользователям не показываются email или имя конкретного участника.":"Weekly case answers may be stored in aggregate form to show community decision statistics. Other users do not see a participant's email or name.",
+    "Почему Weekly Lab меняется каждую неделю?":"Why does Weekly Lab change every week?",
+    "Стабильная база уроков, словарь и основные кейсы остаются для повторения, а Weekly Lab добавляет свежие ситуации. AI создаёт draft, после чего создатель проверяет и публикует набор. Это позволяет обновлять практику без постоянной перезаписи базовой программы.":"The stable lesson base, dictionary and core cases remain available for revision, while Weekly Lab adds fresh situations. AI creates a draft, then a creator reviews and publishes the pack. This keeps practice fresh without constantly rewriting the core program.",
+    "Как работает реферальная программа?":"How does the referral program work?",
+    "В профиле есть персональная ссылка. Новый пользователь получает стартовый Pro-бонус, а пригласивший открывает дополнительные дни Pro по мере роста числа подтверждённых приглашений. Один аккаунт может засчитать реферальную награду только один раз.":"Your profile contains a personal link. A new user receives a starter Pro bonus, while the referrer unlocks additional Pro days as qualified referrals grow. Each account can qualify for a referral reward only once."
+  });
+
   const REPLACERS_EN=[
     [/^Завершить • \+(\d+) XP$/,"Complete • +$1 XP"],
     [/^Связано: (.+)$/,"Related: $1"],
