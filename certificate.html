@@ -79,28 +79,12 @@ const COPY={
     criteria:"Criteria"
   }
 };
-const TITLES={
-  ru:{
-    foundation:"Основы бизнеса",
-    finance:"Финансы бизнеса",
-    growth:"Рост: маркетинг и продажи",
-    operator:"Управление бизнесом",
-    mastery:"Мастерство бизнес-решений"
-  },
-  en:{
-    foundation:"Business Foundations",
-    finance:"Business Finance",
-    growth:"Growth: Marketing & Sales",
-    operator:"Business Operations",
-    mastery:"Business Decision Mastery"
-  }
-};
-const FALLBACK_RU={
-  "Business Foundations":"Основы бизнеса",
-  "Business Finance":"Финансы бизнеса",
-  "Growth: Marketing & Sales":"Рост: маркетинг и продажи",
-  "Business Operations":"Управление бизнесом",
-  "Business Decision Mastery":"Мастерство бизнес-решений"
+const LEGACY_TITLES={
+  foundation:{ru:"Основы бизнеса",en:"Business Foundations"},
+  finance:{ru:"Финансы бизнеса",en:"Business Finance"},
+  growth:{ru:"Рост: маркетинг и продажи",en:"Growth: Marketing & Sales"},
+  operator:{ru:"Управление бизнесом",en:"Business Operations"},
+  mastery:{ru:"Мастерство бизнес-решений",en:"Business Decision Mastery"}
 };
 
 function applyLanguage(){
@@ -118,10 +102,87 @@ function applyLanguage(){
   document.getElementById("creator2Role").textContent=x.creator;
   document.getElementById("certNotice").textContent=x.notice;
 }
+function isCyrillicWord(s){return /^[А-ЯЁа-яё-]+$/.test(String(s||""))}
+function inferRussianGender(first){
+  const x=String(first||"").toLowerCase();
+  const maleA=new Set(["никита","илья","кузьма","лука","фома","савва","данила"]);
+  if(maleA.has(x))return"m";
+  if(/[ая]$/.test(x))return"f";
+  return"m";
+}
+function declineFirstNameDative(name,gender){
+  if(!isCyrillicWord(name))return name;
+  const lower=name.toLowerCase();
+  const cap=(stem,end)=>stem+end;
+  if(gender==="f"){
+    if(/ия$/i.test(name))return cap(name.slice(0,-2),"ии");
+    if(/ья$/i.test(name))return cap(name.slice(0,-2),"ье");
+    if(/я$/i.test(name))return cap(name.slice(0,-1),"е");
+    if(/а$/i.test(name))return cap(name.slice(0,-1),"е");
+    if(/ь$/i.test(name))return cap(name.slice(0,-1),"и");
+    return name;
+  }
+  if(/ий$/i.test(name))return cap(name.slice(0,-2),"ию");
+  if(/[ей]$/i.test(name))return cap(name.slice(0,-1),"ю");
+  if(/ь$/i.test(name))return cap(name.slice(0,-1),"ю");
+  if(/[ая]$/i.test(name))return cap(name.slice(0,-1),"е");
+  if(/[бвгджзклмнпрстфхцчшщ]$/i.test(lower))return name+"у";
+  return name;
+}
+function declineSurnameDative(name,gender){
+  if(!isCyrillicWord(name))return name;
+  if(name.includes("-"))return name.split("-").map(x=>declineSurnameDative(x,gender)).join("-");
+  if(gender==="f"){
+    if(/(ова|ева|ёва|ина|ына)$/i.test(name))return name.slice(0,-1)+"ой";
+    if(/(ская|цкая)$/i.test(name))return name.slice(0,-2)+"ой";
+    if(/ая$/i.test(name))return name.slice(0,-2)+"ой";
+    if(/яя$/i.test(name))return name.slice(0,-2)+"ей";
+    if(/[ая]$/i.test(name))return name.slice(0,-1)+"е";
+    return name;
+  }
+  if(/(ский|цкий)$/i.test(name))return name.slice(0,-2)+"ому";
+  if(/(ов|ев|ёв|ин|ын)$/i.test(name))return name+"у";
+  if(/ый$/i.test(name))return name.slice(0,-2)+"ому";
+  if(/ой$/i.test(name))return name.slice(0,-2)+"ому";
+  if(/ий$/i.test(name))return name.slice(0,-2)+"ию";
+  if(/ь$/i.test(name))return name.slice(0,-1)+"ю";
+  if(/[бвгджзклмнпрстфхцчшщ]$/i.test(name))return name+"у";
+  return name;
+}
+function declinePatronymicDative(name,gender){
+  if(!isCyrillicWord(name))return name;
+  if(gender==="f"&&/(вна|чна)$/i.test(name))return name.slice(0,-1)+"е";
+  if(gender==="m"&&/ич$/i.test(name))return name+"у";
+  return declineFirstNameDative(name,gender);
+}
+function russianRecipientDative(displayName){
+  const parts=String(displayName||"").trim().split(/\s+/).filter(Boolean);
+  if(!parts.length)return displayName||"";
+  if(!parts.every(isCyrillicWord))return displayName;
+  const gender=inferRussianGender(parts[0]);
+  if(parts.length===1)return declineFirstNameDative(parts[0],gender);
+  const out=[declineFirstNameDative(parts[0],gender)];
+  if(parts.length===2){
+    out.push(declineSurnameDative(parts[1],gender));
+    return out.join(" ");
+  }
+  out.push(declinePatronymicDative(parts[1],gender));
+  out.push(declineSurnameDative(parts.slice(2).join("-"),gender));
+  return out.join(" ");
+}
 function localizedTitle(c){
-  if(c.certificate_type&&TITLES[lang][c.certificate_type])return TITLES[lang][c.certificate_type];
-  if(lang==="ru")return FALLBACK_RU[c.title]||c.title;
-  return c.title||"BIZONIQ Certificate";
+  const direct=lang==="ru"?(c.title_ru||c.title?.ru):(c.title_en||c.title?.en);
+  if(direct)return direct;
+  if(c.title_i18n&&c.title_i18n[lang])return c.title_i18n[lang];
+  if(c.title_localizations&&c.title_localizations[lang])return c.title_localizations[lang];
+
+  // If the certificate stores only one title, preserve it exactly.
+  // This keeps English-only program names in English on RU certificates.
+  if(typeof c.title==="string"&&c.title.trim())return c.title.trim();
+
+  // Legacy fallback only when no title was stored at all.
+  const legacy=c.certificate_type&&LEGACY_TITLES[c.certificate_type];
+  return legacy?.[lang]||legacy?.en||"BIZONIQ Certificate";
 }
 applyLanguage();
 
@@ -130,7 +191,7 @@ async function init(){
   const r=await fetch(endpoint+"?code="+encodeURIComponent(code));const d=await r.json();
   if(!r.ok||!d.valid)throw new Error();
   const c=d.certificate;
-  document.getElementById("name").textContent=c.display_name;
+  document.getElementById("name").textContent=lang==="ru"?russianRecipientDative(c.display_name):c.display_name;
   document.getElementById("title").textContent=localizedTitle(c);
   document.getElementById("code").textContent=c.certificate_code;
   document.getElementById("version").textContent=COPY[lang].criteria+" "+c.criteria_version;
