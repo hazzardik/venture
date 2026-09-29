@@ -1,4 +1,4 @@
-const CACHE='bizoniq-v11.0.0';
+const CACHE='bizoniq-v11.1.0';
 const ASSETS=['./','./index.html','./styles.css','./preferences.js','./content.js','./content-en.js','./app.js','./manifest.webmanifest','./manifest-en.webmanifest','./icon.svg','./pricing.html','./faq.html','./privacy.html','./verify.html','./certificate.html'];
 const NETWORK_ONLY=['/admin.html','/admin.js','/billing-config.js'];
 self.addEventListener('install',e=>{
