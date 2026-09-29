@@ -68,9 +68,9 @@ body{background:radial-gradient(circle at 15% 0,rgba(111,124,255,.11),transparen
       </section>
 
       <section id="ownerTools" class="panel span-6 hidden">
-        <div class="panel-head"><div><div class="panel-title">Creator Security</div><div class="panel-copy">Только owner может создать одноразовое приглашение нового создателя. Код хранится только как hash и исчезает после первой активации.</div></div></div>
-        <div class="copy">Используй это для приглашения Сергея вместо постоянного bootstrap-кода.</div>
-        <div class="btnrow"><button class="btn primary" onclick="generateCreatorInvite()">Создать Creator Invite • 7 дней</button></div>
+        <div class="panel-head"><div><div class="panel-title">Управление создателями</div><div class="panel-copy">Только owner может выдавать одноразовый доступ новым создателям. Приглашение действует 7 дней, срабатывает один раз, а в базе хранится только его hash.</div></div></div>
+        <div class="copy">Создавай новый invite в любой момент, когда хочешь добавить человека в Creator Console. После первой успешной активации этот код больше не работает.</div>
+        <div class="btnrow"><button class="btn primary" onclick="generateCreatorInvite()">Создать одноразовый invite • 7 дней</button></div>
         <div id="creatorInviteBox" class="new-code hidden"><div class="mini">ПОКАЗЫВАЕТСЯ ПОЛНОСТЬЮ ТОЛЬКО СЕЙЧАС</div><code id="creatorInviteValue"></code><div id="creatorInviteExpiry" class="mini"></div><div style="height:8px"></div><button class="small-btn" onclick="copyCreatorInvite()">Скопировать</button></div>
       </section>
 
