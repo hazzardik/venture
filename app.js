@@ -905,10 +905,10 @@ function setWeeklyTarget(){
 function renderGrowthHub(){
   const arch=learningArchetype(),wp=weeklyProgress(),target=state.weekly.target||400,pct=Math.min(100,wp/target*100),challenge=state.challenge.completedDays.length;
   document.getElementById("growthHub").innerHTML=`
-    <div class="card growth-card duel-card"><div class="growth-icon">⚔️</div><div class="label">DAILY DUEL</div><h3>60 секунд на бизнес-решение</h3><div class="copy">Один новый управленческий выбор каждый день.</div><div class="btnrow"><button class="btn primary" onclick="dailyDuel()">${state.duel.date===todayKey()&&state.duel.answered?"Посмотреть":"Принять вызов"}</button></div></div>
-    <div class="card growth-card"><div class="growth-icon">🧭</div><div class="label">PATH DIAGNOSTIC</div><h3>${state.diagnostic.completed?"Путь уже рассчитан":"Найди свою траекторию"}</h3><div class="copy">6 вопросов → рекомендация учебного пути. Можно изменить вручную.</div><div class="btnrow"><button class="btn ghost" onclick="startDiagnostic()">${state.diagnostic.completed?"Пройти заново":"Начать"}</button></div></div>
-    <div class="card growth-card"><div class="growth-icon">🔥</div><div class="label">30-DAY CHALLENGE</div><h3>${challenge}/30 дней</h3><div class="progress"><span style="width:${Math.min(100,challenge/30*100)}%"></span></div><div class="btnrow"><button class="btn ghost" onclick="startChallenge()">${state.challenge.started?"Продолжить":"Войти в челлендж"}</button></div></div>
-    <div class="card growth-card"><div class="growth-icon">◈</div><div class="label">WEEKLY TARGET</div><h3>${wp}/${target} XP</h3><div class="progress"><span style="width:${pct}%"></span></div><div class="meta"><span>${Math.round(pct)}%</span><button class="linkbtn" onclick="setWeeklyTarget()">изменить</button></div></div>
+    <div class="card growth-card duel-card"><div class="growth-icon">⚔️</div><div class="label">DAILY DUEL</div><h3>${L("60 секунд на бизнес-решение","60 seconds for a business decision")}</h3><div class="copy">${L("Один новый управленческий выбор каждый день.","One new management decision every day.")}</div><div class="btnrow"><button class="btn primary" onclick="dailyDuel()">${state.duel.date===todayKey()&&state.duel.answered?L("Посмотреть","View"):L("Принять вызов","Take the challenge")}</button></div></div>
+    <div class="card growth-card"><div class="growth-icon">🧭</div><div class="label">PATH DIAGNOSTIC</div><h3>${state.diagnostic.completed?L("Путь уже рассчитан","Your path is ready"):L("Найди свою траекторию","Find your path")}</h3><div class="copy">${L("6 вопросов → рекомендация учебного пути. Можно изменить вручную.","6 questions → a recommended learning path. You can change it manually.")}</div><div class="btnrow"><button class="btn ghost" onclick="startDiagnostic()">${state.diagnostic.completed?L("Пройти заново","Retake"):L("Начать","Start")}</button></div></div>
+    <div class="card growth-card"><div class="growth-icon">🔥</div><div class="label">30-DAY CHALLENGE</div><h3>${challenge}/30 ${L("дней","days")}</h3><div class="progress"><span style="width:${Math.min(100,challenge/30*100)}%"></span></div><div class="btnrow"><button class="btn ghost" onclick="startChallenge()">${state.challenge.started?L("Продолжить","Continue"):L("Войти в челлендж","Join challenge")}</button></div></div>
+    <div class="card growth-card"><div class="growth-icon">◈</div><div class="label">WEEKLY TARGET</div><h3>${wp}/${target} XP</h3><div class="progress"><span style="width:${pct}%"></span></div><div class="meta"><span>${Math.round(pct)}%</span><button class="linkbtn" onclick="setWeeklyTarget()">${L("изменить","change")}</button></div></div>
   `;
 }
 let deferredInstallPrompt=null;
@@ -919,31 +919,31 @@ function setupInstall(){
 function renderInstallButton(){
   const el=document.getElementById("installCta");if(!el)return;
   const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-  el.innerHTML=`<div class="label">MOBILE APP</div><h3>BIZONIQ на главном экране</h3><div class="copy">${isiOS?"Safari → Поделиться → На экран «Домой»":"Установи PWA и запускай BIZONIQ как отдельное приложение."}</div><div class="btnrow"><button class="btn ghost" onclick="installTyqon()">Установить</button></div>`;
+  el.innerHTML=`<div class="label">MOBILE APP</div><h3>${L("BIZONIQ на главном экране","BIZONIQ on your Home Screen")}</h3><div class="copy">${isiOS?L("Safari → Поделиться → На экран «Домой»","Safari → Share → Add to Home Screen"):L("Установи PWA и запускай BIZONIQ как отдельное приложение.","Install the PWA and launch BIZONIQ like a standalone app.")}</div><div class="btnrow"><button class="btn ghost" onclick="installTyqon()">${L("Установить","Install")}</button></div>`;
 }
 async function installTyqon(){
   if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;return;}
-  modal('<div class="label">УСТАНОВКА BIZONIQ</div><h2>Добавь приложение на экран</h2><div class="copy">На iPhone открой сайт в Safari → «Поделиться» → «На экран Домой». На поддерживаемых браузерах используй пункт «Установить приложение».</div>');
+  modal(`<div class="label">${L("УСТАНОВКА BIZONIQ","INSTALL BIZONIQ")}</div><h2>${L("Добавь приложение на экран","Add the app to your screen")}</h2><div class="copy">${L("На iPhone открой сайт в Safari → «Поделиться» → «На экран Домой». На поддерживаемых браузерах используй пункт «Установить приложение».","On iPhone, open the site in Safari → Share → Add to Home Screen. In supported browsers, use Install app.")}</div>`);
 }
 function renderDashboard(){
   const p=pathObj(),recommended=p.recommended.slice(0,3).map(id=>C.modules.find(m=>m.id===id)).filter(Boolean);
-  document.getElementById("pathSummary").innerHTML=`<div class="label">ТВОЯ ТРАЕКТОРИЯ</div><h3>${p.title}</h3><div class="copy">${p.subtitle}</div><div class="btnrow"><button class="btn ghost" onclick="changePath()">Сменить путь</button></div>`;
-  document.getElementById("recommended").innerHTML=recommended.map(m=>`<div class="card item"><div style="font-size:25px">${m.icon}</div><h3>${m.title}</h3><div class="copy">${m.description}</div><div class="btnrow"><button class="btn ghost" onclick="activeModule='${m.id}';go('learn');renderLessons()">Открыть</button></div></div>`).join("");
+  document.getElementById("pathSummary").innerHTML=`<div class="label">${L("ТВОЯ ТРАЕКТОРИЯ","YOUR PATH")}</div><h3>${p.title}</h3><div class="copy">${p.subtitle}</div><div class="btnrow"><button class="btn ghost" onclick="changePath()">${L("Сменить путь","Change path")}</button></div>`;
+  document.getElementById("recommended").innerHTML=recommended.map(m=>`<div class="card item"><div style="font-size:25px">${m.icon}</div><h3>${m.title}</h3><div class="copy">${m.description}</div><div class="btnrow"><button class="btn ghost" onclick="activeModule='${m.id}';go('learn');renderLessons()">${L("Открыть","Open")}</button></div></div>`).join("");
   const tasks=[
-    ["Урок дня",state.lessons.length?"Продолжи следующий непройденный урок":"Начни первый урок",()=>go("learn")],
-    ["Кейс дня",state.cases.length+"/32 решено",()=>go("cases")],
-    ["Симуляция","Прими 3 управленческих решения",()=>go("simulator")],
-    ["Coach","Разбери одну бизнес-гипотезу",()=>go("coach")]
+    [L("Урок дня","Lesson of the day"),state.lessons.length?L("Продолжи следующий непройденный урок","Continue your next incomplete lesson"):L("Начни первый урок","Start your first lesson"),()=>go("learn")],
+    [L("Кейс дня","Case of the day"),state.cases.length+"/32 "+L("решено","solved"),()=>go("cases")],
+    [L("Симуляция","Simulation"),L("Прими 3 управленческих решения","Make 3 management decisions"),()=>go("simulator")],
+    ["Coach",L("Разбери одну бизнес-гипотезу","Break down one business hypothesis"),()=>go("coach")]
   ];
   const scores=skillScores();
   document.getElementById("skillMap").innerHTML=C.modules.map(m=>{
     const x=scores[m.id];
-    return `<div class="card skill-card"><div class="skill-top"><span>${m.icon} ${m.title}</span><b>${x.score}</b></div><div class="progress"><span style="width:${x.score}%"></span></div><div class="tiny" style="margin-top:8px">Skill Score · ${x.lessons}/${x.total} уроков · ${x.attempts} кейсов</div></div>`;
+    return `<div class="card skill-card"><div class="skill-top"><span>${m.icon} ${m.title}</span><b>${x.score}</b></div><div class="progress"><span style="width:${x.score}%"></span></div><div class="tiny" style="margin-top:8px">Skill Score · ${x.lessons}/${x.total} ${L("уроков","lessons")} · ${x.attempts} ${L("кейсов","cases")}</div></div>`;
   }).join("");
   renderTodayPlan();
   renderWeakAreas();
   renderGrowthHub();
-  document.getElementById("daily").innerHTML=tasks.map((t,i)=>`<div class="card item"><div class="tiny">DAILY ${i+1}</div><h3>${t[0]}</h3><div class="copy">${t[1]}</div><div class="btnrow"><button class="btn ghost" onclick="${["go('learn')","go('cases')","go('simulator')","go('coach')"][i]}">Выполнить</button></div></div>`).join("");
+  document.getElementById("daily").innerHTML=tasks.map((t,i)=>`<div class="card item"><div class="tiny">DAILY ${i+1}</div><h3>${t[0]}</h3><div class="copy">${t[1]}</div><div class="btnrow"><button class="btn ghost" onclick="${["go('learn')","go('cases')","go('simulator')","go('coach')"][i]}">${L("Выполнить","Do it")}</button></div></div>`).join("");
 }
 
 function moduleOrder(){
