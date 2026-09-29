@@ -835,9 +835,13 @@ function renderStats(){
   document.getElementById("hello").textContent="👋 "+(state.name||L("Гость","Guest"));
   document.getElementById("streak").textContent="🔥 "+state.streak+L(" дн."," d.");
   document.getElementById("goalPill").textContent="🎯 "+path.title;
+  const simsDone=Object.values(state.simDone||{}).filter(Boolean).length;
+  const levelSub=l.next
+    ?L("До ","To ")+l.next+": "+state.xp+"/"+l.requirements.xp+" XP · "+state.cases.length+"/"+l.requirements.cases+" "+L("кейсов","cases")+" · "+simsDone+"/"+l.requirements.sims+" "+L("сим.","sims")
+    :L("Максимальный уровень внутри текущей системы","Maximum level in the current system");
   document.getElementById("stats").innerHTML=[
-    ["Level",l.name,L("Текущий уровень","Current level")],["Case Level",difficultyName(),L("Адаптивная сложность","Adaptive difficulty")],
-    [L("Уроки","Lessons"),state.lessons.length+"/56",L("Завершено","Completed")],[L("Кейсы","Cases"),state.cases.length+"/32",L("Решено","Solved")]
+    ["Level",l.name,levelSub],["Case Level",difficultyName(),L("Адаптивная сложность","Adaptive difficulty")],
+    [L("Решения","Decisions"),state.cases.length+"/32",L("Сильные кейсы","Decision cases")],[L("Симуляции","Simulations"),simsDone+"/4",L("Завершено","Completed")]
   ].map((s,i)=>`<div class="card metric"><div class="tiny">${s[0]}</div><b>${s[1]}</b><div class="tiny">${s[2]}</div>${i===0?`<div class="progress" style="margin-top:10px"><span style="width:${l.pct}%"></span></div>`:""}</div>`).join("");
 }
 function continueLearning(){
@@ -1056,11 +1060,24 @@ function renderLessons(){
   localizeUI(document.getElementById("learn"));
 }
 function findLesson(id){for(const m of C.modules){const l=m.lessons.find(x=>x[0]===id);if(l)return{m,l}}}
+function relatedTermsForLesson(m,l){
+  const hay=[l[1],l[2],l[3],l[4],l[5]].join(" ").toLowerCase();
+  let terms=C.terms.filter(t=>t[1]===m.id||hay.includes(String(t[0]).toLowerCase())).slice(0,3);
+  if(!terms.length)terms=C.terms.filter(t=>t[1]===m.id).slice(0,3);
+  if(!terms.length)return "";
+  return `<div class="lesson-related"><div class="tiny">${L("СВЯЗАННЫЕ ТЕРМИНЫ","RELATED TERMS")}</div><div class="term-chips">${terms.map(t=>`<button class="modulechip" onclick="openTerm(decodeURIComponent('${encodeURIComponent(t[0])}'))">${escapeHtml(t[0])}</button>`).join("")}</div></div>`;
+}
+function practiceSkill(skill){
+  closeModal();
+  const next=nextAdaptiveCase(skill);
+  go("cases");
+  if(next)setTimeout(()=>openCase(next.id),120);
+}
 function openLesson(id){
   const {m,l}=findLesson(id),done=state.lessons.includes(id);
   trackEvent("lesson_opened",{lesson_id:id,module:m.id});
   if(lessonIsPremium(m,l)&&!proAccess()){paywall("Этот урок","This lesson");return}
-  modal(`<div class="label">${m.icon} ${m.title}</div><h2>${l[1]}</h2><div class="copy">${l[2]}</div><div class="card soft section"><div class="tiny">${L("КЛЮЧЕВАЯ МЫСЛЬ","KEY IDEA")}</div><div class="copy" style="margin-top:7px">${l[3]}</div></div><div class="card soft section"><div class="tiny">${L("ПРИМЕР","EXAMPLE")}</div><div class="copy" style="margin-top:7px">${l[4]}</div></div><div class="card soft section"><div class="tiny">${L("ПРАКТИЧЕСКИЙ ВЫВОД","PRACTICAL TAKEAWAY")}</div><div class="copy" style="margin-top:7px">${l[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson('${id}')">${done?L("Уже завершено","Completed"):L("Завершить","Complete")+" • +"+lessonXp(l)+" XP"}</button></div>`);
+  modal(`<div class="label">${m.icon} ${m.title}</div><h2>${l[1]}</h2><div class="copy">${l[2]}</div><div class="card soft section"><div class="tiny">${L("КЛЮЧЕВАЯ МЫСЛЬ","KEY IDEA")}</div><div class="copy" style="margin-top:7px">${l[3]}</div></div><div class="card soft section"><div class="tiny">${L("ПРИМЕР","EXAMPLE")}</div><div class="copy" style="margin-top:7px">${l[4]}</div></div><div class="card soft section"><div class="tiny">${L("ПРАКТИЧЕСКИЙ ВЫВОД","PRACTICAL TAKEAWAY")}</div><div class="copy" style="margin-top:7px">${l[5]}</div></div>${relatedTermsForLesson(m,l)}<div class="btnrow"><button class="btn primary" onclick="completeLesson('${id}')">${done?L("Уже завершено","Completed"):L("Завершить","Complete")+" • +"+lessonXp(l)+" XP"}</button><button class="btn ghost" onclick="practiceSkill('${m.id}')">${L("Применить в кейсе","Apply in a case")} →</button></div>`);
 }
 function completeLesson(id){
   const {m,l}=findLesson(id),xp=lessonXp(l);
