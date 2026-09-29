@@ -196,8 +196,8 @@ window.BIZONIQ_CONTENT_EN = {
   const add=(id,category,tag,difficulty,paths,title,copy,options,correct)=>{
     C.cases.push({id,category,tag,difficulty,paths,title,copy,choices:options.map((text,i)=>({
       text,correct:i===correct,feedback:i===correct
-        ?"Correct. This choice addresses the core economic driver in the situation."
-        :"Not the strongest choice. It either treats a symptom or ignores the key trade-off."
+        ?"This choice addresses the core economic driver in the situation."
+        :"This choice either treats a symptom or leaves the key trade-off unresolved."
     })),xp:50+difficulty*25});
   };
   add("case-1","basics","Demand",1,["first","curious"],"Interest or real demand?","You show an idea to 50 people. 38 say “cool,” but nobody places a preorder. What is the stronger conclusion?",["Demand is proven because people like it","Only interest is proven; you still need a behavioral signal","The logo simply needs to look better"],1);
