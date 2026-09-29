@@ -25,6 +25,8 @@ body{background:radial-gradient(circle at 15% 0,rgba(111,124,255,.11),transparen
 .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}table{width:100%;border-collapse:collapse;min-width:850px}th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);font-size:12px}th{position:sticky;top:0;background:#111820;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.07em}tr:last-child td{border-bottom:0}
 .audit-list{display:grid;gap:7px;max-height:380px;overflow:auto}.audit-row{display:grid;grid-template-columns:180px minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.audit-row code{font-size:10px;color:var(--muted);white-space:pre-wrap;word-break:break-word}.empty{padding:22px;text-align:center;color:var(--muted);font-size:12px}
 .search-row{display:flex;gap:9px;align-items:center;margin-bottom:10px}.search-row input{flex:1;min-width:0}
+.funnel-list{display:grid;gap:9px}.funnel-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(100px,2fr) auto;gap:10px;align-items:center}.funnel-track{height:8px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}.funnel-track span{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--cyan))}
+.weekly-admin-list{display:grid;gap:10px}.weekly-admin-card{padding:13px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02)}.weekly-admin-card.published{border-color:rgba(182,255,69,.22)}.weekly-admin-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.weekly-case-preview{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.45}.settings-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 @media(max-width:1180px){.metric-grid{grid-template-columns:repeat(2,1fr)}.span-4,.span-5,.span-7,.span-8{grid-column:span 6}}
 @media(max-width:760px){.console-shell{padding-left:13px;padding-right:13px}.console-top,.console-hero{align-items:flex-start;flex-direction:column}.console-actions{width:100%}.metric-grid{grid-template-columns:repeat(2,1fr)}.metric-value{font-size:25px}.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:1/-1}.form-grid{grid-template-columns:1fr}.form-grid .full{grid-column:auto}.volume-grid{grid-template-columns:1fr}.rank-row{grid-template-columns:minmax(90px,1.5fr) minmax(70px,1fr) auto}.code-row{grid-template-columns:1fr auto}.code-actions{grid-column:1/-1}.audit-row{grid-template-columns:1fr}.console-hero h1{font-size:34px}}
 </style>
@@ -56,6 +58,19 @@ body{background:radial-gradient(circle at 15% 0,rgba(111,124,255,.11),transparen
     <div class="console-grid">
       <section class="panel span-6"><div class="panel-head"><div><div class="panel-title">Product Health</div><div class="panel-copy">Три метрики, которые сейчас важнее количества функций.</div></div></div><div id="healthBars"></div><div id="volumeStats" class="volume-grid"></div></section>
       <section class="panel span-6"><div class="panel-head"><div><div class="panel-title">Траектории пользователей</div><div class="panel-copy">Кто приходит в BIZONIQ и зачем.</div></div></div><div id="paths"></div></section>
+
+      <section class="panel span-6"><div class="panel-head"><div><div class="panel-title">Воронка продукта</div><div class="panel-copy">Регистрация → первый кейс → 3 кейса → Weekly Lab → интерес к Pro.</div></div></div><div id="funnelList" class="funnel-list"></div></section>
+      <section class="panel span-6"><div class="panel-head"><div><div class="panel-title">Referral Growth</div><div class="panel-copy">Сколько пользователей пришло по приглашениям и сколько людей приводят друзей.</div></div></div><div id="referralStats"></div></section>
+
+      <section class="panel span-7"><div class="panel-head"><div><div class="panel-title">Weekly Lab Editor</div><div class="panel-copy">AI создаёт draft. Публикация происходит только после проверки создателем.</div></div><div class="console-actions"><button class="small-btn" onclick="generateWeeklyPack('ru')">Draft RU</button><button class="small-btn" onclick="generateWeeklyPack('en')">Draft EN</button></div></div><div id="weeklyAdminList" class="weekly-admin-list"></div></section>
+      <section id="aiSettingsPanel" class="panel span-5"><div class="panel-head"><div><div class="panel-title">AI Agent Settings</div><div class="panel-copy">Owner меняет дневные лимиты без редактирования кода.</div></div></div>
+        <div class="settings-row">
+          <div class="field"><label>Free / день</label><input id="aiFreeLimit" type="number" min="1" max="100"></div>
+          <div class="field"><label>Pro / день</label><input id="aiProLimit" type="number" min="1" max="300"></div>
+        </div>
+        <div class="field" style="margin-top:9px"><label>Model</label><input id="aiModel" value="openai/gpt-oss-120b"></div>
+        <div class="btnrow"><button class="btn primary" onclick="saveAiSettings()">Сохранить AI-настройки</button></div>
+      </section>
 
       <section class="panel span-6"><div class="panel-head"><div><div class="panel-title">Выдать Pro вручную</div><div class="panel-copy">По email. Продлевает уже действующий ручной Pro; бессрочный доступ не сокращается кодами.</div></div></div>
         <div class="form-grid">
