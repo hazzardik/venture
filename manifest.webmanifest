@@ -1,22 +1,43 @@
 {
-  "id":"./",
-  "name":"BIZONIQ — Build Business IQ",
-  "short_name":"BIZONIQ",
-  "description":"Адаптивный тренажёр бизнес-мышления: 56 уроков, 32 кейса по уровням, 4 симулятора, Business Coach, Skill Score и сертификаты.",
-  "start_url":"./",
-  "scope":"./",
-  "display":"standalone",
-  "orientation":"any",
-  "background_color":"#090c11",
-  "theme_color":"#090c11",
-  "lang":"ru",
-  "categories":["education","business","productivity"],
-  "icons":[
-    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  "id": "./",
+  "name": "BIZONIQ — Build Business IQ",
+  "short_name": "BIZONIQ",
+  "description": "Тренажёр бизнес-решений: 32 кейса, 4 многоходовые симуляции, персональный AI Coach, Skill Score и микро-уроки.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#090c11",
+  "theme_color": "#090c11",
+  "lang": "ru",
+  "categories": [
+    "education",
+    "business",
+    "productivity"
   ],
-  "shortcuts":[
-    {"name":"Продолжить обучение","short_name":"Учёба","url":"./?page=learn"},
-    {"name":"Практика","short_name":"Практика","url":"./?page=practice"},
-    {"name":"BIZONIQ Pro","short_name":"Pro","url":"./?page=pricing"}
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Решить бизнес-кейс",
+      "short_name": "Кейсы",
+      "url": "./?page=cases"
+    },
+    {
+      "name": "BIZONIQ AI Coach",
+      "short_name": "AI Coach",
+      "url": "./?page=coach"
+    },
+    {
+      "name": "Практика",
+      "short_name": "Практика",
+      "url": "./?page=practice"
+    }
   ]
 }
