@@ -447,19 +447,22 @@
     const u=new URL(location.href);u.searchParams.set("currency",next);location.href=u.toString();
   }
 
-  function translateTextNode(node){
-    if(lang!=="en"||!node||node.nodeType!==Node.TEXT_NODE)return;
-    const raw=node.nodeValue;
-    const trimmed=raw.trim();
-    if(!trimmed)return;
+  function t(text){
+    if(lang!=="en"||typeof text!=="string")return text;
+    const trimmed=text.trim();
+    if(!trimmed)return text;
     let out=STATIC_EN[trimmed];
     if(!out){
       for(const [re,repl] of REPLACERS_EN){if(re.test(trimmed)){out=trimmed.replace(re,repl);break}}
     }
-    if(out){
-      const before=raw.match(/^\s*/)?.[0]||"",after=raw.match(/\s*$/)?.[0]||"";
-      node.nodeValue=before+out+after;
-    }
+    if(!out)return text;
+    const before=text.match(/^\s*/)?.[0]||"",after=text.match(/\s*$/)?.[0]||"";
+    return before+out+after;
+  }
+  function translateTextNode(node){
+    if(lang!=="en"||!node||node.nodeType!==Node.TEXT_NODE)return;
+    const out=t(node.nodeValue);
+    if(out!==node.nodeValue)node.nodeValue=out;
   }
   function translateElement(el){
     if(lang!=="en"||!el||el.nodeType!==1)return;
@@ -523,22 +526,18 @@
     if(meta&&location.pathname.endsWith("/venture/"))meta.setAttribute("content","BIZONIQ is an adaptive business-thinking trainer with lessons, cases, simulations, certificates and progress tracking.");
   }
 
-  window.BIZONIQ_PREFS={lang,currency,prices,money,price,priceSummary,yearlySaving,setLang,setCurrency,translateTree,updatePricingUI,injectControls};
+  function refreshUI(root=document.body){
+    translateTree(root);
+    updatePricingUI();
+  }
+
+  window.BIZONIQ_PREFS={lang,currency,prices,money,price,priceSummary,yearlySaving,t,setLang,setCurrency,translateTree,updatePricingUI,refreshUI,injectControls};
   window.bizLang=lang;window.bizCurrency=currency;
 
   document.addEventListener("DOMContentLoaded",()=>{
     const manifest=document.querySelector('link[rel="manifest"]');
     if(manifest)manifest.setAttribute("href",lang==="en"?"./manifest-en.webmanifest":"./manifest.webmanifest");
-    injectControls();translateTree();updatePricingUI();
-    if(lang==="en"){
-      const obs=new MutationObserver(muts=>{
-        for(const m of muts)for(const n of m.addedNodes){
-          if(n.nodeType===Node.TEXT_NODE)translateTextNode(n);
-          else if(n.nodeType===1)translateTree(n);
-        }
-        updatePricingUI();
-      });
-      obs.observe(document.body,{childList:true,subtree:true});
-    }
+    injectControls();
+    refreshUI();
   });
 })();
