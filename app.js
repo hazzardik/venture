@@ -1130,34 +1130,114 @@ function chooseSim(i,el){
   setTimeout(()=>{sim.step++;renderSimulator()},850);
 }
 
+let coachHistoryMode="";
+let coachBusy=false;
+
+function coachInitialPrompt(){
+  const m=C.coach.find(x=>x.id===coachMode);
+  return m?.prompt||L("Опиши ситуацию, которую хочешь разобрать.","Describe the business situation you want to analyze.");
+}
 function renderCoach(){
-  document.getElementById("coachModes").innerHTML=C.coach.map((m,i)=>{const locked=i>0&&!proAccess();return `<div class="card coach-mode ${m.id===coachMode?"active":""} ${locked?"pro-locked":""}" onclick="setCoachMode('${m.id}')">${locked?'<span class="pro-badge">PRO</span>':""}<h3>${m.title}</h3><div class="copy">${m.prompt}</div></div>`}).join("");
-  if(!document.getElementById("messages").children.length)resetCoach();
-  localizeUI(document.getElementById("coach"));
+  document.getElementById("coachModes").innerHTML=C.coach.map((m,i)=>{
+    const locked=i>0&&!proAccess();
+    return `<div class="card coach-mode ${m.id===coachMode?"active":""} ${locked?"pro-locked":""}" onclick="setCoachMode('${m.id}')">${locked?'<span class="pro-badge">PRO</span>':""}<div class="coach-mode-kicker">${m.id==="hardcase"?"CASE":m.id.toUpperCase()}</div><h3>${m.title}</h3><div class="copy">${m.prompt}</div></div>`
+  }).join("");
+  const status=document.getElementById("coachAiStatus");
+  if(status)status.textContent=session?L("● AI AGENT • контекст включён","● AI AGENT • context enabled"):L("● Войди для AI Coach","● Sign in for AI Coach");
+  if(coachHistoryMode!==coachMode)loadCoachHistory();
+  localizeUI();
 }
 function setCoachMode(id){
   const i=C.coach.findIndex(x=>x.id===id);
-  if(i>0&&!proAccess()){paywall("Этот режим Business Coach","This Business Coach mode");return}
-  coachMode=id;renderCoach();resetCoach()
+  if(i>0&&!proAccess()){paywall("Этот режим AI Coach","This AI Coach mode");return}
+  coachMode=id;coachHistoryMode="";renderCoach();
 }
-function resetCoach(){
-  const m=C.coach.find(x=>x.id===coachMode),box=document.getElementById("messages");
-  box.innerHTML=`<div class="msg bot"><b>${m.title}</b><br>${m.prompt}</div>`;box.dataset.step="0";
+async function loadCoachHistory(){
+  const box=document.getElementById("messages");if(!box)return;
+  coachHistoryMode=coachMode;
+  if(!session){
+    box.innerHTML=`<div class="msg bot"><b>BIZONIQ AI Coach</b><br>${L("Войди в аккаунт, чтобы Coach мог анализировать твои ответы и помнить контекст между устройствами.","Sign in so Coach can analyze your answers and remember context across devices.")}</div>`;
+    return;
+  }
+  box.innerHTML=`<div class="msg bot loading-msg">${L("Загружаю контекст…","Loading context…")}</div>`;
+  const {data,error}=await sb.from("ai_coach_messages").select("role,content,metadata,created_at").eq("user_id",session.user.id).eq("mode",coachMode).order("created_at",{ascending:true}).limit(30);
+  if(error){box.innerHTML=`<div class="msg bot">${L("Не удалось загрузить историю. Можно начать новый разбор.","Could not load history. You can start a new analysis.")}</div>`;return}
+  if(coachHistoryMode!==coachMode)return;
+  if(!data?.length){
+    box.innerHTML=`<div class="msg bot"><b>${C.coach.find(x=>x.id===coachMode)?.title||"AI Coach"}</b><br>${coachInitialPrompt()}</div>`;
+  }else{
+    box.innerHTML=data.map(row=>{
+      const meta=row.metadata||{};
+      const extra=row.role==="assistant"&&meta.next_action
+        ?`<div class="coach-next"><b>${L("Следующий шаг","Next action")}:</b> ${escapeHtml(meta.next_action)}</div>`
+        :"";
+      return `<div class="msg ${row.role==="user"?"user":"bot"}">${escapeHtml(row.content)}${extra}</div>`;
+    }).join("");
+  }
+  box.scrollTop=box.scrollHeight;
 }
-function sendCoach(){
-  const input=document.getElementById("coachInput"),text=input.value.trim();if(!text)return;
-  const box=document.getElementById("messages"),m=C.coach.find(x=>x.id===coachMode),step=Number(box.dataset.step||0);
-  box.insertAdjacentHTML("beforeend",`<div class="msg user">${escapeHtml(text)}</div>`);
-  const next=m.follow[Math.min(step,m.follow.length-1)];
-  let insight="";
-  if(coachMode==="idea"&&step===0) insight=L(" Хорошо. Теперь не расширяй идею — сузь клиента."," Good. Now do not broaden the idea — narrow the customer.");
-  if(coachMode==="finance"&&step===0) insight=L(" Смотри на contribution margin, а не только на выручку."," Focus on contribution margin, not revenue alone.");
-  if(coachMode==="marketing"&&step===0) insight=L(" Канал без CAC и retention — просто поток цифр."," A channel without CAC and retention is just a stream of numbers.");
-  box.insertAdjacentHTML("beforeend",`<div class="msg bot">${insight}${next}</div>`);
-  box.dataset.step=String(step+1);input.value="";box.scrollTop=box.scrollHeight;
-  localizeUI(box);
+async function clearCoachConversation(){
+  if(!session){openAuth();return}
+  if(coachBusy)return;
+  const {error}=await sb.from("ai_coach_messages").delete().eq("user_id",session.user.id).eq("mode",coachMode);
+  if(error){alert(L("Не удалось очистить историю.","Could not clear history."));return}
+  coachHistoryMode="";
+  await loadCoachHistory();
 }
-function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}
+function resetCoach(){coachHistoryMode="";loadCoachHistory()}
+function coachContext(){
+  return {
+    learning_path:state.goal,
+    xp:state.xp,
+    streak:state.streak,
+    adaptive_level:state.adaptive?.level||1,
+    weak_skills:weakSkills().slice(0,4).map(x=>({skill:x.id,label:x.label,score:x.score})),
+    lessons_completed:state.lessons.length,
+    cases_completed:state.cases.length,
+    simulators_completed:Object.values(state.simDone||{}).filter(Boolean).length
+  };
+}
+async function sendCoach(){
+  const input=document.getElementById("coachInput"),text=(input?.value||"").trim();
+  if(!text||coachBusy)return;
+  if(!session){openAuth();return}
+  const box=document.getElementById("messages"),send=document.getElementById("coachSendButton"),status=document.getElementById("coachAiStatus");
+  coachBusy=true;
+  if(input)input.disabled=true;if(send)send.disabled=true;
+  box.insertAdjacentHTML("beforeend",`<div class="msg user">${escapeHtml(text)}</div><div id="coachThinking" class="msg bot thinking">${L("Анализирую решение и контекст…","Analyzing your decision and context…")}</div>`);
+  if(input)input.value="";box.scrollTop=box.scrollHeight;
+  if(status)status.textContent=L("● AI AGENT • анализ","● AI AGENT • analyzing");
+  try{
+    const {data,error}=await sb.functions.invoke("ai-coach",{body:{message:text,mode:coachMode,lang:LANG,context:coachContext()}});
+    document.getElementById("coachThinking")?.remove();
+    if(error||!data?.ok){
+      const code=data?.error||"";
+      const msg=code==="AI_NOT_CONFIGURED"
+        ?L("AI Coach подготовлен, но в Supabase ещё не добавлен OPENAI_API_KEY.","AI Coach is ready, but OPENAI_API_KEY has not been added to Supabase yet.")
+        :code==="AI_DAILY_LIMIT"
+          ?L("Лимит AI Coach на сегодня достигнут.","You have reached today's AI Coach limit.")
+          :L("AI Coach сейчас недоступен. Попробуй ещё раз.","AI Coach is unavailable right now. Try again.");
+      box.insertAdjacentHTML("beforeend",`<div class="msg bot error-msg">${escapeHtml(msg)}</div>`);
+      if(status)status.textContent=L("● AI AGENT • недоступен","● AI AGENT • unavailable");
+      return;
+    }
+    const insight=data.insight?`<div class="coach-insight"><b>${L("Insight","Insight")}:</b> ${escapeHtml(data.insight)}</div>`:"";
+    const next=data.next_action?`<div class="coach-next"><b>${L("Следующий шаг","Next action")}:</b> ${escapeHtml(data.next_action)}</div>`:"";
+    box.insertAdjacentHTML("beforeend",`<div class="msg bot">${escapeHtml(data.reply)}${insight}${next}</div>`);
+    const usage=document.getElementById("coachUsage");
+    if(usage&&data.usage)usage.textContent=`${data.usage.used}/${data.usage.limit} ${L("AI сообщений сегодня","AI messages today")}`;
+    if(status)status.textContent=L("● AI AGENT • контекст включён","● AI AGENT • context enabled");
+    trackEvent("ai_coach_message",{mode:coachMode,skill:data.skill,confidence:data.confidence});
+    coachHistoryMode=coachMode;
+  }catch(e){
+    document.getElementById("coachThinking")?.remove();
+    box.insertAdjacentHTML("beforeend",`<div class="msg bot error-msg">${L("Ошибка соединения с AI Coach.","AI Coach connection error.")}</div>`);
+  }finally{
+    coachBusy=false;if(input)input.disabled=false;if(send)send.disabled=false;if(input)input.focus();box.scrollTop=box.scrollHeight;
+  }
+}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}
+
 
 function certificateProgress(def){
   const requiredLessons=def.modules[0]==="*" ? C.modules.flatMap(m=>m.lessons.map(l=>l[0])) :
