@@ -418,6 +418,8 @@
   window.bizLang=lang;window.bizCurrency=currency;
 
   document.addEventListener("DOMContentLoaded",()=>{
+    const manifest=document.querySelector('link[rel="manifest"]');
+    if(manifest)manifest.setAttribute("href",lang==="en"?"./manifest-en.webmanifest":"./manifest.webmanifest");
     injectControls();translateTree();updatePricingUI();
     if(lang==="en"){
       const obs=new MutationObserver(muts=>{
