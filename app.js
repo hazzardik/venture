@@ -1,25 +1,28 @@
 const SUPABASE_URL="https://qmjtmhtmbaseykmwttvn.supabase.co";
 const SUPABASE_KEY="sb_publishable_CD-9o4mQVn0j6tltKgRRZA_IsUUq_iJ";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const C=window.FORGE_CONTENT;
+const PREFS=window.BIZONIQ_PREFS||{lang:"ru",currency:"RUB",money:n=>Math.round(n).toLocaleString("ru-RU")+" ₽",price:()=>"",priceSummary:()=>""};
+const LANG=PREFS.lang||"ru";
+const C=(LANG==="en"&&window.BIZONIQ_CONTENT_EN)?window.BIZONIQ_CONTENT_EN:window.FORGE_CONTENT;
+const L=(ru,en)=>LANG==="en"?en:ru;
 
 const NAV=[
-  ["dashboard","home","Главная"],
-  ["learn","learn","Учёба"],
-  ["dictionary","dictionary","Словарь"],
-  ["cases","cases","Кейсы"],
-  ["simulator","simulator","Симулятор"],
+  ["dashboard","home",L("Главная","Home")],
+  ["learn","learn",L("Учёба","Learn")],
+  ["dictionary","dictionary",L("Словарь","Dictionary")],
+  ["cases","cases",L("Кейсы","Cases")],
+  ["simulator","simulator",L("Симулятор","Simulator")],
   ["coach","coach","Coach"],
-  ["certificates","certificate","Сертификаты"],
+  ["certificates","certificate",L("Сертификаты","Certificates")],
   ["pricing","pro","Pro"],
-  ["profile","profile","Профиль"]
+  ["profile","profile",L("Профиль","Profile")]
 ];
 const MOBILE_NAV=[
-  ["dashboard","home","Главная"],
-  ["learn","learn","Курсы"],
-  ["dictionary","dictionary","Словарь"],
-  ["practice","practice","Практика"],
-  ["profile","profile","Профиль"]
+  ["dashboard","home",L("Главная","Home")],
+  ["learn","learn",L("Курсы","Courses")],
+  ["dictionary","dictionary",L("Словарь","Dictionary")],
+  ["practice","practice",L("Практика","Practice")],
+  ["profile","profile",L("Профиль","Profile")]
 ];
 const ICONS={
   home:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg>',
@@ -350,7 +353,7 @@ function renderAllProtected(){
   renderLessons();renderCases();renderSimulator();renderCoach();renderCertificates();
 }
 function paywall(feature="Эта функция"){
-  modal(`<div class="label">BIZONIQ PRO</div><h2>${feature} доступна в Pro</h2><div class="copy">Полный доступ стоит 99 ₽/мес или 799 ₽/год. Годовой план экономит 389 ₽.</div><div class="btnrow"><button class="btn primary" onclick="closeModal();go('pricing')">Посмотреть Pro</button><button class="btn ghost" onclick="closeModal()">Позже</button></div>`,true);
+  modal(`<div class="label">BIZONIQ PRO</div><h2>${LANG==="en"?feature+" requires Pro":feature+" доступна в Pro"}</h2><div class="copy">${LANG==="en"?"Full access: ":"Полный доступ: "}${proPriceSummary()}.</div><div class="btnrow"><button class="btn primary" onclick="closeModal();go('pricing')">${L("Посмотреть Pro","View Pro")}</button><button class="btn ghost" onclick="closeModal()">${L("Позже","Later")}</button></div>`,true);
 }
 function lessonIsPremium(module,lesson){
   return module.lessons.findIndex(x=>x[0]===lesson[0])>=2;
@@ -395,7 +398,9 @@ async function initPaddle(){
 }
 function billingConfigured(){
   const cfg=window.BIZONIQ_BILLING||{};
-  return !!(cfg.clientToken&&cfg.monthlyPriceId&&cfg.yearlyPriceId);
+  const cur=PREFS.currency||"RUB";
+  const prices=cfg.priceIds?.[cur]||{};
+  return !!(cfg.clientToken&&prices.monthly&&prices.yearly);
 }
 async function startPaddleCheckout(plan){
   pendingCheckoutPlan=plan;
@@ -410,11 +415,13 @@ async function startPaddleCheckout(plan){
     modal('<div class="label">ОПЛАТА</div><h2>Онлайн-оплата ещё не включена</h2><div class="copy">Тарифы и серверная часть уже готовы. До подключения Paddle текущая beta-версия остаётся доступной без платёжной блокировки.</div>',true);
     return;
   }
-  const priceId=plan==="pro_yearly"?cfg.yearlyPriceId:cfg.monthlyPriceId;
+  const cur=PREFS.currency||"RUB";
+  const priceSet=cfg.priceIds?.[cur]||{};
+  const priceId=plan==="pro_yearly"?priceSet.yearly:priceSet.monthly;
   Paddle.Checkout.open({
     items:[{priceId,quantity:1}],
     customer:{email:session.user.email},
-    customData:{supabase_user_id:session.user.id,plan_id:plan},
+    customData:{supabase_user_id:session.user.id,plan_id:plan,currency:cur},
     settings:{displayMode:"overlay",theme:"dark"}
   });
 }
@@ -437,7 +444,7 @@ function renderPricing(){
       : (userSubscription?.current_period_end?new Date(userSubscription.current_period_end).toLocaleDateString("ru-RU"):"");
     el.innerHTML=`<div class="pricing-status-row"><div><div class="tiny good">● PRO ACTIVE</div><h3>${proLabel()}</h3><div class="copy">Доступ активен${end?" до "+end:""}.</div></div>${!manual&&userSubscription?'<button class="btn secondary" onclick="openBillingPortal()">Управлять подпиской</button>':""}</div>`;
   }else{
-    el.innerHTML='<div class="pricing-status-row"><div><div class="tiny">CURRENT PLAN</div><h3>Free</h3><div class="copy">Базовый доступ остаётся бесплатным.</div></div><span class="pill">99 ₽/мес · 799 ₽/год</span></div>';
+    el.innerHTML=`<div class="pricing-status-row"><div><div class="tiny">CURRENT PLAN</div><h3>Free</h3><div class="copy">${L("Базовый доступ остаётся бесплатным.","Core access stays free.")}</div></div><span class="pill" data-price-summary>${proPriceSummary()}</span></div>`;
   }
 }
 
@@ -448,7 +455,9 @@ function level(){
   return {name:cur[0],pct};
 }
 function pathObj(){return C.paths.find(p=>p.id===state.goal)||C.paths[3]}
-function rub(n){return Math.round(n).toLocaleString("ru-RU")+" ₽"}
+function rub(n){return PREFS.money?PREFS.money(n):Math.round(n).toLocaleString("ru-RU")+" ₽"}
+function proPrice(plan){return PREFS.price?PREFS.price(plan):(plan==="yearly"?"799 ₽":"99 ₽")}
+function proPriceSummary(){return PREFS.priceSummary?PREFS.priceSummary():"99 ₽/мес · 799 ₽/год"}
 function modal(html,small=false){document.getElementById("modalBody").innerHTML=html;document.getElementById("modalDialog").classList.toggle("small",small);document.getElementById("modal").classList.remove("hidden")}
 function closeModal(){document.getElementById("modal").classList.add("hidden")}
 function openAuth(){document.getElementById("auth").classList.remove("hidden")}
@@ -472,7 +481,7 @@ function go(page){
     simulator:["Business Simulator","Четыре бизнеса, где решения меняют экономику."],
     coach:["Business Coach","Интерактивный тренер: идея, финансы, маркетинг и сложные кейсы."],
     certificates:["Сертификаты","Проверяемые сертификаты прохождения с уникальным ID."],
-    pricing:["BIZONIQ Pro","Полный доступ за 99 ₽/мес или 799 ₽/год."],
+    pricing:["BIZONIQ Pro",L("Полный доступ по месячному или годовому тарифу.","Full access with monthly or yearly billing.")],
     profile:["Профиль и синхронизация","Смена пути, аккаунт, backup и прогресс."]
   };
   document.getElementById("pageTitle").textContent=meta[page][0];document.getElementById("pageSub").textContent=meta[page][1];
@@ -1064,7 +1073,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
   document.getElementById("termSearch").oninput=renderTerms;document.getElementById("termFilter").onchange=renderTerms;
   document.getElementById("caseSearch").oninput=renderCases;
   document.getElementById("coachInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendCoach()});
-  resetSimulator(false);renderAll();setupInstall();await initAuth();
+  resetSimulator(false);renderAll();setupInstall();PREFS.injectControls?.();PREFS.updatePricingUI?.();await initAuth();
   trackEvent("page_view",{page:"dashboard",initial:true});
   const requested=new URLSearchParams(location.search).get("page");
   if(["dashboard","learn","dictionary","practice","cases","simulator","coach","certificates","pricing","profile"].includes(requested))go(requested);
