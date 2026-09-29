@@ -860,21 +860,54 @@ const DUELS=LANG==="en"?[
   {q:"Клиент говорит «дорого». Что сильнее всего сделать первым?",opts:["Дать скидку","Уточнить ценность, сравнение и ожидаемый результат","Сказать, что конкуренты хуже"],correct:1,why:"«Дорого» часто означает не цену как таковую, а недостаточно понятную ценность или риск."},
   {q:"У SaaS высокий рост новых регистраций, но churn 10% в месяц. Что опаснее?",opts:["Слабое удержание","Мало логотипов на сайте","Слишком короткий onboarding email"],correct:0,why:"Высокий churn заставляет постоянно заменять ушедших клиентов и разрушает compounding роста."}
 ]
-function dailyDuel(){
-  const d=DUELS[(new Date().getDate()-1)%DUELS.length],done=state.duel.date===todayKey()&&state.duel.answered;
-  modal(`<div class="label">DAILY BUSINESS DUEL</div><h2>${d.q}</h2><div class="copy">${L("Один вопрос в день. Первый ответ фиксируется и даёт XP только один раз.","One question per day. Your first answer is recorded and awards XP only once.")}</div><div id="duelChoices" class="section">${d.opts.map((o,i)=>`<button class="choice" ${done?"disabled":""} onclick="answerDuel(${i},this)">${o}</button>`).join("")}</div><div id="duelFeedback" class="feedback ${done?"show":""}">${done?L("Сегодняшняя дуэль уже завершена. Возвращайся завтра.","Today’s duel is already complete. Come back tomorrow."):""}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon('duel')">${L("Поделиться BIZONIQ","Share BIZONIQ")}</button></div>`);
+function dailyDuelIndex(){
+  const day=Math.floor(new Date(todayKey()+"T00:00:00Z").getTime()/86400000);
+  return ((day%DUELS.length)+DUELS.length)%DUELS.length;
 }
-function answerDuel(i,el){
-  const d=DUELS[(new Date().getDate()-1)%DUELS.length];
+function duelCommunityText(stats,choice){
+  if(!stats||!stats.total)return L("Пока нет общей статистики.","No community stats yet.");
+  if(stats.total===1)return L("Ты первый участник сегодняшней дуэли.","You are the first participant in today’s duel.");
+  const count=Number(stats.choices?.[choice]||0);
+  const pct=Math.round(count/stats.total*100);
+  return LANG==="en"
+    ?`${pct}% of ${stats.total} participants chose the same option as you.`
+    :`${pct}% из ${stats.total} участников выбрали тот же вариант, что и ты.`;
+}
+function renderDuelCommunity(stats,choice){
+  const el=document.getElementById("duelCommunity");if(!el)return;
+  el.innerHTML=`<div class="duel-community-title">${L("Решения сообщества","Community decisions")}</div><div class="copy">${escapeHtml(duelCommunityText(stats,choice))}</div>`;
+}
+async function loadDuelCommunity(choice=state.duel.choice){
+  if(!session||choice==null)return;
+  const {data,error}=await sb.functions.invoke("duel-stats",{body:{duel_index:dailyDuelIndex(),duel_date:todayKey()}});
+  if(!error&&data?.ok)renderDuelCommunity(data,choice);
+}
+function dailyDuel(){
+  const d=DUELS[dailyDuelIndex()],done=state.duel.date===todayKey()&&state.duel.answered;
+  modal(`<div class="label">DAILY BUSINESS DUEL</div><h2>${d.q}</h2><div class="copy">${L("Один вопрос в день. Здесь ищем не «школьно правильный» ответ, а сильнейшее решение при заданных условиях.","One question per day. The goal is not a school-style correct answer, but the strongest decision under the stated assumptions.")}</div><div id="duelChoices" class="section">${d.opts.map((o,i)=>`<button class="choice" ${done?"disabled":""} onclick="answerDuel(${i},this)">${o}</button>`).join("")}</div><div id="duelFeedback" class="feedback ${done?"show":""}">${done?L("Сегодняшнее решение уже зафиксировано.","Today’s decision is already recorded."):""}</div><div id="duelCommunity" class="duel-community"></div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon('duel')">${L("Поделиться BIZONIQ","Share BIZONIQ")}</button></div>`);
+  if(done)loadDuelCommunity();
+}
+async function answerDuel(i,el){
+  const d=DUELS[dailyDuelIndex()];
   if(state.duel.date===todayKey()&&state.duel.answered)return;
-  const correct=i===d.correct;
+  const strongest=i===d.correct;
   document.querySelectorAll("#duelChoices .choice").forEach(b=>b.disabled=true);
-  el.classList.add(correct?"good":"bad");
-  const f=document.getElementById("duelFeedback");f.textContent=(correct?L("Верно. ","Correct. "):L("Не лучший выбор. ","Not the best choice. "))+d.why+(correct?" +100 XP":" +25 XP");f.classList.add("show");
+  el.classList.add(strongest?"good":"bad");
+  const xp=strongest?75:20;
+  const f=document.getElementById("duelFeedback");
+  f.innerHTML=`<div class="decision-verdict ${strongest?"good-text":"warn-text"}">${strongest?L("Сильнейший вариант","Strongest option"):L("Более слабый вариант","Weaker option")}</div><div class="copy">${escapeHtml(d.why)}</div><div class="tiny" style="margin-top:8px">+${xp} XP</div>`;
+  f.classList.add("show");
   state.duel={date:todayKey(),answered:true,choice:i};
-  state.xp+=correct?100:25;
+  state.xp+=xp;
   if(state.challenge.started&&!state.challenge.completedDays.includes(todayKey()))state.challenge.completedDays.push(todayKey());
   localSave();
+  if(session){
+    const {data,error}=await sb.functions.invoke("duel-stats",{body:{duel_index:dailyDuelIndex(),duel_date:todayKey(),choice:i,is_best:strongest}});
+    if(!error&&data?.ok)renderDuelCommunity(data,i);
+  }else{
+    const community=document.getElementById("duelCommunity");
+    if(community)community.innerHTML=`<div class="copy">${L("Войди в аккаунт, чтобы сравнить решение с другими пользователями.","Sign in to compare your decision with other users.")}</div>`;
+  }
 }
 const DIAG=LANG==="en"?[
   {kind:"profile",q:"What is your current experience?",opts:["Just starting","I have launched projects","I already run a business","Learning for general understanding"]},
@@ -1079,6 +1112,30 @@ function openCase(id){
   if(caseIsPremium(c)&&!proAccess()){paywall("Этот кейс","This case");return}
   modal(`<div class="case-badges"><span class="label">CASE • ${c.tag}</span><span class="difficulty d${c.difficulty}">${difficultyName(c.difficulty)}</span></div><h2>${c.title}</h2><div class="copy">${c.copy}</div><div id="caseChoices" class="section">${c.choices.map((ch,i)=>`<button class="choice" onclick="answerCase('${id}',${i},this)">${ch.text}</button>`).join("")}</div><div id="caseFeedback" class="feedback"></div><div id="caseRating"></div>`);
 }
+const CASE_REVIEW={
+  basics:{metric:{ru:"поведенческий сигнал / конверсия в действие",en:"behavioral signal / action conversion"},trade:{ru:"скорость проверки против качества доказательства спроса",en:"speed of validation vs quality of demand evidence"}},
+  startup:{metric:{ru:"скорость эксперимента / willingness to pay",en:"experiment velocity / willingness to pay"},trade:{ru:"скорость запуска против риска строить без спроса",en:"launch speed vs building without demand"}},
+  finance:{metric:{ru:"cash flow / contribution margin / payback",en:"cash flow / contribution margin / payback"},trade:{ru:"рост против ликвидности и маржи",en:"growth vs liquidity and margin"}},
+  marketing:{metric:{ru:"CAC / conversion / retention",en:"CAC / conversion / retention"},trade:{ru:"объём трафика против качества и окупаемости",en:"traffic volume vs quality and payback"}},
+  sales:{metric:{ru:"win rate / sales cycle / contribution margin",en:"win rate / sales cycle / contribution margin"},trade:{ru:"скорость закрытия против скидок и качества сделки",en:"closing speed vs discounts and deal quality"}},
+  strategy:{metric:{ru:"фокус / opportunity cost / стратегический риск",en:"focus / opportunity cost / strategic risk"},trade:{ru:"опциональность против концентрации ресурсов",en:"optionality vs resource concentration"}},
+  management:{metric:{ru:"cycle time / загрузка / ответственность",en:"cycle time / utilization / ownership"},trade:{ru:"скорость исполнения против качества системы",en:"execution speed vs system quality"}},
+  economics:{metric:{ru:"предельная отдача / opportunity cost",en:"marginal return / opportunity cost"},trade:{ru:"текущая выгода против лучшей альтернативы",en:"current payoff vs the best alternative"}}
+};
+function caseReview(c,ch,strongest){
+  const cfg=CASE_REVIEW[c.category]||CASE_REVIEW.basics;
+  const metric=LANG==="en"?cfg.metric.en:cfg.metric.ru;
+  const trade=LANG==="en"?cfg.trade.en:cfg.trade.ru;
+  return `<div class="case-review">
+    <div class="decision-verdict ${strongest?"good-text":"warn-text"}">${strongest?L("Сильнейший вариант при данных условиях","Strongest option under these assumptions"):L("Не самый сильный вариант","Not the strongest option")}</div>
+    <div class="copy"><b>${L("Почему:","Why:")}</b> ${escapeHtml(ch.feedback)}</div>
+    <div class="review-grid">
+      <div><span>${L("Trade-off","Trade-off")}</span><b>${escapeHtml(trade)}</b></div>
+      <div><span>${L("Следить за метрикой","Metric to watch")}</span><b>${escapeHtml(metric)}</b></div>
+    </div>
+    <div class="tiny">${L("В реальном бизнесе контекст может изменить сильнейшее решение. Здесь оценивается логика при условиях кейса.","In a real business, context can change the strongest decision. This case evaluates reasoning under the stated assumptions.")}</div>
+  </div>`;
+}
 function answerCase(id,i,el){
   const c=C.cases.find(x=>x.id===id),ch=c.choices[i];
   document.querySelectorAll("#caseChoices .choice").forEach(b=>b.disabled=true);el.classList.add(ch.correct?"good":"bad");
@@ -1087,7 +1144,9 @@ function answerCase(id,i,el){
     recordCaseAttempt(c,ch.correct);
     trackEvent("case_answered",{case_id:id,category:c.category,difficulty:c.difficulty,correct:!!ch.correct,first_attempt:true});
   }
-  const f=document.getElementById("caseFeedback");f.textContent=ch.feedback+(ch.correct&&!state.cases.includes(id)?" +"+c.xp+" XP":"");f.classList.add("show");
+  const f=document.getElementById("caseFeedback");
+  const earned=ch.correct&&!state.cases.includes(id)?c.xp:0;
+  f.innerHTML=caseReview(c,ch,!!ch.correct)+(earned?`<div class="tiny case-xp">+${earned} XP</div>`:"");f.classList.add("show");
   if(ch.correct&&!state.cases.includes(id)){state.cases.push(id);state.xp+=c.xp}
   const rating=document.getElementById("caseRating");
   if(rating&&!state.adaptive.caseRatings[id])rating.innerHTML=`<div class="difficulty-rating"><div class="tiny">${L("КАК БЫЛО ПО СЛОЖНОСТИ?","HOW DID THE DIFFICULTY FEEL?")}</div><div class="btnrow"><button class="btn ghost" onclick="rateCaseDifficulty('${id}','easy')">${L("Слишком легко","Too easy")}</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','normal')">${L("Нормально","About right")}</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','hard')">${L("Сложно","Hard")}</button></div></div>`;
@@ -1100,11 +1159,18 @@ function selectSimulator(id){
   activeSimulator=id;resetSimulator(false);renderSimulator()
 }
 function resetSimulator(render=true){
-  const s=C.simulators[activeSimulator];sim={...s.start,step:0};if(render)renderSimulator();
+  const s=C.simulators[activeSimulator];sim={...s.start,step:0,strong:0,decisions:[]};if(render)renderSimulator();
+}
+function simulatorOutcome(sim,s){
+  const ratio=s.steps.length?sim.strong/s.steps.length:0;
+  if(sim.cash<0)return {label:L("Кассовый кризис","Cash crisis"),copy:L("Рост или выручка не спасли бизнес от отрицательного cash. Нужно перестраивать темп и оборотный капитал.","Growth or revenue did not protect the business from negative cash. Pace and working capital need restructuring.")};
+  if(ratio>=.7&&sim.profit>0)return {label:L("Сильная система решений","Strong decision system"),copy:L("Большинство решений сохраняли экономику и не жертвовали системой ради одной красивой метрики.","Most decisions protected the economics instead of sacrificing the system for one attractive metric.")};
+  if(ratio>=.5)return {label:L("Рабочая, но хрупкая модель","Viable but fragile"),copy:L("Бизнес остаётся жизнеспособным, но несколько решений создали риски, которые могут проявиться позже.","The business remains viable, but several decisions created risks that may surface later.")};
+  return {label:L("Нужна реструктуризация решений","Decision system needs restructuring"),copy:L("Слишком много локально привлекательных решений ухудшили общую систему. Посмотри на trade-offs ещё раз.","Too many locally attractive choices weakened the overall system. Review the trade-offs.")};
 }
 function renderSimulator(){
   const sims=Object.values(C.simulators);
-  document.getElementById("simSelect").innerHTML=sims.map(s=>{const locked=s.id!=="coffee"&&!proAccess();return `<div class="card simtile ${s.id===activeSimulator?"active":""} ${locked?"pro-locked":""}" onclick="selectSimulator('${s.id}')"><div style="font-size:25px">${s.icon}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${s.title}</h3><div class="copy">${s.description}</div><div class="meta"><span>3 ${L("решения","decisions")}</span><span>${locked?"Pro":state.simDone[s.id]?L("✓ завершено","✓ completed"):""}</span></div></div>`}).join("");
+  document.getElementById("simSelect").innerHTML=sims.map(s=>{const locked=s.id!=="coffee"&&!proAccess();return `<div class="card simtile ${s.id===activeSimulator?"active":""} ${locked?"pro-locked":""}" onclick="selectSimulator('${s.id}')"><div style="font-size:25px">${s.icon}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${s.title}</h3><div class="copy">${s.description}</div><div class="meta"><span>${s.steps.length} ${L("решений","decisions")}</span><span>${locked?"Pro":state.simDone[s.id]?L("✓ завершено","✓ completed"):""}</span></div></div>`}).join("");
   if(!sim)resetSimulator(false);
   const s=C.simulators[activeSimulator];
   document.getElementById("simTitleMain").textContent=s.icon+" "+s.title;
@@ -1112,10 +1178,11 @@ function renderSimulator(){
   const fb=document.getElementById("simFeedback");fb.classList.remove("show");
   if(sim.step>=s.steps.length){
     document.getElementById("simStep").textContent=L("ФИНАЛ","FINISH");
-    document.getElementById("simEvent").textContent=L("Сценарий завершён","Scenario complete");
-    document.getElementById("simText").textContent=L("Ты увидел trade-offs на цифрах. Сильный основатель не ищет магическую кнопку — он управляет системой.","You saw the trade-offs in the numbers. A strong founder does not look for a magic button — they manage the system.");
-    document.getElementById("simChoices").innerHTML=`<div class="card soft section"><div class="copy">${L("Итог","Result")}: ${rub(sim.cash)} cash • ${rub(sim.revenue)} revenue • ${rub(sim.profit)} profit</div></div>`;
-    if(!state.simDone[s.id]){state.simDone[s.id]=true;state.xp+=120;localSave()}
+    const outcome=simulatorOutcome(sim,s);
+    document.getElementById("simEvent").textContent=outcome.label;
+    document.getElementById("simText").textContent=outcome.copy;
+    document.getElementById("simChoices").innerHTML=`<div class="card soft section sim-result"><div class="sim-result-score"><b>${sim.strong}/${s.steps.length}</b><span>${L("сильных решений","strong decisions")}</span></div><div class="copy">${L("Итог","Result")}: ${rub(sim.cash)} cash • ${rub(sim.revenue)} revenue • ${rub(sim.profit)} profit</div></div>`;
+    if(!state.simDone[s.id]){state.simDone[s.id]=true;state.xp+=120;trackEvent("simulator_completed",{simulator_id:s.id,strong:sim.strong,total:s.steps.length,cash:sim.cash,profit:sim.profit});localSave()}
     localizeUI(document.getElementById("simulator"));
     return;
   }
@@ -1124,11 +1191,14 @@ function renderSimulator(){
   localizeUI(document.getElementById("simulator"));
 }
 function chooseSim(i,el){
-  const s=C.simulators[activeSimulator],o=s.steps[sim.step][2][i],d=o[1];
+  const s=C.simulators[activeSimulator],o=s.steps[sim.step][2][i],d=o[1],strong=!!o[3];
   sim.cash+=d.cash||0;sim.revenue+=d.revenue||0;sim.profit+=d.profit||0;sim.customers+=d.customers||0;
-  document.querySelectorAll("#simChoices .choice").forEach(b=>b.disabled=true);el.classList.add(o[3]?"good":"bad");
-  const f=document.getElementById("simFeedback");f.textContent=o[2]+" +50 XP";f.classList.add("show");state.xp+=50;localSave();
-  setTimeout(()=>{sim.step++;renderSimulator()},850);
+  if(strong)sim.strong=(sim.strong||0)+1;
+  sim.decisions=[...(sim.decisions||[]),{step:sim.step,choice:i,strong}];
+  document.querySelectorAll("#simChoices .choice").forEach(b=>b.disabled=true);el.classList.add(strong?"good":"bad");
+  const xp=25;
+  const f=document.getElementById("simFeedback");f.innerHTML=`<div class="decision-verdict ${strong?"good-text":"warn-text"}">${strong?L("Сильный выбор","Strong choice"):L("Рискованный trade-off","Risky trade-off")}</div><div class="copy">${escapeHtml(o[2])}</div><div class="tiny">+${xp} XP</div>`;f.classList.add("show");state.xp+=xp;localSave();
+  setTimeout(()=>{sim.step++;renderSimulator()},1100);
 }
 
 let coachHistoryMode="";
