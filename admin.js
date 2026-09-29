@@ -1,11 +1,14 @@
 const SUPABASE_URL="https://qmjtmhtmbaseykmwttvn.supabase.co";
 const SUPABASE_KEY="sb_publishable_CD-9o4mQVn0j6tltKgRRZA_IsUUq_iJ";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const ADMIN_PREFS=window.BIZONIQ_PREFS||{lang:"ru",currency:"RUB"};
+const ADMIN_LANG=ADMIN_PREFS.lang||"ru";
+const AL=(ru,en)=>ADMIN_LANG==="en"?en:ru;
 let session=null,creator=null,dashboard=null;
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}
-function fmtDate(s){if(!s)return"—";return new Date(s).toLocaleDateString("ru-RU",{day:"2-digit",month:"short",year:"numeric"})}
-function fmtDateTime(s){if(!s)return"—";return new Date(s).toLocaleString("ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}
+function fmtDate(s){if(!s)return"—";return new Date(s).toLocaleDateString(ADMIN_LANG==="en"?"en-US":"ru-RU",{day:"2-digit",month:"short",year:"numeric"})}
+function fmtDateTime(s){if(!s)return"—";return new Date(s).toLocaleString(ADMIN_LANG==="en"?"en-US":"ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}
 function pct(n){return Math.max(0,Math.min(100,Number(n)||0))}
 function status(msg,type=""){const el=document.getElementById("globalStatus");if(!el)return;el.textContent=msg;el.className="console-status "+type}
 function show(id){["loginGate","activateGate","consoleApp"].forEach(x=>document.getElementById(x)?.classList.toggle("hidden",x!==id))}
@@ -109,7 +112,9 @@ function renderPageViews(){
   const arr=dashboard.page_views||[],max=Math.max(1,...arr.map(x=>Number(x.count)||0));
   document.getElementById("pageViews").innerHTML=arr.length?arr.map(x=>'<div class="rank-row"><div><b>'+esc(x.page)+'</b></div><div class="rank-bar"><span style="width:'+Math.round((x.count/max)*100)+'%"></span></div><strong>'+esc(x.count)+'</strong></div>').join(""):'<div class="empty">Аналитика страниц собирается с v9.</div>';
 }
-const feedbackNames={confusing:"Где непонятно",useless:"Что бесполезно",return:"Что вернёт завтра",willing_to_pay:"За что готов платить",general:"Общее"};
+const feedbackNames=ADMIN_LANG==="en"
+  ?{confusing:"Confusing",useless:"Feels useless",return:"Would bring back",willing_to_pay:"Would pay for",general:"General"}
+  :{confusing:"Где непонятно",useless:"Что бесполезно",return:"Что вернёт завтра",willing_to_pay:"За что готов платить",general:"Общее"};
 function renderFeedback(){
   const arr=dashboard.feedback||[];
   document.getElementById("feedbackList").innerHTML=arr.length?arr.map(x=>'<article class="feedback-card"><div class="feedback-meta"><span class="tag">'+esc(feedbackNames[x.category]||x.category)+'</span><span>'+fmtDateTime(x.created_at)+'</span></div><div class="feedback-text">'+esc(x.message)+'</div><div class="mini">Путь: '+esc(x.context?.path||"—")+' · Уровень: '+esc(x.context?.adaptive_level||"—")+' · XP: '+esc(x.context?.xp||0)+'</div></article>').join(""):'<div class="empty">Отзывов пока нет.</div>';
@@ -132,7 +137,9 @@ function filterUsers(){
   const q=document.getElementById("userSearch").value.trim().toLowerCase();
   document.querySelectorAll("#usersBody tr[data-search]").forEach(tr=>tr.style.display=tr.dataset.search.includes(q)?"":"none");
 }
-const auditNames={creator_access_activated:"Creator access",creator_invite_generated:"Creator invite создан",access_code_generated:"Код создан",access_code_deactivated:"Код отключён",manual_pro_granted:"Pro выдан",manual_pro_revoked:"Pro отозван"};
+const auditNames=ADMIN_LANG==="en"
+  ?{creator_access_activated:"Creator access",creator_invite_generated:"Creator invite created",access_code_generated:"Code created",access_code_deactivated:"Code disabled",manual_pro_granted:"Pro granted",manual_pro_revoked:"Pro revoked"}
+  :{creator_access_activated:"Creator access",creator_invite_generated:"Creator invite создан",access_code_generated:"Код создан",access_code_deactivated:"Код отключён",manual_pro_granted:"Pro выдан",manual_pro_revoked:"Pro отозван"};
 function renderAudit(){
   const arr=dashboard.audit||[];
   document.getElementById("auditList").innerHTML=arr.length?arr.map(x=>'<div class="audit-row"><div><b>'+esc(auditNames[x.action]||x.action)+'</b><div class="mini">'+fmtDateTime(x.created_at)+'</div></div><code>'+esc(JSON.stringify(x.metadata||{}))+'</code></div>').join(""):'<div class="empty">Audit log пуст.</div>';
@@ -144,7 +151,7 @@ async function generateCreatorInvite(){
   if(error||!data?.ok){status(data?.error||"Не удалось создать invite.","bad");return}
   const box=document.getElementById("creatorInviteBox"),value=document.getElementById("creatorInviteValue"),expiry=document.getElementById("creatorInviteExpiry");
   box.classList.remove("hidden");value.textContent=data.code;expiry.textContent="Действует до "+fmtDateTime(data.expires_at)+" и только для одной активации.";
-  status("Creator Invite создан. Передай код человеку, которому хочешь выдать доступ создателя. После первой активации код станет недействительным.","good");
+  status(AL("Creator Invite создан. Передай код человеку, которому хочешь выдать доступ создателя. После первой активации код станет недействительным.","Creator Invite created. Send it to the person you want to add as a creator. It becomes invalid after the first activation."),"good");
   await loadDashboard();
 }
 async function copyCreatorInvite(){
