@@ -95,11 +95,11 @@ let paddleInitialized=false;
 let paddleLoadPromise=null;
 let pendingCheckoutPlan=null;
 const CERTIFICATE_TYPES=[
-  {id:"foundation",title:L("Основы бизнеса","Business Foundations"),desc:L("База предпринимательства и первые решения.","Business foundations and first decisions."),modules:["basics"],minCases:3,minSims:0},
-  {id:"finance",title:L("Финансы бизнеса","Business Finance"),desc:L("Cash flow, маржа, unit economics и финансовая дисциплина.","Cash flow, margin, unit economics and financial discipline."),modules:["finance"],minCases:5,minSims:1},
-  {id:"growth",title:L("Рост: маркетинг и продажи","Growth: Marketing & Sales"),desc:L("Привлечение, удержание, продажи и переговоры.","Acquisition, retention, sales and negotiation."),modules:["marketing","sales"],minCases:8,minSims:1},
-  {id:"operator",title:L("Управление бизнесом","Business Operations"),desc:L("Финансы + менеджмент + операционные решения.","Finance + management and operating decisions."),modules:["finance","management"],minCases:12,minSims:2},
-  {id:"mastery",title:L("Мастерство бизнес-решений","Business Decision Mastery"),desc:L("Главный сертификат BIZONIQ за комплексное прохождение.","The flagship BIZONIQ certificate for comprehensive completion."),modules:["*"],minCases:24,minSims:4}
+  {id:"foundation",title:"Business Foundations",desc:L("База предпринимательства и первые решения.","Business foundations and first decisions."),modules:["basics"],minCases:3,minSims:0},
+  {id:"finance",title:"Business Finance",desc:L("Cash flow, маржа, unit economics и финансовая дисциплина.","Cash flow, margin, unit economics and financial discipline."),modules:["finance"],minCases:5,minSims:1},
+  {id:"growth",title:"Growth: Marketing & Sales",desc:L("Привлечение, удержание, продажи и переговоры.","Acquisition, retention, sales and negotiation."),modules:["marketing","sales"],minCases:8,minSims:1},
+  {id:"operator",title:"Business Operations",desc:L("Финансы + менеджмент + операционные решения.","Finance + management and operating decisions."),modules:["finance","management"],minCases:12,minSims:2},
+  {id:"mastery",title:"Business Decision Mastery",desc:L("Главный сертификат BIZONIQ за комплексное прохождение.","The flagship BIZONIQ certificate for comprehensive completion."),modules:["*"],minCases:24,minSims:4}
 ];
 
 function loadLocalState(){
