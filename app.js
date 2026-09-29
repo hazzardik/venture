@@ -69,6 +69,7 @@ const DEFAULT_STATE={onboarded:false,goal:"",xp:0,streak:1,lastVisit:"",lessons:
 };
 let state=loadLocalState();
 let session=null;
+let authMode="login";
 let activeModule="all";
 let caseMode="adaptive";
 let activeSimulator="coffee";
@@ -154,12 +155,68 @@ function setSyncStatus(text,on){
   if(label) label.textContent=T(text);
 }
 
+function authErrorMessage(error,context="login"){
+  const code=String(error?.code||"").toLowerCase();
+  const msg=String(error?.message||"").toLowerCase();
+  if(code.includes("invalid_credentials")||msg.includes("invalid login credentials")){
+    return L("Почта или пароль введены неверно. Проверь данные или восстанови пароль.","Email or password is incorrect. Check your details or reset your password.");
+  }
+  if(code.includes("email_exists")||code.includes("user_already_exists")||msg.includes("already registered")||msg.includes("already exists")){
+    return L("Эта почта уже используется. Войди в аккаунт или восстанови пароль.","This email is already in use. Sign in or reset your password.");
+  }
+  if(code.includes("weak_password")||msg.includes("password")){
+    return context==="register"
+      ? L("Пароль не подходит. Используй минимум 10 символов.","Password is not accepted. Use at least 10 characters.")
+      : L("Не удалось изменить пароль. Используй минимум 10 символов и попробуй ещё раз.","Could not update the password. Use at least 10 characters and try again.");
+  }
+  if(code.includes("over_email_send_rate_limit")||msg.includes("rate limit")){
+    return L("Слишком много попыток. Подожди немного и попробуй ещё раз.","Too many attempts. Please try again a little later.");
+  }
+  return context==="register"
+    ? L("Не удалось создать аккаунт. Проверь данные и попробуй ещё раз.","Could not create the account. Check your details and try again.")
+    : L("Не удалось выполнить вход. Проверь данные и попробуй ещё раз.","Could not sign in. Check your details and try again.");
+}
+
+function setAuthMode(mode="login"){
+  authMode=mode;
+  const ids=["Login","Register","Recovery","NewPassword"];
+  ids.forEach(name=>document.getElementById("auth"+name+"Panel")?.classList.toggle("hidden",mode!==name[0].toLowerCase()+name.slice(1).replace("NewPassword","new-password")));
+  const login=document.getElementById("authLoginPanel"),register=document.getElementById("authRegisterPanel"),recovery=document.getElementById("authRecoveryPanel"),newPass=document.getElementById("authNewPasswordPanel");
+  if(login)login.classList.toggle("hidden",mode!=="login");
+  if(register)register.classList.toggle("hidden",mode!=="register");
+  if(recovery)recovery.classList.toggle("hidden",mode!=="recovery");
+  if(newPass)newPass.classList.toggle("hidden",mode!=="new-password");
+  document.getElementById("authTabs")?.classList.toggle("hidden",mode==="recovery"||mode==="new-password");
+  document.getElementById("authLoginTab")?.classList.toggle("active",mode==="login");
+  document.getElementById("authRegisterTab")?.classList.toggle("active",mode==="register");
+  const status=document.getElementById("authStatus");if(status)status.textContent="";
+  const title=document.getElementById("authTitle"),intro=document.getElementById("authIntro");
+  if(title)title.textContent=mode==="register"?L("Создание аккаунта","Create account"):mode==="recovery"?L("Восстановление аккаунта","Account recovery"):mode==="new-password"?L("Новый пароль","New password"):L("Вход в аккаунт","Sign in");
+  if(intro)intro.textContent=mode==="register"
+    ?L("Создай аккаунт, чтобы сохранять и синхронизировать прогресс.","Create an account to save and sync your progress.")
+    :mode==="recovery"
+      ?L("Мы отправим безопасную ссылку для создания нового пароля.","We will send a secure link to create a new password.")
+      :mode==="new-password"
+        ?L("Установи новый пароль для своего аккаунта.","Set a new password for your account.")
+        :L("Войди, чтобы синхронизировать прогресс между устройствами.","Sign in to sync your progress across devices.");
+  const loginEmail=document.getElementById("loginEmail")?.value?.trim();
+  const registerEmail=document.getElementById("registerEmail")?.value?.trim();
+  if(mode==="recovery"&&!document.getElementById("recoveryEmail")?.value){
+    const el=document.getElementById("recoveryEmail");if(el)el.value=loginEmail||registerEmail||"";
+  }
+  localizeUI(document.getElementById("auth"));
+}
+
 async function initAuth(){
   const {data:{session:s}}=await sb.auth.getSession();
   session=s;
   sb.auth.onAuthStateChange(async(event,sess)=>{
     session=sess;
     renderAuthState();
+    if(event==="PASSWORD_RECOVERY"){
+      openAuth("new-password");
+      return;
+    }
     if(sess&&(event==="SIGNED_IN"||event==="INITIAL_SESSION"||event==="TOKEN_REFRESHED")){
       await mergeCloud(); await Promise.all([loadCertificates(),loadSubscription()]);
     }
@@ -173,20 +230,30 @@ async function initAuth(){
     }
   });
   renderAuthState();
+  if(new URLSearchParams(location.search).get("recovery")==="1"&&session)openAuth("new-password");
   if(session){ await mergeCloud(); await Promise.all([loadCertificates(),loadSubscription()]); }
 }
+
 async function registerUser(){
-  const email=document.getElementById("authEmail").value.trim();
-  const password=document.getElementById("authPassword").value;
-  const name=document.getElementById("authName").value.trim()||state.name||"Пользователь";
+  const first=cleanPlainText(document.getElementById("registerFirstName").value,50);
+  const last=cleanPlainText(document.getElementById("registerLastName").value,60);
+  const email=document.getElementById("registerEmail").value.trim().toLowerCase();
+  const password=document.getElementById("registerPassword").value;
   const status=document.getElementById("authStatus");
-  if(password.length<10){status.textContent=L("Для нового аккаунта используй пароль минимум из 10 символов.","Use a password of at least 10 characters for a new account.");return}
+  if(!first||!last){status.textContent=L("Укажи имя и фамилию.","Enter your first and last name.");return}
+  if(!email||!email.includes("@")){status.textContent=L("Укажи корректную почту.","Enter a valid email address.");return}
+  if(password.length<10){status.textContent=L("Пароль должен содержать минимум 10 символов.","Password must contain at least 10 characters.");return}
+  const name=(first+" "+last).trim();
   status.textContent=L("Создаю аккаунт…","Creating account…");
   const {data,error}=await sb.auth.signUp({
     email,password,
-    options:{data:{display_name:name},emailRedirectTo:location.origin+location.pathname}
+    options:{data:{display_name:name,first_name:first,last_name:last,language:LANG},emailRedirectTo:new URL("./",location.href).href}
   });
-  if(error){status.textContent=error.message;return}
+  if(error){status.textContent=authErrorMessage(error,"register");return}
+  if(data?.user?.identities&&data.user.identities.length===0){
+    status.textContent=L("Эта почта уже используется. Войди в аккаунт или восстанови пароль.","This email is already in use. Sign in or reset your password.");
+    return;
+  }
   state.name=name; localSave(false);
   if(data.session){
     session=data.session; status.textContent=L("Аккаунт создан и вход выполнен.","Account created and signed in."); await mergeCloud(); closeAuth();
@@ -194,14 +261,43 @@ async function registerUser(){
     status.textContent=L("Аккаунт создан. Проверь почту и подтверди email, затем войди.","Account created. Check your email, confirm it, then sign in.");
   }
 }
+
 async function signInUser(){
-  const email=document.getElementById("authEmail").value.trim();
-  const password=document.getElementById("authPassword").value;
+  const email=document.getElementById("loginEmail").value.trim().toLowerCase();
+  const password=document.getElementById("loginPassword").value;
   const status=document.getElementById("authStatus");
+  if(!email||!password){status.textContent=L("Введи почту и пароль.","Enter your email and password.");return}
   status.textContent=L("Вхожу…","Signing in…");
   const {data,error}=await sb.auth.signInWithPassword({email,password});
-  if(error){status.textContent=error.message;return}
+  if(error){status.textContent=authErrorMessage(error,"login");return}
   session=data.session; status.textContent=L("Вход выполнен.","Signed in."); await mergeCloud(); closeAuth();
+}
+
+async function sendPasswordReset(){
+  const email=document.getElementById("recoveryEmail").value.trim().toLowerCase();
+  const status=document.getElementById("authStatus");
+  if(!email||!email.includes("@")){status.textContent=L("Укажи корректную почту.","Enter a valid email address.");return}
+  status.textContent=L("Отправляю ссылку…","Sending reset link…");
+  const redirect=new URL("./?recovery=1",location.href).href;
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:redirect});
+  if(error){status.textContent=authErrorMessage(error,"recovery");return}
+  status.textContent=L("Если аккаунт с этой почтой существует, ссылка для восстановления уже отправлена. Проверь также папку «Спам».","If an account with this email exists, the recovery link has been sent. Check your spam folder too.");
+}
+
+async function updateRecoveredPassword(){
+  const p1=document.getElementById("recoveryNewPassword").value;
+  const p2=document.getElementById("recoveryNewPassword2").value;
+  const status=document.getElementById("authStatus");
+  if(p1.length<10){status.textContent=L("Новый пароль должен содержать минимум 10 символов.","The new password must contain at least 10 characters.");return}
+  if(p1!==p2){status.textContent=L("Пароли не совпадают.","Passwords do not match.");return}
+  status.textContent=L("Сохраняю новый пароль…","Saving new password…");
+  const {error}=await sb.auth.updateUser({password:p1});
+  if(error){status.textContent=authErrorMessage(error,"recovery");return}
+  const panel=document.getElementById("authNewPasswordPanel");
+  if(panel)panel.innerHTML=`<div class="tiny good">✓ ${L("Пароль изменён. Аккаунт восстановлен.","Password updated. Account recovered.")}</div><div class="btnrow"><button class="btn primary" onclick="closeAuth();go('dashboard')">${L("Продолжить","Continue")}</button></div>`;
+  status.textContent="";
+  const u=new URL(location.href);u.searchParams.delete("recovery");history.replaceState(null,"",u.pathname+u.search+u.hash);
+  renderAuthState();
 }
 async function signOutUser(){
   await sb.auth.signOut();
@@ -483,7 +579,7 @@ function modal(html,small=false){
   localizeUI(body);
 }
 function closeModal(){document.getElementById("modal").classList.add("hidden")}
-function openAuth(){document.getElementById("auth").classList.remove("hidden")}
+function openAuth(mode="login"){document.getElementById("auth").classList.remove("hidden");setAuthMode(mode)}
 function closeAuth(){document.getElementById("auth").classList.add("hidden")}
 
 function buildNav(){
