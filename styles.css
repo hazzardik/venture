@@ -168,3 +168,15 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   #pathSummary{display:none}
   .hero{display:block}
 }
+
+/* Shared language / currency controls */
+.biz-prefs{display:inline-flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025);flex-wrap:nowrap}
+.pref-btn{appearance:none;border:0;background:transparent;color:var(--muted);min-width:32px;height:30px;padding:0 8px;border-radius:8px;font-size:11px;font-weight:900;letter-spacing:.04em;cursor:pointer}
+.pref-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.pref-btn.active{color:#071008;background:var(--green)}
+.pref-sep{width:1px;height:18px;background:var(--line2);margin:0 2px}
+@media(max-width:900px){
+  .biz-prefs{order:20}
+  .top .pills .biz-prefs{width:auto}
+  .pref-btn{height:29px;min-width:30px;padding:0 7px}
+}
