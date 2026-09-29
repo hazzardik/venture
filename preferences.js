@@ -485,13 +485,16 @@
     nodes.forEach(translateTextNode);
     if(root.querySelectorAll){translateElement(root);root.querySelectorAll("input,textarea,select").forEach(translateElement)}
   }
+  function setTextIfChanged(el,value){
+    if(el.textContent!==value)el.textContent=value;
+  }
   function updatePricingUI(){
-    document.querySelectorAll("[data-price-monthly]").forEach(el=>el.textContent=price("monthly"));
-    document.querySelectorAll("[data-price-yearly]").forEach(el=>el.textContent=price("yearly"));
-    document.querySelectorAll("[data-price-summary]").forEach(el=>el.textContent=priceSummary());
-    document.querySelectorAll("[data-yearly-saving]").forEach(el=>el.textContent=yearlySaving());
-    document.querySelectorAll("[data-pro-monthly-button]").forEach(el=>el.textContent=(lang==="en"?"Get Pro • ":"Получить Pro • ")+price("monthly"));
-    document.querySelectorAll("[data-pro-yearly-button]").forEach(el=>el.textContent=(lang==="en"?"Yearly Pro • ":"Pro на год • ")+price("yearly"));
+    document.querySelectorAll("[data-price-monthly]").forEach(el=>setTextIfChanged(el,price("monthly")));
+    document.querySelectorAll("[data-price-yearly]").forEach(el=>setTextIfChanged(el,price("yearly")));
+    document.querySelectorAll("[data-price-summary]").forEach(el=>setTextIfChanged(el,priceSummary()));
+    document.querySelectorAll("[data-yearly-saving]").forEach(el=>setTextIfChanged(el,yearlySaving()));
+    document.querySelectorAll("[data-pro-monthly-button]").forEach(el=>setTextIfChanged(el,(lang==="en"?"Get Pro • ":"Получить Pro • ")+price("monthly")));
+    document.querySelectorAll("[data-pro-yearly-button]").forEach(el=>setTextIfChanged(el,(lang==="en"?"Yearly Pro • ":"Pro на год • ")+price("yearly")));
   }
   function injectControls(){
     if(document.getElementById("bizPrefs"))return;
