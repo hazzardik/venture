@@ -493,6 +493,12 @@
     "В профиле есть персональная ссылка. Новый пользователь получает стартовый Pro-бонус, а пригласивший открывает дополнительные дни Pro по мере роста числа подтверждённых приглашений. Один аккаунт может засчитать реферальную награду только один раз.":"Your profile contains a personal link. A new user receives a starter Pro bonus, while the referrer unlocks additional Pro days as qualified referrals grow. Each account can qualify for a referral reward only once."
   });
 
+  Object.assign(STATIC_EN,{
+    "Все 4 бизнес-симулятора • по 10 решений":"All 4 business simulations • 10 decisions each",
+    "BETA • ЛУЧШАЯ ЦЕНА":"BETA • BEST VALUE",
+    "Последнее обновление: 29 сентября 2026.":"Last updated: September 29, 2026."
+  });
+
   const REPLACERS_EN=[
     [/^Завершить • \+(\d+) XP$/,"Complete • +$1 XP"],
     [/^Связано: (.+)$/,"Related: $1"],
