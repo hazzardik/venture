@@ -68,11 +68,11 @@ let paddleInitialized=false;
 let paddleLoadPromise=null;
 let pendingCheckoutPlan=null;
 const CERTIFICATE_TYPES=[
-  {id:"foundation",title:"Business Foundations",desc:"База предпринимательства и первые решения.",modules:["basics"],minCases:3,minSims:0},
-  {id:"finance",title:"Business Finance",desc:"Cash flow, маржа, unit economics и финансовая дисциплина.",modules:["finance"],minCases:5,minSims:1},
-  {id:"growth",title:"Growth: Marketing & Sales",desc:"Привлечение, удержание, продажи и переговоры.",modules:["marketing","sales"],minCases:8,minSims:1},
-  {id:"operator",title:"Business Operations",desc:"Финансы + менеджмент + операционные решения.",modules:["finance","management"],minCases:12,minSims:2},
-  {id:"mastery",title:"Business Decision Mastery",desc:"Главный сертификат BIZONIQ за комплексное прохождение.",modules:["*"],minCases:24,minSims:4}
+  {id:"foundation",title:"Business Foundations",desc:L("База предпринимательства и первые решения.","Business foundations and first decisions."),modules:["basics"],minCases:3,minSims:0},
+  {id:"finance",title:"Business Finance",desc:L("Cash flow, маржа, unit economics и финансовая дисциплина.","Cash flow, margin, unit economics and financial discipline."),modules:["finance"],minCases:5,minSims:1},
+  {id:"growth",title:"Growth: Marketing & Sales",desc:L("Привлечение, удержание, продажи и переговоры.","Acquisition, retention, sales and negotiation."),modules:["marketing","sales"],minCases:8,minSims:1},
+  {id:"operator",title:"Business Operations",desc:L("Финансы + менеджмент + операционные решения.","Finance + management + operating decisions."),modules:["finance","management"],minCases:12,minSims:2},
+  {id:"mastery",title:"Business Decision Mastery",desc:L("Главный сертификат BIZONIQ за комплексное прохождение.","The flagship BIZONIQ certificate for comprehensive completion."),modules:["*"],minCases:24,minSims:4}
 ];
 
 function loadLocalState(){
@@ -509,8 +509,8 @@ function changePath(){
 
 
 const SKILL_LABELS={
-  basics:"Бизнес-база",finance:"Финансы",marketing:"Маркетинг",sales:"Продажи",
-  strategy:"Стратегия",startup:"Стартапы",management:"Менеджмент",economics:"Экономика"
+  basics:L("Бизнес-база","Business foundations"),finance:L("Финансы","Finance"),marketing:L("Маркетинг","Marketing"),sales:L("Продажи","Sales"),
+  strategy:L("Стратегия","Strategy"),startup:L("Стартапы","Startups"),management:L("Менеджмент","Management"),economics:L("Экономика","Economics")
 };
 function difficultyName(level=state.adaptive.level){
   return level===3?"Advanced":level===2?"Intermediate":"Beginner";
@@ -658,13 +658,19 @@ function continueLearning(){
   if(next){activeModule=next.m.id;go("learn");renderLessons();setTimeout(()=>openLesson(next.l[0]),120);}
   else{go("cases");}
 }
-const DUELS=[
+const DUELS=LANG==="en"?[
+  {q:"Revenue grew 40%, but cash in the bank fell. What do you check first?",opts:["Follower count","Receivables and payment timing","Ad creative colors"],correct:1,why:"Sales growth can consume cash when money gets trapped in receivables or working capital."},
+  {q:"CAC rises 35% while retention falls. What is the best move?",opts:["Double ad spend","Fix retention and unit economics first","Cut prices for everyone"],correct:1,why:"Expensive traffic into a product with weak retention scales the problem."},
+  {q:"The team runs nine priorities at once. What is the most likely risk?",opts:["Too much data","Diluted focus and weak execution","Margin is too high"],correct:1,why:"Strategy requires choices. Nine priorities usually means there is no real priority."},
+  {q:"A customer says “too expensive.” What is the strongest first step?",opts:["Give a discount","Clarify value, comparison and expected outcome","Say competitors are worse"],correct:1,why:"“Too expensive” often means value or risk is not clear enough, not that the numeric price is objectively wrong."},
+  {q:"A SaaS product has strong signup growth but 10% monthly churn. What is most dangerous?",opts:["Weak retention","Too few logos on the website","An onboarding email that is too short"],correct:0,why:"High churn forces the company to constantly replace lost customers and destroys compounding growth."}
+]:[
   {q:"Выручка выросла на 40%, а cash на счёте упал. Что проверишь первым?",opts:["Количество подписчиков","Дебиторку и сроки платежей","Цвет рекламных креативов"],correct:1,why:"Рост продаж может съедать cash, если деньги зависают в дебиторке или оборотном капитале."},
   {q:"CAC вырос на 35%, retention одновременно падает. Лучшее действие?",opts:["Удвоить рекламный бюджет","Сначала чинить удержание и unit economics","Сразу снизить цену всем"],correct:1,why:"Дорогой трафик в продукт со слабым удержанием масштабирует проблему."},
   {q:"Команда одновременно ведёт 9 приоритетов. Какой риск самый вероятный?",opts:["Слишком много данных","Размытый фокус и слабое исполнение","Слишком высокая маржа"],correct:1,why:"Стратегия требует отказа. Девять приоритетов почти всегда означают, что настоящего приоритета нет."},
   {q:"Клиент говорит «дорого». Что сильнее всего сделать первым?",opts:["Дать скидку","Уточнить ценность, сравнение и ожидаемый результат","Сказать, что конкуренты хуже"],correct:1,why:"«Дорого» часто означает не цену как таковую, а недостаточно понятную ценность или риск."},
   {q:"У SaaS высокий рост новых регистраций, но churn 10% в месяц. Что опаснее?",opts:["Слабое удержание","Мало логотипов на сайте","Слишком короткий onboarding email"],correct:0,why:"Высокий churn заставляет постоянно заменять ушедших клиентов и разрушает compounding роста."}
-];
+]
 function dailyDuel(){
   const d=DUELS[(new Date().getDate()-1)%DUELS.length],done=state.duel.date===todayKey()&&state.duel.answered;
   modal(`<div class="label">DAILY BUSINESS DUEL</div><h2>${d.q}</h2><div class="copy">Один вопрос в день. Первый ответ фиксируется и даёт XP только один раз.</div><div id="duelChoices" class="section">${d.opts.map((o,i)=>`<button class="choice" ${done?"disabled":""} onclick="answerDuel(${i},this)">${o}</button>`).join("")}</div><div id="duelFeedback" class="feedback ${done?"show":""}">${done?"Сегодняшняя дуэль уже завершена. Возвращайся завтра.":""}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon('duel')">Поделиться BIZONIQ</button></div>`);
@@ -681,14 +687,21 @@ function answerDuel(i,el){
   if(state.challenge.started&&!state.challenge.completedDays.includes(todayKey()))state.challenge.completedDays.push(todayKey());
   localSave();
 }
-const DIAG=[
+const DIAG=LANG==="en"?[
+  ["What is your current experience?",["Just starting","I have launched projects","I already run a business","Learning for general understanding"]],
+  ["What is hardest right now?",["Knowing where to start","Getting customers","Growing and managing systematically","Making strong decisions"]],
+  ["What do you want to improve first?",["Business foundations","Marketing and sales","Finance and management","Strategic thinking"]],
+  ["How do you prefer to learn?",["Step by step from zero","Through sales practice","Through real management situations","Through difficult cases"]],
+  ["Do you have a real business now?",["No","I have an idea/project","Yes, it has revenue","Not important — I want the skill"]],
+  ["Main goal for the next 90 days?",["Launch","Find growth","Build a system","Become stronger at business thinking"]]
+]:[
   ["Твой опыт сейчас?",["Только начинаю","Уже запускал проекты","Уже управляю бизнесом","Изучаю для общего развития"]],
   ["Что сложнее всего?",["Понять с чего начать","Получать клиентов","Системно расти и управлять","Принимать сильные решения"]],
   ["Что хочешь прокачать первым?",["Базу бизнеса","Маркетинг и продажи","Финансы и менеджмент","Стратегическое мышление"]],
   ["Как тебе удобнее учиться?",["С нуля по шагам","Через практику продаж","Через реальные управленческие ситуации","Через сложные кейсы"]],
   ["Есть ли сейчас реальный бизнес?",["Нет","Есть идея/проект","Да, есть выручка","Неважно — хочу навык"]],
   ["Главная цель на 90 дней?",["Запустить","Найти рост","Навести систему","Стать сильнее в бизнес-мышлении"]]
-];
+]
 function startDiagnostic(){
   state.diagnostic.answers=[];renderDiagStep(0);
 }
