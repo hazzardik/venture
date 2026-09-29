@@ -736,44 +736,44 @@ function nextLessonForSkill(skillId){
 }
 function renderTodayPlan(){
   const target=document.getElementById("todayPlan");if(!target)return;
-  const weak=weakSkills()[0]||{id:"basics",label:"Бизнес-база"};
+  const weak=weakSkills()[0]||{id:"basics",label:L("Бизнес-база","Business foundations")};
   const lesson=nextLessonForSkill(weak.id)||moduleOrder().flatMap(m=>m.lessons.map(l=>({m,l}))).find(x=>!state.lessons.includes(x.l[0]));
   const c=nextAdaptiveCase(weak.id);
   target.innerHTML=`
     <div class="card today-card primary-plan">
-      <div class="tiny">1 · УРОК</div>
-      <h3>${lesson?lesson.l[1]:"Все уроки пройдены"}</h3>
-      <div class="copy">${lesson?"Усиль навык: "+(SKILL_LABELS[lesson.m.id]||lesson.m.title):"Переходи к практике."}</div>
-      <div class="btnrow"><button class="btn primary" onclick="${lesson?`activeModule='${lesson.m.id}';go('learn');setTimeout(()=>openLesson('${lesson.l[0]}'),100)`:"go('cases')"}">Начать</button></div>
+      <div class="tiny">1 · ${L("УРОК","LESSON")}</div>
+      <h3>${lesson?lesson.l[1]:L("Все уроки пройдены","All lessons completed")}</h3>
+      <div class="copy">${lesson?L("Усиль навык: ","Build this skill: ")+(SKILL_LABELS[lesson.m.id]||lesson.m.title):L("Переходи к практике.","Move on to practice.")}</div>
+      <div class="btnrow"><button class="btn primary" onclick="${lesson?`activeModule='${lesson.m.id}';go('learn');setTimeout(()=>openLesson('${lesson.l[0]}'),100)`:"go('cases')"}">${L("Начать","Start")}</button></div>
     </div>
     <div class="card today-card">
-      <div class="tiny">2 · АДАПТИВНЫЙ КЕЙС</div>
-      <h3>${c?c.title:"Практика"}</h3>
-      <div class="copy">${c?difficultyName(c.difficulty)+" · "+(SKILL_LABELS[c.category]||c.category):"Подберём кейс по уровню."}</div>
-      <div class="btnrow"><button class="btn ghost" onclick="${c?`go('cases');setTimeout(()=>openCase('${c.id}'),100)`:"go('cases')"}">Решить</button></div>
+      <div class="tiny">2 · ${L("АДАПТИВНЫЙ КЕЙС","ADAPTIVE CASE")}</div>
+      <h3>${c?c.title:L("Практика","Practice")}</h3>
+      <div class="copy">${c?difficultyName(c.difficulty)+" · "+(SKILL_LABELS[c.category]||c.category):L("Подберём кейс по уровню.","We’ll select a case for your level.")}</div>
+      <div class="btnrow"><button class="btn ghost" onclick="${c?`go('cases');setTimeout(()=>openCase('${c.id}'),100)`:"go('cases')"}">${L("Решить","Solve")}</button></div>
     </div>
     <div class="card today-card">
       <div class="tiny">3 · DAILY DUEL</div>
-      <h3>${state.duel.date===todayKey()&&state.duel.answered?"Сегодня выполнено ✓":"60 секунд на решение"}</h3>
-      <div class="copy">Один короткий управленческий выбор, чтобы держать мышление в тонусе.</div>
-      <div class="btnrow"><button class="btn ghost" onclick="dailyDuel()">Открыть</button></div>
+      <h3>${state.duel.date===todayKey()&&state.duel.answered?L("Сегодня выполнено ✓","Completed today ✓"):L("60 секунд на решение","60 seconds to decide")}</h3>
+      <div class="copy">${L("Один короткий управленческий выбор, чтобы держать мышление в тонусе.","One short management decision to keep your thinking sharp.")}</div>
+      <div class="btnrow"><button class="btn ghost" onclick="dailyDuel()">${L("Открыть","Open")}</button></div>
     </div>`;
 }
 function renderWeakAreas(){
   const el=document.getElementById("weakAreas");if(!el)return;
   const weak=weakSkills().slice(0,3);
-  el.innerHTML=weak.map((s,i)=>`<div class="weak-row"><div><span class="weak-rank">0${i+1}</span><b>${s.icon} ${s.label}</b><div class="tiny">${s.attempts?`${s.correct}/${s.attempts} кейсов правильно`:"Нужно больше практики для точной оценки"}</div></div><div class="weak-score">${s.score}</div><button class="btn ghost" onclick="activeModule='${s.id}';go('learn');renderLessons()">Прокачать</button></div>`).join("");
+  el.innerHTML=weak.map((s,i)=>`<div class="weak-row"><div><span class="weak-rank">0${i+1}</span><b>${s.icon} ${s.label}</b><div class="tiny">${s.attempts?`${s.correct}/${s.attempts} ${L("кейсов правильно","cases correct")}`:L("Нужно больше практики для точной оценки","More practice is needed for an accurate score")}</div></div><div class="weak-score">${s.score}</div><button class="btn ghost" onclick="activeModule='${s.id}';go('learn');renderLessons()">${L("Прокачать","Improve")}</button></div>`).join("");
 }
 function openBetaFeedback(category){
   trackEvent("feedback_opened",{category});
   const prompts={
-    confusing:"В какой момент ты не понимал, что делать дальше?",
-    useless:"Что в BIZONIQ показалось бесполезным?",
-    return:"Что реально заставило бы тебя зайти завтра?",
+    confusing:L("В какой момент ты не понимал, что делать дальше?","At what point did you not know what to do next?"),
+    useless:L("Что в BIZONIQ показалось бесполезным?","What felt useless in BIZONIQ?"),
+    return:L("Что реально заставило бы тебя зайти завтра?","What would genuinely make you come back tomorrow?"),
     willing_to_pay:L("За какую конкретно функцию ты был бы готов платить?","Which specific feature would you pay for?"),
-    general:"Что нам обязательно нужно улучшить?"
+    general:L("Что нам обязательно нужно улучшить?","What must we improve?")
   };
-  modal(`<div class="label">BETA FEEDBACK</div><h2>${prompts[category]||prompts.general}</h2><div class="copy">Пиши прямо. Нам сейчас полезнее критика, чем «всё классно».</div><textarea id="betaFeedbackText" class="textarea" maxlength="1500" placeholder="Твой ответ..."></textarea><div id="betaFeedbackStatus" class="auth-status"></div><div class="btnrow"><button class="btn primary" onclick="submitBetaFeedback('${category}')">Отправить</button><button class="btn ghost" onclick="closeModal()">Закрыть</button></div>`,true);
+  modal(`<div class="label">BETA FEEDBACK</div><h2>${prompts[category]||prompts.general}</h2><div class="copy">${L("Пиши прямо. Нам сейчас полезнее критика, чем «всё классно».","Be direct. Criticism is more useful to us right now than “everything is great”.")}</div><textarea id="betaFeedbackText" class="textarea" maxlength="1500" placeholder="${L("Твой ответ...","Your answer...")}"></textarea><div id="betaFeedbackStatus" class="auth-status"></div><div class="btnrow"><button class="btn primary" onclick="submitBetaFeedback('${category}')">${L("Отправить","Send")}</button><button class="btn ghost" onclick="closeModal()">${L("Закрыть","Close")}</button></div>`,true);
 }
 async function submitBetaFeedback(category){
   const input=document.getElementById("betaFeedbackText"),status=document.getElementById("betaFeedbackStatus");
@@ -794,8 +794,8 @@ function renderStats(){
   document.getElementById("streak").textContent="🔥 "+state.streak+L(" дн."," d.");
   document.getElementById("goalPill").textContent="🎯 "+path.title;
   document.getElementById("stats").innerHTML=[
-    ["Level",l.name,"Текущий уровень"],["Case Level",difficultyName(),"Адаптивная сложность"],
-    ["Уроки",state.lessons.length+"/56","Завершено"],["Кейсы",state.cases.length+"/32","Решено"]
+    ["Level",l.name,L("Текущий уровень","Current level")],["Case Level",difficultyName(),L("Адаптивная сложность","Adaptive difficulty")],
+    [L("Уроки","Lessons"),state.lessons.length+"/56",L("Завершено","Completed")],[L("Кейсы","Cases"),state.cases.length+"/32",L("Решено","Solved")]
   ].map((s,i)=>`<div class="card metric"><div class="tiny">${s[0]}</div><b>${s[1]}</b><div class="tiny">${s[2]}</div>${i===0?`<div class="progress" style="margin-top:10px"><span style="width:${l.pct}%"></span></div>`:""}</div>`).join("");
 }
 function continueLearning(){
@@ -819,7 +819,7 @@ const DUELS=LANG==="en"?[
 ]
 function dailyDuel(){
   const d=DUELS[(new Date().getDate()-1)%DUELS.length],done=state.duel.date===todayKey()&&state.duel.answered;
-  modal(`<div class="label">DAILY BUSINESS DUEL</div><h2>${d.q}</h2><div class="copy">Один вопрос в день. Первый ответ фиксируется и даёт XP только один раз.</div><div id="duelChoices" class="section">${d.opts.map((o,i)=>`<button class="choice" ${done?"disabled":""} onclick="answerDuel(${i},this)">${o}</button>`).join("")}</div><div id="duelFeedback" class="feedback ${done?"show":""}">${done?"Сегодняшняя дуэль уже завершена. Возвращайся завтра.":""}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon('duel')">Поделиться BIZONIQ</button></div>`);
+  modal(`<div class="label">DAILY BUSINESS DUEL</div><h2>${d.q}</h2><div class="copy">${L("Один вопрос в день. Первый ответ фиксируется и даёт XP только один раз.","One question per day. Your first answer is recorded and awards XP only once.")}</div><div id="duelChoices" class="section">${d.opts.map((o,i)=>`<button class="choice" ${done?"disabled":""} onclick="answerDuel(${i},this)">${o}</button>`).join("")}</div><div id="duelFeedback" class="feedback ${done?"show":""}">${done?L("Сегодняшняя дуэль уже завершена. Возвращайся завтра.","Today’s duel is already complete. Come back tomorrow."):""}</div><div class="btnrow"><button class="btn ghost" onclick="shareTyqon('duel')">${L("Поделиться BIZONIQ","Share BIZONIQ")}</button></div>`);
 }
 function answerDuel(i,el){
   const d=DUELS[(new Date().getDate()-1)%DUELS.length];
@@ -854,7 +854,7 @@ function startDiagnostic(){
 function renderDiagStep(step){
   const q=DIAG[step];
   if(!q){finishDiagnostic();return;}
-  modal(`<div class="label">BIZONIQ DIAGNOSTIC • ${step+1}/${DIAG.length}</div><h2>${q[0]}</h2><div class="copy">Это не психологический тест. Он лишь рекомендует учебную траекторию по твоим ответам.</div><div class="section">${q[1].map((o,i)=>`<button class="choice" onclick="pickDiag(${step},${i})">${o}</button>`).join("")}</div>`);
+  modal(`<div class="label">BIZONIQ DIAGNOSTIC • ${step+1}/${DIAG.length}</div><h2>${q[0]}</h2><div class="copy">${L("Это не психологический тест. Он лишь рекомендует учебную траекторию по твоим ответам.","This is not a psychological test. It only recommends a learning path based on your answers.")}</div><div class="section">${q[1].map((o,i)=>`<button class="choice" onclick="pickDiag(${step},${i})">${o}</button>`).join("")}</div>`);
 }
 function pickDiag(step,i){state.diagnostic.answers[step]=i;renderDiagStep(step+1)}
 function finishDiagnostic(){
@@ -867,36 +867,40 @@ function finishDiagnostic(){
   state.diagnostic={completed:true,answers:a,recommended:rec};
   localSave();
   const p=C.paths.find(x=>x.id===rec);
-  modal(`<div class="label">РЕКОМЕНДАЦИЯ</div><h2>${p.title}</h2><div class="copy">${p.subtitle}</div><div class="btnrow"><button class="btn primary" onclick="choosePath('${rec}',false)">Выбрать этот путь</button><button class="btn ghost" onclick="changePath()">Выбрать вручную</button></div>`);
+  modal(`<div class="label">${L("РЕКОМЕНДАЦИЯ","RECOMMENDATION")}</div><h2>${p.title}</h2><div class="copy">${p.subtitle}</div><div class="btnrow"><button class="btn primary" onclick="choosePath('${rec}',false)">${L("Выбрать этот путь","Choose this path")}</button><button class="btn ghost" onclick="changePath()">${L("Выбрать вручную","Choose manually")}</button></div>`);
 }
 function startChallenge(){
   if(!state.challenge.started){state.challenge={started:true,startDate:todayKey(),completedDays:[]};}
   if(state.duel.date===todayKey()&&state.duel.answered&&!state.challenge.completedDays.includes(todayKey()))state.challenge.completedDays.push(todayKey());
   localSave();
-  modal(`<div class="label">30-DAY FOUNDER CHALLENGE</div><h2>30 дней решений, а не мотивации.</h2><div class="copy">Каждый день решай Business Duel. День засчитывается автоматически после ответа.</div><div class="progress" style="margin-top:18px"><span style="width:${Math.min(100,state.challenge.completedDays.length/30*100)}%"></span></div><div class="meta"><span>${state.challenge.completedDays.length}/30 дней</span><span>Старт: ${state.challenge.startDate||"—"}</span></div><div class="btnrow"><button class="btn primary" onclick="closeModal();dailyDuel()">Сегодняшняя дуэль</button><button class="btn ghost" onclick="shareTyqon('challenge')">Поделиться</button></div>`);
+  modal(`<div class="label">30-DAY FOUNDER CHALLENGE</div><h2>${L("30 дней решений, а не мотивации.","30 days of decisions, not motivation.")}</h2><div class="copy">${L("Каждый день решай Business Duel. День засчитывается автоматически после ответа.","Complete one Business Duel every day. The day is counted automatically after your answer.")}</div><div class="progress" style="margin-top:18px"><span style="width:${Math.min(100,state.challenge.completedDays.length/30*100)}%"></span></div><div class="meta"><span>${state.challenge.completedDays.length}/30 ${L("дней","days")}</span><span>${L("Старт","Start")}: ${state.challenge.startDate||"—"}</span></div><div class="btnrow"><button class="btn primary" onclick="closeModal();dailyDuel()">${L("Сегодняшняя дуэль","Today’s duel")}</button><button class="btn ghost" onclick="shareTyqon('challenge')">${L("Поделиться","Share")}</button></div>`);
 }
 function learningArchetype(){
   const counts={};
   C.modules.forEach(m=>counts[m.id]=m.lessons.filter(l=>state.lessons.includes(l[0])).length);
   const groups=[
-    ["Strategist",(counts.strategy||0)+(counts.economics||0),"Сильнее всего развиваешь стратегию и решения."],
-    ["Operator",(counts.management||0)+(counts.finance||0),"Фокус на системе, цифрах и управлении."],
-    ["Growth Builder",(counts.marketing||0)+(counts.sales||0),"Фокус на клиентах, продажах и росте."],
-    ["Venture Mind",(counts.startup||0)+(counts.basics||0),"Фокус на запуске, гипотезах и бизнес-модели."]
+    ["Strategist",(counts.strategy||0)+(counts.economics||0),L("Сильнее всего развиваешь стратегию и решения.","Your strongest focus is strategy and decision-making.")],
+    ["Operator",(counts.management||0)+(counts.finance||0),L("Фокус на системе, цифрах и управлении.","Your focus is systems, numbers and management.")],
+    ["Growth Builder",(counts.marketing||0)+(counts.sales||0),L("Фокус на клиентах, продажах и росте.","Your focus is customers, sales and growth.")],
+    ["Venture Mind",(counts.startup||0)+(counts.basics||0),L("Фокус на запуске, гипотезах и бизнес-модели.","Your focus is launching, hypotheses and business models.")]
   ].sort((x,y)=>y[1]-x[1]);
-  return groups[0][1]>0?groups[0]:["Explorer",0,"Ты только начинаешь собирать свой учебный профиль."];
+  return groups[0][1]>0?groups[0]:["Explorer",0,L("Ты только начинаешь собирать свой учебный профиль.","You are just starting to build your learning profile.")];
 }
 async function shareTyqon(type="app"){
   const arch=learningArchetype()[0];
-  const text=type==="challenge"?`Я прохожу 30-Day Founder Challenge в BIZONIQ: ${state.challenge.completedDays.length}/30 дней.`:type==="duel"?`Я прошёл сегодняшнюю Business Duel в BIZONIQ. Мой учебный профиль: ${arch}.`:`BIZONIQ — бизнес-тренажёр с кейсами и симуляциями. Мой учебный профиль: ${arch}.`;
+  const text=type==="challenge"
+    ?L(`Я прохожу 30-Day Founder Challenge в BIZONIQ: ${state.challenge.completedDays.length}/30 дней.`,`I’m taking the 30-Day Founder Challenge in BIZONIQ: ${state.challenge.completedDays.length}/30 days.`)
+    :type==="duel"
+      ?L(`Я прошёл сегодняшнюю Business Duel в BIZONIQ. Мой учебный профиль: ${arch}.`,`I completed today’s Business Duel in BIZONIQ. My learning profile: ${arch}.`)
+      :L(`BIZONIQ — бизнес-тренажёр с кейсами и симуляциями. Мой учебный профиль: ${arch}.`,`BIZONIQ is a business-thinking trainer with cases and simulations. My learning profile: ${arch}.`);
   const data={title:"BIZONIQ",text,url:location.origin+location.pathname};
-  try{if(navigator.share)await navigator.share(data);else{await navigator.clipboard.writeText(text+" "+data.url);alert("Ссылка скопирована.");}}catch(e){}
+  try{if(navigator.share)await navigator.share(data);else{await navigator.clipboard.writeText(text+" "+data.url);alert(L("Ссылка скопирована.","Link copied."));}}catch(e){}
 }
 function weeklyProgress(){
   resetWeeklyIfNeeded();return Math.max(0,state.xp-state.weekly.xpStart);
 }
 function setWeeklyTarget(){
-  const val=Number(prompt("Цель XP на неделю",state.weekly.target||400));if(val>=100&&val<=5000){state.weekly.target=val;localSave();}
+  const val=Number(prompt(L("Цель XP на неделю","Weekly XP target"),state.weekly.target||400));if(val>=100&&val<=5000){state.weekly.target=val;localSave();}
 }
 function renderGrowthHub(){
   const arch=learningArchetype(),wp=weeklyProgress(),target=state.weekly.target||400,pct=Math.min(100,wp/target*100),challenge=state.challenge.completedDays.length;
