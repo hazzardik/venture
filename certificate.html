@@ -8,9 +8,26 @@
 <title id="pageTitle">Certificate — BIZONIQ</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
-:root{--ink:#10141c;--lime:#96d93a;--indigo:#5868e8;--paper:#f7f5ef;--muted:#6d7380}
-*{box-sizing:border-box}body{margin:0;background:#090c11;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff}.wrap{max-width:1120px;margin:0 auto;padding:28px 18px 60px}.actions{display:flex;justify-content:space-between;gap:12px;margin-bottom:20px}.btn{padding:11px 14px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:#151c25;color:#fff;text-decoration:none;font-weight:750;cursor:pointer}.btn.primary{background:#b6ff45;color:#071008;border:0}.cert{aspect-ratio:1.414/1;background:var(--paper);color:var(--ink);border-radius:8px;padding:3.8%;position:relative;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.42)}.frame{position:absolute;inset:2.1%;border:1px solid rgba(16,20,28,.23);pointer-events:none}.accent{position:absolute;right:-9%;top:-16%;width:43%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(88,104,232,.18),rgba(150,217,58,.08) 38%,transparent 67%)}.top{display:flex;justify-content:space-between;align-items:center}.brand{font-weight:950;letter-spacing:.2em;font-size:clamp(17px,2vw,28px)}.seal{width:80px;height:80px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-weight:950;position:relative}.seal:after{content:"";position:absolute;inset:5px;border:1px solid var(--lime);border-radius:50%}.kicker{margin-top:7%;font-size:clamp(10px,1.1vw,15px);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:800}.heading{font-family:Georgia,"Times New Roman",serif;font-size:clamp(35px,5.2vw,70px);font-weight:500;margin:1.2% 0 2%}.for{color:var(--muted);font-size:clamp(12px,1.3vw,18px)}.name{font-family:Georgia,"Times New Roman",serif;font-size:clamp(31px,4.2vw,58px);font-style:italic;margin:1% 0 2%;border-bottom:1px solid rgba(16,20,28,.25);padding-bottom:1.5%;max-width:78%}.title{font-size:clamp(18px,2.2vw,31px);font-weight:900;margin:1.5% 0}.copy{color:var(--muted);font-size:clamp(10px,1vw,14px);line-height:1.5;max-width:70%}.bottom{position:absolute;left:3.8%;right:3.8%;bottom:5%;display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:4%;align-items:end}.sig{border-top:1px solid rgba(16,20,28,.35);padding-top:7px;font-size:clamp(9px,.9vw,13px)}.sig b{display:block}.code{text-align:right;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(8px,.85vw,12px)}.code b{display:block;font-family:Inter,-apple-system,sans-serif;margin-bottom:5px}.status{padding:30px;text-align:center;color:#dce4ed}.notice{font-size:11px;color:#aab3bf;margin-top:13px;line-height:1.5}
-@media(max-width:700px){.cert{aspect-ratio:auto;min-height:620px;padding:28px}.frame{inset:14px}.bottom{position:static;margin-top:48px;grid-template-columns:1fr;gap:22px}.code{text-align:left}.name{max-width:100%}.copy{max-width:100%}.seal{width:58px;height:58px}.heading{margin-top:8px}}
+:root{--ink:#11151c;--lime:#9ee83c;--paper:#f7f5ee;--muted:#707783;--line:rgba(17,21,28,.22)}
+*{box-sizing:border-box}
+body{margin:0;background:#090c11;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff}
+.wrap{max-width:1160px;margin:0 auto;padding:28px 18px 60px}.actions{display:flex;justify-content:space-between;gap:12px;margin-bottom:20px}
+.btn{padding:11px 14px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:#151c25;color:#fff;text-decoration:none;font-weight:750;cursor:pointer}.btn.primary{background:#b6ff45;color:#071008;border:0}
+.cert{aspect-ratio:1.414/1;background:var(--paper);color:var(--ink);border-radius:9px;padding:4.2% 5.1%;position:relative;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.42)}
+.frame{position:absolute;inset:2.2%;border:1px solid rgba(17,21,28,.22);pointer-events:none}.frame:after{content:"";position:absolute;inset:7px;border:1px solid rgba(17,21,28,.06)}
+.accent{position:absolute;left:50%;top:0;transform:translateX(-50%);width:28%;height:3px;background:linear-gradient(90deg,transparent,var(--lime),transparent)}
+.top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}.brand{font-weight:950;letter-spacing:.22em;font-size:clamp(16px,1.8vw,26px)}
+.seal{width:72px;height:72px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-weight:950;position:relative;font-size:18px}.seal:after{content:"";position:absolute;inset:6px;border:1px solid var(--lime);border-radius:50%}
+.center{position:absolute;left:9%;right:9%;top:22%;bottom:28%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;z-index:1}
+.kicker{font-size:clamp(9px,1vw,13px);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:850;margin-bottom:3.2%}
+.for{color:var(--muted);font-size:clamp(11px,1.15vw,16px);line-height:1.45}.name{font-family:Georgia,"Times New Roman",serif;font-size:clamp(32px,4.8vw,62px);font-style:italic;margin:1.3% 0 1.8%;padding:0 4% 1.4%;border-bottom:1px solid var(--line);min-width:54%;max-width:88%;line-height:1.08}
+.title{font-size:clamp(19px,2.4vw,32px);font-weight:900;margin:1.1% 0 1.4%;max-width:86%;line-height:1.14}.copy{color:var(--muted);font-size:clamp(9px,.95vw,13px);line-height:1.5;max-width:72%;margin:0 auto}
+.bottom{position:absolute;left:7%;right:7%;bottom:5.2%;z-index:1}.signatures{display:grid;grid-template-columns:1fr 1fr;gap:8%;margin-bottom:3%}.sig{text-align:left;font-size:clamp(8px,.82vw,12px)}
+.sig-line{height:25px;border-bottom:1px solid rgba(17,21,28,.48);margin-bottom:7px;position:relative}.sig-line:after{content:attr(data-label);position:absolute;right:0;bottom:3px;color:#9a9fa8;font-size:8px;letter-spacing:.08em;text-transform:uppercase}
+.sig b{display:block;font-size:clamp(9px,.95vw,13px);margin-bottom:2px}.sig span{color:var(--muted)}
+.meta{display:flex;justify-content:space-between;gap:18px;padding-top:10px;border-top:1px solid rgba(17,21,28,.12);font-size:clamp(7px,.72vw,10px);color:var(--muted)}.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;text-align:right}
+.status{padding:30px;text-align:center;color:#dce4ed}.notice{font-size:11px;color:#aab3bf;margin-top:13px;line-height:1.5}
+@media(max-width:700px){.cert{aspect-ratio:auto;min-height:760px;padding:28px}.frame{inset:14px}.top{padding:2px 3px}.center{position:static;margin:70px 12px 52px}.bottom{position:static;margin:0 10px 8px}.signatures{grid-template-columns:1fr;gap:18px}.meta{flex-direction:column}.code{text-align:left}.name{max-width:100%;min-width:82%}.copy{max-width:100%}.seal{width:58px;height:58px}}
 @media print{body{background:#fff}.wrap{max-width:none;padding:0}.actions,.notice{display:none}.cert{box-shadow:none;border-radius:0;width:100vw;height:70.7vw;max-height:100vh}.status{display:none}@page{size:A4 landscape;margin:0}}
 </style>
 </head>
@@ -21,17 +38,20 @@
 <div id="certificate" class="cert" hidden>
  <div class="frame"></div><div class="accent"></div>
  <div class="top"><div class="brand">BIZONIQ</div><div class="seal">B/IQ</div></div>
- <div id="certKicker" class="kicker">Certificate of Completion</div>
- <div id="certHeading" class="heading">Certificate</div>
- <div id="certFor1" class="for">This certifies that</div>
- <div id="name" class="name"></div>
- <div id="certFor2" class="for">has successfully completed</div>
- <div id="title" class="title"></div>
- <div id="certCopy" class="copy">The certificate confirms completion of the required learning modules, business cases and simulations inside BIZONIQ according to the criteria version shown below.</div>
+ <div class="center">
+   <div id="certKicker" class="kicker">Completion Record</div>
+   <div id="certFor1" class="for">This certificate is awarded to</div>
+   <div id="name" class="name"></div>
+   <div id="certFor2" class="for">for successfully completing</div>
+   <div id="title" class="title"></div>
+   <div id="certCopy" class="copy">Completion is verified against the BIZONIQ criteria version shown below.</div>
+ </div>
  <div class="bottom">
-   <div class="sig"><b>Лобов Максим</b><span id="creator1Role">Creator, BIZONIQ</span></div>
-   <div class="sig"><b>Сагал Сергей</b><span id="creator2Role">Creator, BIZONIQ</span></div>
-   <div class="code"><b id="issued"></b><span id="code"></span><br><span id="version"></span></div>
+   <div class="signatures">
+     <div class="sig"><div id="creator1Line" class="sig-line" data-label="Signature"></div><b>Лобов Максим</b><span id="creator1Role">Creator, BIZONIQ</span></div>
+     <div class="sig"><div id="creator2Line" class="sig-line" data-label="Signature"></div><b>Сагал Сергей</b><span id="creator2Role">Creator, BIZONIQ</span></div>
+   </div>
+   <div class="meta"><div><b id="issued"></b><br><span id="version"></span></div><div class="code"><span id="code"></span></div></div>
  </div>
 </div>
 <div id="certNotice" class="notice">BIZONIQ certificates are certificates of completion issued by the platform. They are not state-accredited diplomas, licenses or professional qualifications.</div>
@@ -52,12 +72,12 @@ const COPY={
     print:"Сохранить / PDF",
     checking:"Проверяю сертификат…",
     notFound:"Сертификат не найден или код недействителен.",
-    kicker:"Сертификат о прохождении",
-    heading:"Сертификат",
+    kicker:"ПОДТВЕРЖДЕНИЕ ПРОХОЖДЕНИЯ",
     for1:"Настоящий сертификат выдан",
     for2:"за успешное прохождение программы",
-    copy:"Сертификат подтверждает выполнение необходимых учебных модулей, бизнес-кейсов и симуляций внутри BIZONIQ в соответствии с версией критериев, указанной ниже.",
-    creator:"Создатель, BIZONIQ",
+    copy:"Прохождение подтверждено по критериям BIZONIQ, актуальным на дату выдачи.",
+    creator:"Создатель BIZONIQ",
+    signature:"Подпись",
     notice:"Сертификат BIZONIQ подтверждает прохождение программы внутри платформы. Он не является государственным дипломом, лицензией или аккредитованной профессиональной квалификацией.",
     issued:"Выдан",
     criteria:"Критерии"
@@ -68,12 +88,12 @@ const COPY={
     print:"Save / PDF",
     checking:"Verifying certificate…",
     notFound:"Certificate not found or the code is invalid.",
-    kicker:"Certificate of Completion",
-    heading:"Certificate",
+    kicker:"COMPLETION RECORD",
     for1:"This certificate is awarded to",
     for2:"for successfully completing",
-    copy:"The certificate confirms completion of the required learning modules, business cases and simulations inside BIZONIQ according to the criteria version shown below.",
+    copy:"Completion is verified against the BIZONIQ criteria version current on the issue date.",
     creator:"Creator, BIZONIQ",
+    signature:"Signature",
     notice:"BIZONIQ certificates confirm completion inside the platform. They are not state-accredited diplomas, licenses or professional qualifications.",
     issued:"Issued",
     criteria:"Criteria"
@@ -94,12 +114,13 @@ function applyLanguage(){
   document.getElementById("printButton").textContent=x.print;
   document.getElementById("status").textContent=x.checking;
   document.getElementById("certKicker").textContent=x.kicker;
-  document.getElementById("certHeading").textContent=x.heading;
   document.getElementById("certFor1").textContent=x.for1;
   document.getElementById("certFor2").textContent=x.for2;
   document.getElementById("certCopy").textContent=x.copy;
   document.getElementById("creator1Role").textContent=x.creator;
   document.getElementById("creator2Role").textContent=x.creator;
+  document.getElementById("creator1Line").setAttribute("data-label",x.signature);
+  document.getElementById("creator2Line").setAttribute("data-label",x.signature);
   document.getElementById("certNotice").textContent=x.notice;
 }
 function isCyrillicWord(s){return /^[А-ЯЁа-яё-]+$/.test(String(s||""))}
@@ -161,28 +182,24 @@ function russianRecipientDative(displayName){
   if(!parts.every(isCyrillicWord))return displayName;
   const gender=inferRussianGender(parts[0]);
   if(parts.length===1)return declineFirstNameDative(parts[0],gender);
-  const out=[declineFirstNameDative(parts[0],gender)];
+  const first=declineFirstNameDative(parts[0],gender);
   if(parts.length===2){
-    out.push(declineSurnameDative(parts[1],gender));
-    return out.join(" ");
+    const surname=declineSurnameDative(parts[1],gender);
+    return surname+" "+first;
   }
-  out.push(declinePatronymicDative(parts[1],gender));
-  out.push(declineSurnameDative(parts.slice(2).join("-"),gender));
-  return out.join(" ");
+  const surname=declineSurnameDative(parts[parts.length-1],gender);
+  const middle=parts.slice(1,-1).map(x=>declinePatronymicDative(x,gender)).join(" ");
+  return [surname,first,middle].filter(Boolean).join(" ");
 }
 function localizedTitle(c){
   const direct=lang==="ru"?(c.title_ru||c.title?.ru):(c.title_en||c.title?.en);
   if(direct)return direct;
   if(c.title_i18n&&c.title_i18n[lang])return c.title_i18n[lang];
   if(c.title_localizations&&c.title_localizations[lang])return c.title_localizations[lang];
-
-  // If the certificate stores only one title, preserve it exactly.
-  // This keeps English-only program names in English on RU certificates.
-  if(typeof c.title==="string"&&c.title.trim())return c.title.trim();
-
-  // Legacy fallback only when no title was stored at all.
   const legacy=c.certificate_type&&LEGACY_TITLES[c.certificate_type];
-  return legacy?.[lang]||legacy?.en||"BIZONIQ Certificate";
+  if(legacy?.[lang])return legacy[lang];
+  if(typeof c.title==="string"&&c.title.trim())return c.title.trim();
+  return lang==="ru"?"Программа BIZONIQ":"BIZONIQ Program";
 }
 applyLanguage();
 
