@@ -410,6 +410,42 @@
     "Проверяю сертификат…":"Verifying certificate…"
   });
 
+  Object.assign(STATIC_EN,{
+    "Проверь, как ты принимаешь бизнес-решения.":"Test how you make business decisions.",
+    "Сначала два вопроса о тебе, затем реальные мини-задачи по финансам, маркетингу, стратегии и экономике. BIZONIQ построит стартовую траекторию по ответам.":"First, two questions about you, then real mini-tasks in finance, marketing, strategy and economics. BIZONIQ will build your starting path from your answers.",
+    "Пройти диагностику • 2 мин":"Take diagnostic • 2 min",
+    "Тренируй решения, а не запоминай бизнес-термины.":"Train decisions instead of memorizing business terms.",
+    "Главное в BIZONIQ — реальные выборы и последствия: бизнес-кейсы, многоходовые симуляции и AI Coach, который разбирает именно твои аргументы и ошибки.":"BIZONIQ is built around real choices and consequences: business cases, multi-step simulations and an AI Coach that analyzes your own arguments and mistakes.",
+    "Решить кейс":"Solve a case",
+    "Запустить симуляцию":"Run a simulation",
+    "Открыть AI Coach":"Open AI Coach",
+    "Decision Skill Map":"Decision Skill Map",
+    "Навыки оцениваются по сочетанию практических решений, сложности кейсов и освоенной базы.":"Skills are estimated from your practical decisions, case difficulty and the knowledge you have covered.",
+    "Skill Score — внутренняя оценка активности в BIZONIQ. Это не профессиональная квалификация и не обещание реальной бизнес-эффективности.":"Skill Score is an internal estimate based on your BIZONIQ activity. It is not a professional qualification or a promise of real-world business performance.",
+    "База знаний • 56 микро-уроков":"Knowledge Base • 56 micro-lessons",
+    "Теория здесь не цель: бери понятие, понимай механику и сразу применяй её в кейсе.":"Theory is not the goal here: learn the concept, understand the mechanism and apply it immediately in a case.",
+    "Справочник терминов остаётся доступным, но не занимает место главного продукта.":"The term reference stays available without taking over the core product.",
+    "Открыть словарь":"Open dictionary",
+    "Decision Cases • 32 ситуации":"Decision Cases • 32 situations",
+    "Не тест на память: оценивай trade-offs, выбирай сильнейший вариант и смотри, какую метрику решение меняет.":"Not a memory test: evaluate trade-offs, choose the strongest option and see which metric the decision changes.",
+    "Business Simulations":"Business Simulations",
+    "Каждый бизнес — серия взаимосвязанных решений. Можно вырасти, застрять в cash-flow или разрушить экономику неправильным масштабированием.":"Each business is a chain of connected decisions. You can grow, hit a cash-flow wall or break the economics by scaling badly.",
+    "BIZONIQ AI Coach":"BIZONIQ AI Coach",
+    "Настоящий AI-разбор: Coach читает твой ответ, учитывает прогресс и задаёт вопросы по слабым местам вместо заранее прописанного сценария.":"Real AI analysis: Coach reads your answer, uses your progress as context and challenges weak areas instead of following a canned script.",
+    "Новый разбор":"New analysis",
+    "AI Coach может ошибаться. Для финансовых, юридических и налоговых решений проверяй критичные факты отдельно.":"AI Coach can make mistakes. Verify critical facts separately for financial, legal and tax decisions.",
+    "AI Coach • до 8 сообщений в день":"AI Coach • up to 8 messages per day",
+    "Все режимы AI Coach • расширенный лимит":"All AI Coach modes • higher daily limit",
+    "Тренажёр бизнес-решений":"Business Decision Trainer",
+    "Business Dictionary":"Business Dictionary",
+    "Твой план на сегодня":"Your plan for today",
+    "Слабые места":"Weak areas",
+    "Навыки с самым низким текущим Skill Score.":"Skills with the lowest current Skill Score.",
+    "Один короткий выбор + сравнение с решениями других пользователей.":"One short decision plus comparison with other users.",
+    "Откроется после 3 кейсов":"Unlocks after 3 cases",
+    "Сначала практика":"Practice first"
+  });
+
   const REPLACERS_EN=[
     [/^Завершить • \+(\d+) XP$/,"Complete • +$1 XP"],
     [/^Связано: (.+)$/,"Related: $1"],
@@ -485,6 +521,7 @@
         "CAC, EBITDA, Burn Rate...":"CAC, EBITDA, Burn Rate...",
         "Найти кейс: cash flow, pricing, retention...":"Find a case: cash flow, pricing, retention...",
         "Напиши ответ...":"Write your answer...",
+        "Опиши решение, идею или цифры...":"Describe a decision, idea or numbers...",
         "Имя":"First name",
         "Фамилия":"Last name",
         "Email":"Email",
@@ -528,7 +565,7 @@
   }
 
   const titleMap={
-    "/venture/":lang==="en"?"BIZONIQ — Business Thinking Trainer":"BIZONIQ — тренажёр бизнес-мышления",
+    "/venture/":lang==="en"?"BIZONIQ — Business Decision Trainer":"BIZONIQ — тренажёр бизнес-решений",
     "/venture/index.html":lang==="en"?"BIZONIQ — Business Thinking Trainer":"BIZONIQ — тренажёр бизнес-мышления",
     "/venture/pricing.html":lang==="en"?"BIZONIQ Pro — Pricing":"BIZONIQ Pro — Тарифы",
     "/venture/faq.html":"FAQ — BIZONIQ",
@@ -540,7 +577,7 @@
   if(titleMap[location.pathname])document.title=titleMap[location.pathname];
   if(lang==="en"){
     const meta=document.querySelector('meta[name="description"]');
-    if(meta&&location.pathname.endsWith("/venture/"))meta.setAttribute("content","BIZONIQ is an adaptive business-thinking trainer with lessons, cases, simulations, certificates and progress tracking.");
+    if(meta&&location.pathname.endsWith("/venture/"))meta.setAttribute("content","BIZONIQ is a business decision trainer with interactive cases, multi-step simulations, AI Coach and personalized skill tracking.");
   }
 
   function refreshUI(root=document.body){
