@@ -474,6 +474,14 @@
     "Делись персональной ссылкой. Новый пользователь получает Pro-бонус, а ты открываешь награды за приглашения.":"Share your personal link. A new user gets a Pro bonus, and you unlock referral rewards."
   });
 
+  Object.assign(STATIC_EN,{
+    "Пилот для классов, кружков и команд":"Pilot for classes, clubs and teams",
+    "Групповой доступ, результаты участников, Skill Map и Weekly Lab для преподавателя или руководителя. Сейчас собираем первые пилоты.":"Group access, participant results, Skill Map and Weekly Lab for a teacher or team lead. We are recruiting the first pilot groups now.",
+    "Оставить заявку на пилот":"Apply for a pilot",
+    "Групповой доступ и аналитика для преподавателя или руководителя. Первые пилоты собираем через приложение.":"Group access and analytics for a teacher or team lead. We are recruiting the first pilots through the app.",
+    "Оставить заявку в приложении":"Apply in the app"
+  });
+
   const REPLACERS_EN=[
     [/^Завершить • \+(\d+) XP$/,"Complete • +$1 XP"],
     [/^Связано: (.+)$/,"Related: $1"],
