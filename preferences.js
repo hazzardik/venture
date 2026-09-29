@@ -469,6 +469,11 @@
     "Не тест на память: оценивай компромиссы, выбирай сильнейший вариант и смотри, какую метрику решение меняет.":"Not a memory test: evaluate trade-offs, choose the strongest option and see which metric the decision changes."
   });
 
+  Object.assign(STATIC_EN,{
+    "Пригласить друзей":"Invite friends",
+    "Делись персональной ссылкой. Новый пользователь получает Pro-бонус, а ты открываешь награды за приглашения.":"Share your personal link. A new user gets a Pro bonus, and you unlock referral rewards."
+  });
+
   const REPLACERS_EN=[
     [/^Завершить • \+(\d+) XP$/,"Complete • +$1 XP"],
     [/^Связано: (.+)$/,"Related: $1"],
