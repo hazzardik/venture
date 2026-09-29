@@ -180,8 +180,8 @@ async function registerUser(){
   const password=document.getElementById("authPassword").value;
   const name=document.getElementById("authName").value.trim()||state.name||"Пользователь";
   const status=document.getElementById("authStatus");
-  if(password.length<10){status.textContent="Для нового аккаунта используй пароль минимум из 10 символов.";return}
-  status.textContent="Создаю аккаунт…";
+  if(password.length<10){status.textContent=L("Для нового аккаунта используй пароль минимум из 10 символов.","Use a password of at least 10 characters for a new account.");return}
+  status.textContent=L("Создаю аккаунт…","Creating account…");
   const {data,error}=await sb.auth.signUp({
     email,password,
     options:{data:{display_name:name},emailRedirectTo:location.origin+location.pathname}
@@ -189,19 +189,19 @@ async function registerUser(){
   if(error){status.textContent=error.message;return}
   state.name=name; localSave(false);
   if(data.session){
-    session=data.session; status.textContent="Аккаунт создан и вход выполнен."; await mergeCloud(); closeAuth();
+    session=data.session; status.textContent=L("Аккаунт создан и вход выполнен.","Account created and signed in."); await mergeCloud(); closeAuth();
   }else{
-    status.textContent="Аккаунт создан. Проверь почту и подтверди email, затем войди.";
+    status.textContent=L("Аккаунт создан. Проверь почту и подтверди email, затем войди.","Account created. Check your email, confirm it, then sign in.");
   }
 }
 async function signInUser(){
   const email=document.getElementById("authEmail").value.trim();
   const password=document.getElementById("authPassword").value;
   const status=document.getElementById("authStatus");
-  status.textContent="Вхожу…";
+  status.textContent=L("Вхожу…","Signing in…");
   const {data,error}=await sb.auth.signInWithPassword({email,password});
   if(error){status.textContent=error.message;return}
-  session=data.session; status.textContent="Вход выполнен."; await mergeCloud(); closeAuth();
+  session=data.session; status.textContent=L("Вход выполнен.","Signed in."); await mergeCloud(); closeAuth();
 }
 async function signOutUser(){
   await sb.auth.signOut();
@@ -320,8 +320,8 @@ function proAccess(){
 function proLabel(){
   if(manualProActive())return userEntitlement.source==="code"?"Pro • код доступа":"Pro • выдан создателем";
   if(userSubscription&&["active","trialing"].includes(userSubscription.status)) return userSubscription.plan_id==="pro_yearly" ? "Pro Yearly" : "Pro Monthly";
-  if(userSubscription?.status==="past_due") return "Pro • проблема с оплатой";
-  if(userSubscription?.status==="paused") return "Pro • приостановлена";
+  if(userSubscription?.status==="past_due") return L("Pro • проблема с оплатой","Pro • payment issue");
+  if(userSubscription?.status==="paused") return L("Pro • приостановлена","Pro • paused");
   return "Free";
 }
 async function loadSubscription(){
@@ -353,14 +353,14 @@ async function redeemAccessCode(){
   if(!session){openAuth();return}
   const input=document.getElementById("accessCodeInput"),status=document.getElementById("accessCodeStatus");
   const code=(input?.value||"").trim().toUpperCase();
-  if(!code){if(status)status.textContent="Введи код.";return}
-  if(status)status.textContent="Проверяю код…";
+  if(!code){if(status)status.textContent=L("Введи код.","Enter a code.");return}
+  if(status)status.textContent=L("Проверяю код…","Checking code…");
   const {data,error}=await sb.functions.invoke("redeem-access-code",{body:{code}});
   if(error||!data?.ok){
-    if(status)status.textContent=data?.error||"Код не активирован. Проверь его или попробуй позже.";
+    if(status)status.textContent=data?.error||L("Код не активирован. Проверь его или попробуй позже.","Code was not activated. Check it or try again later.");
     return;
   }
-  if(status)status.textContent=data.already_lifetime?"У тебя уже бессрочный Pro.":"Готово. Pro продлён на "+(data.duration_days||0)+" дней.";
+  if(status)status.textContent=data.already_lifetime?L("У тебя уже бессрочный Pro.","You already have lifetime Pro."):L("Готово. Pro продлён на ","Done. Pro extended by ")+(data.duration_days||0)+L(" дней."," days.");
   if(input)input.value="";
   await loadSubscription();
 }
@@ -657,11 +657,11 @@ function openBetaFeedback(category){
 async function submitBetaFeedback(category){
   const input=document.getElementById("betaFeedbackText"),status=document.getElementById("betaFeedbackStatus");
   const message=(input?.value||"").trim();
-  if(message.length<2){status.textContent="Напиши хотя бы пару слов.";return}
-  status.textContent="Сохраняю…";
+  if(message.length<2){status.textContent=L("Напиши хотя бы пару слов.","Write at least a couple of words.");return}
+  status.textContent=L("Сохраняю…","Saving…");
   const {data,error}=await sb.functions.invoke("submit-feedback",{body:{category,message,context:{path:state.goal,adaptive_level:state.adaptive.level,xp:state.xp,lessons:state.lessons.length,cases:state.cases.length}}});
-  if(error||!data?.ok){status.textContent="Не получилось отправить. Попробуй ещё раз.";return}
-  status.textContent="Спасибо. Отзыв сохранён.";
+  if(error||!data?.ok){status.textContent=L("Не получилось отправить. Попробуй ещё раз.","Could not send it. Try again.");return}
+  status.textContent=L("Спасибо. Отзыв сохранён.","Thanks. Feedback saved.");
   setTimeout(closeModal,700);
 }
 
@@ -706,7 +706,7 @@ function answerDuel(i,el){
   const correct=i===d.correct;
   document.querySelectorAll("#duelChoices .choice").forEach(b=>b.disabled=true);
   el.classList.add(correct?"good":"bad");
-  const f=document.getElementById("duelFeedback");f.textContent=(correct?"Верно. ":"Не лучший выбор. ")+d.why+(correct?" +100 XP":" +25 XP");f.classList.add("show");
+  const f=document.getElementById("duelFeedback");f.textContent=(correct?L("Верно. ","Correct. "):L("Не лучший выбор. ","Not the best choice. "))+d.why+(correct?" +100 XP":" +25 XP");f.classList.add("show");
   state.duel={date:todayKey(),answered:true,choice:i};
   state.xp+=correct?100:25;
   if(state.challenge.started&&!state.challenge.completedDays.includes(todayKey()))state.challenge.completedDays.push(todayKey());
