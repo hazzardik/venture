@@ -7,19 +7,15 @@ const C=(LANG==="en"&&window.BIZONIQ_CONTENT_EN)?window.BIZONIQ_CONTENT_EN:windo
 const L=(ru,en)=>LANG==="en"?en:ru;
 const T=(text)=>PREFS.t?PREFS.t(text):text;
 let localizeQueued=false;
-function localizeUI(root=document.body){
-  if(LANG!=="en")return;
-  if(root&&root!==document.body){
-    PREFS.translateTree?.(root);
-    PREFS.updatePricingUI?.();
-    return;
-  }
-  if(localizeQueued)return;
+function localizeUI(){
+  if(LANG!=="en"||localizeQueued)return;
   localizeQueued=true;
-  queueMicrotask(()=>{
+  const run=()=>{
     localizeQueued=false;
     PREFS.refreshUI?.(document.body);
-  });
+  };
+  if(typeof requestAnimationFrame==="function")requestAnimationFrame(run);
+  else setTimeout(run,0);
 }
 
 const NAV=[
