@@ -150,6 +150,18 @@
   };
 
   Object.assign(STATIC_EN,{
+    "Вход в аккаунт":"Sign in",
+    "Войди, чтобы синхронизировать прогресс между устройствами.":"Sign in to sync your progress across devices.",
+    "Регистрация":"Register",
+    "Забыли пароль?":"Forgot password?",
+    "Создать аккаунт":"Create account",
+    "Укажи почту аккаунта — мы отправим ссылку для создания нового пароля.":"Enter your account email — we’ll send a link to create a new password.",
+    "Отправить ссылку":"Send reset link",
+    "Назад ко входу":"Back to sign in",
+    "Придумай новый пароль для аккаунта.":"Create a new password for your account.",
+    "Сохранить новый пароль":"Save new password",
+    "Имя":"First name",
+    "Фамилия":"Last name",
     "За что готов платить?":"What would you pay for?",
     "Экономия ≈ 33% против помесячной оплаты":"About 33% cheaper than monthly billing",
     "Начни бесплатно. Если нужен полный доступ — выбери месячный или годовой Pro.":"Start free. Upgrade with monthly or yearly Pro when you want full access.",
@@ -473,8 +485,13 @@
         "CAC, EBITDA, Burn Rate...":"CAC, EBITDA, Burn Rate...",
         "Найти кейс: cash flow, pricing, retention...":"Find a case: cash flow, pricing, retention...",
         "Напиши ответ...":"Write your answer...",
-        "Имя":"Name",
+        "Имя":"First name",
+        "Фамилия":"Last name",
         "Email":"Email",
+        "Пароль":"Password",
+        "Пароль — минимум 10 символов":"Password — at least 10 characters",
+        "Новый пароль — минимум 10 символов":"New password — at least 10 characters",
+        "Повтори новый пароль":"Repeat new password",
         "Пароль (для нового аккаунта — минимум 10 символов)":"Password (10+ characters for a new account)",
         "BZQ-PRO-XXXXXX-XXXXXX":"BZQ-PRO-XXXXXX-XXXXXX"
       };
