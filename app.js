@@ -1004,7 +1004,7 @@ function renderGrowthHub(){
   const arch=learningArchetype(),wp=weeklyProgress(),target=state.weekly.target||400,pct=Math.min(100,wp/target*100),challenge=state.challenge.completedDays.length;
   document.getElementById("growthHub").innerHTML=`
     <div class="card growth-card duel-card"><div class="growth-icon">⚔️</div><div class="label">DAILY DUEL</div><h3>${L("60 секунд на бизнес-решение","60 seconds for a business decision")}</h3><div class="copy">${L("Один новый управленческий выбор каждый день.","One new management decision every day.")}</div><div class="btnrow"><button class="btn primary" onclick="dailyDuel()">${state.duel.date===todayKey()&&state.duel.answered?L("Посмотреть","View"):L("Принять вызов","Take the challenge")}</button></div></div>
-    <div class="card growth-card"><div class="growth-icon">🧭</div><div class="label">PATH DIAGNOSTIC</div><h3>${state.diagnostic.completed?L("Путь уже рассчитан","Your path is ready"):L("Найди свою траекторию","Find your path")}</h3><div class="copy">${L("6 вопросов → рекомендация учебного пути. Можно изменить вручную.","6 questions → a recommended learning path. You can change it manually.")}</div><div class="btnrow"><button class="btn ghost" onclick="startDiagnostic()">${state.diagnostic.completed?L("Пройти заново","Retake"):L("Начать","Start")}</button></div></div>
+    <div class="card growth-card"><div class="growth-icon">🧭</div><div class="label">DECISION DIAGNOSTIC</div><h3>${state.diagnostic.completed?L("Путь уже рассчитан","Your path is ready"):L("Найди свою траекторию","Find your path")}</h3><div class="copy">${L("2 вопроса + 4 реальные задачи → стартовая карта навыков.","2 questions + 4 real decision tasks → your starting skill map.")}</div><div class="btnrow"><button class="btn ghost" onclick="startDiagnostic()">${state.diagnostic.completed?L("Пройти заново","Retake"):L("Начать","Start")}</button></div></div>
     <div class="card growth-card ${state.cases.length<3?"challenge-locked":""}"><div class="growth-icon">🔥</div><div class="label">30-DAY CHALLENGE</div><h3>${state.cases.length<3?L("Откроется после 3 кейсов","Unlocks after 3 cases"):challenge+"/30 "+L("дней","days")}</h3><div class="progress"><span style="width:${state.cases.length<3?Math.min(100,state.cases.length/3*100):Math.min(100,challenge/30*100)}%"></span></div><div class="btnrow"><button class="btn ghost" onclick="startChallenge()">${state.cases.length<3?L("Сначала практика","Practice first"):state.challenge.started?L("Продолжить","Continue"):L("Войти в челлендж","Join challenge")}</button></div></div>
     <div class="card growth-card"><div class="growth-icon">◈</div><div class="label">WEEKLY TARGET</div><h3>${wp}/${target} XP</h3><div class="progress"><span style="width:${pct}%"></span></div><div class="meta"><span>${Math.round(pct)}%</span><button class="linkbtn" onclick="setWeeklyTarget()">${L("изменить","change")}</button></div></div>
   `;
@@ -1036,7 +1036,10 @@ function renderDashboard(){
   const scores=skillScores();
   document.getElementById("skillMap").innerHTML=C.modules.map(m=>{
     const x=scores[m.id];
-    return `<div class="card skill-card"><div class="skill-top"><span>${m.icon} ${m.title}</span><b>${x.score}</b></div><div class="progress"><span style="width:${x.score}%"></span></div><div class="tiny" style="margin-top:8px">Skill Score · ${x.lessons}/${x.total} ${L("уроков","lessons")} · ${x.attempts} ${L("кейсов","cases")}</div></div>`;
+    const detail=x.attempts
+      ?`Decision Score · ${x.caseScore}% ${L("по кейсам","case quality")} · ${x.coverage}% ${L("покрытие","coverage")}`
+      :L("Стартовая оценка: диагностика + освоенная база","Baseline: diagnostic + covered knowledge");
+    return `<div class="card skill-card"><div class="skill-top"><span>${m.icon} ${m.title}</span><b>${x.score}</b></div><div class="progress"><span style="width:${x.score}%"></span></div><div class="tiny" style="margin-top:8px">${detail}</div></div>`;
   }).join("");
   renderTodayPlan();
   renderWeakAreas();
