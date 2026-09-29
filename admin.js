@@ -144,7 +144,7 @@ async function generateCreatorInvite(){
   if(error||!data?.ok){status(data?.error||"Не удалось создать invite.","bad");return}
   const box=document.getElementById("creatorInviteBox"),value=document.getElementById("creatorInviteValue"),expiry=document.getElementById("creatorInviteExpiry");
   box.classList.remove("hidden");value.textContent=data.code;expiry.textContent="Действует до "+fmtDateTime(data.expires_at)+" и только для одной активации.";
-  status("Creator Invite создан. Передай его Сергею безопасным способом; после активации он станет недействительным.","good");
+  status("Creator Invite создан. Передай код человеку, которому хочешь выдать доступ создателя. После первой активации код станет недействительным.","good");
   await loadDashboard();
 }
 async function copyCreatorInvite(){
