@@ -665,7 +665,7 @@ function renderPractice(){
   const copy=document.getElementById("practiceSectionCopy");
   const wrap=document.getElementById("practiceCards");
   if(title)title.textContent=L("Практика","Practice");
-  if(copy)copy.textContent=L("Кейсы, симуляторы, AI Coach и сертификаты — в одном месте.","Cases, simulations, AI Coach and certificates — all in one place.");
+  if(copy)copy.textContent=L("Стабильная база для повторения + новый Weekly Lab каждую неделю.","A stable revision base plus a fresh Weekly Lab every week.");
   if(!wrap)return;
   wrap.innerHTML=PRACTICE_CARDS.map(card=>`
     <button class="card practice-card ${card.id==="fresh"?"practice-fresh":""}" onclick="${card.id==="fresh"?"openWeeklyLab()":`go('${card.id}')`}">
