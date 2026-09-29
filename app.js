@@ -1114,9 +1114,12 @@ async function claimCertificate(type){
   if(error){alert("Не удалось выдать сертификат. Проверь прогресс и попробуй ещё раз.");return}
   if(data?.certificate){await loadCertificates();openCertificate(data.certificate.certificate_code)}
 }
-function openCertificate(code){trackEvent("certificate_opened",{code_suffix:String(code).slice(-4)});window.open("./certificate.html?code="+encodeURIComponent(code),"_blank","noopener")}
+function openCertificate(code){
+  trackEvent("certificate_opened",{code_suffix:String(code).slice(-4)});
+  window.open("./certificate.html?code="+encodeURIComponent(code)+"&lang="+encodeURIComponent(LANG),"_blank","noopener");
+}
 async function copyCertificateLink(code){
-  const url=new URL("./certificate.html?code="+encodeURIComponent(code),location.href).href;
+  const url=new URL("./certificate.html?code="+encodeURIComponent(code)+"&lang="+encodeURIComponent(LANG),location.href).href;
   try{await navigator.clipboard.writeText(url);alert("Ссылка на сертификат скопирована.");}catch{prompt("Скопируй ссылку:",url)}
 }
 
