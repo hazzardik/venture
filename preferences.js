@@ -150,6 +150,15 @@
   };
 
   Object.assign(STATIC_EN,{
+    "За что готов платить?":"What would you pay for?",
+    "Экономия ≈ 33% против помесячной оплаты":"About 33% cheaper than monthly billing",
+    "Начни бесплатно. Если нужен полный доступ — выбери месячный или годовой Pro.":"Start free. Upgrade with monthly or yearly Pro when you want full access.",
+    "8 кейсов":"8 cases",
+    "Планируемая цена:":"Planned price:",
+    "в месяц или":"per month or",
+    "в год.":"per year.",
+    "BIZONIQ находится в beta. Архитектура регулярно усиливается, но отсутствие найденной уязвимости не означает её принципиальную невозможность. Для коммерческого запуска с большим количеством пользователей дополнительно нужны независимый penetration test, формальные Privacy Policy / Terms с учётом юрисдикций пользователей и процесс обработки запросов на удаление/экспорт персональных данных.":"BIZONIQ is in beta. The architecture is being hardened continuously, but not finding a vulnerability does not mean one cannot exist. Before a large commercial launch, the product should also have an independent penetration test, formal Privacy Policy / Terms appropriate to user jurisdictions, and a process for data deletion/export requests.",
+    "Created by Лобов Максим · Сагал Сергей":"Created by Maksim Lobov · Sergey Sagal",
     "Открыть приложение":"Open app",
     "Бизнес-практика по цене кофе.":"Business practice for the price of a coffee.",
     "Начни бесплатно. Если нужен полный доступ — 99 ₽ в месяц или 799 ₽ за год.":"Start free. Upgrade only if you want full access.",
