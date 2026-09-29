@@ -422,7 +422,7 @@ function proAccess(){
   return !billingConfigured() || isPro();
 }
 function proLabel(){
-  if(manualProActive())return userEntitlement.source==="code"?"Pro • код доступа":"Pro • выдан создателем";
+  if(manualProActive())return userEntitlement.source==="code"?L("Pro • код доступа","Pro • access code"):L("Pro • выдан создателем","Pro • creator granted");
   if(userSubscription&&["active","trialing"].includes(userSubscription.status)) return userSubscription.plan_id==="pro_yearly" ? "Pro Yearly" : "Pro Monthly";
   if(userSubscription?.status==="past_due") return L("Pro • проблема с оплатой","Pro • payment issue");
   if(userSubscription?.status==="paused") return L("Pro • приостановлена","Pro • paused");
@@ -472,7 +472,8 @@ async function redeemAccessCode(){
 function renderAllProtected(){
   renderLessons();renderCases();renderSimulator();renderCoach();renderCertificates();
 }
-function paywall(feature="Эта функция"){
+function paywall(featureRu="Эта функция",featureEn="This feature"){
+  const feature=LANG==="en"?featureEn:featureRu;
   modal(`<div class="label">BIZONIQ PRO</div><h2>${LANG==="en"?feature+" requires Pro":feature+" доступна в Pro"}</h2><div class="copy">${LANG==="en"?"Full access: ":"Полный доступ: "}${proPriceSummary()}.</div><div class="btnrow"><button class="btn primary" onclick="closeModal();go('pricing')">${L("Посмотреть Pro","View Pro")}</button><button class="btn ghost" onclick="closeModal()">${L("Позже","Later")}</button></div>`,true);
 }
 function lessonIsPremium(module,lesson){
@@ -527,12 +528,12 @@ async function startPaddleCheckout(plan){
   trackEvent("pro_clicked",{plan,source:"pricing"});
   if(!session){openAuth();return}
   if(isPro()){
-    modal('<div class="label">BIZONIQ PRO</div><h2>Pro уже активен</h2><div class="copy">Управлять оплатой или отменой можно через Paddle Customer Portal.</div><div class="btnrow"><button class="btn primary" onclick="closeModal();openBillingPortal()">Управлять подпиской</button></div>',true);
+    modal(`<div class="label">BIZONIQ PRO</div><h2>${L("Pro уже активен","Pro is already active")}</h2><div class="copy">${L("Управлять оплатой или отменой можно через Paddle Customer Portal.","Manage billing or cancellation through the Paddle Customer Portal.")}</div><div class="btnrow"><button class="btn primary" onclick="closeModal();openBillingPortal()">${L("Управлять подпиской","Manage subscription")}</button></div>`,true);
     return;
   }
   const cfg=window.BIZONIQ_BILLING||{};
   if(!billingConfigured()||!(await initPaddle())){
-    modal('<div class="label">ОПЛАТА</div><h2>Онлайн-оплата ещё не включена</h2><div class="copy">Тарифы и серверная часть уже готовы. До подключения Paddle текущая beta-версия остаётся доступной без платёжной блокировки.</div>',true);
+    modal(`<div class="label">${L("ОПЛАТА","BILLING")}</div><h2>${L("Онлайн-оплата ещё не включена","Online payments are not enabled yet")}</h2><div class="copy">${L("Тарифы и серверная часть уже готовы. До подключения Paddle текущая beta-версия остаётся доступной без платёжной блокировки.","Pricing and backend are ready. Until Paddle is connected, the current beta remains available without payment blocking.")}</div>`,true);
     return;
   }
   const cur=PREFS.currency||"RUB";
@@ -549,11 +550,11 @@ async function openBillingPortal(){
   if(!session){openAuth();return}
   const {data,error}=await sb.functions.invoke("paddle-portal",{body:{}});
   if(error||!data?.management_urls){
-    modal('<div class="label">BILLING</div><h2>Портал оплаты пока не подключён</h2><div class="copy">Для Customer Portal нужен Paddle API key в секретах Supabase. Backend уже подготовлен.</div>',true);
+    modal(`<div class="label">BILLING</div><h2>${L("Портал оплаты пока не подключён","Billing portal is not connected yet")}</h2><div class="copy">${L("Для Customer Portal нужен Paddle API key в секретах Supabase. Backend уже подготовлен.","The Customer Portal requires a Paddle API key in Supabase secrets. The backend is already prepared.")}</div>`,true);
     return;
   }
   const u=data.management_urls;
-  modal(`<div class="label">PADDLE CUSTOMER PORTAL</div><h2>Управление подпиской</h2><div class="copy">Платёжные данные обрабатываются на стороне Paddle.</div><div class="btnrow">${u.update_payment_method?`<button class="btn secondary" onclick="window.open('${u.update_payment_method}','_blank')">Изменить оплату</button>`:""}${u.cancel?`<button class="btn danger" onclick="window.open('${u.cancel}','_blank')">Отменить подписку</button>`:""}</div>`,true);
+  modal(`<div class="label">PADDLE CUSTOMER PORTAL</div><h2>${L("Управление подпиской","Manage subscription")}</h2><div class="copy">${L("Платёжные данные обрабатываются на стороне Paddle.","Payment details are processed by Paddle.")}</div><div class="btnrow">${u.update_payment_method?`<button class="btn secondary" onclick="window.open('${u.update_payment_method}','_blank')">${L("Изменить оплату","Update payment")}</button>`:""}${u.cancel?`<button class="btn danger" onclick="window.open('${u.cancel}','_blank')">${L("Отменить подписку","Cancel subscription")}</button>`:""}</div>`,true);
 }
 function renderPricing(){
   const el=document.getElementById("pricingStatus");if(!el)return;
@@ -562,7 +563,7 @@ function renderPricing(){
     const end=manual
       ? (userEntitlement?.ends_at?new Date(userEntitlement.ends_at).toLocaleDateString(LANG==="en"?"en-US":"ru-RU"):"")
       : (userSubscription?.current_period_end?new Date(userSubscription.current_period_end).toLocaleDateString(LANG==="en"?"en-US":"ru-RU"):"");
-    el.innerHTML=`<div class="pricing-status-row"><div><div class="tiny good">● PRO ACTIVE</div><h3>${proLabel()}</h3><div class="copy">Доступ активен${end?" до "+end:""}.</div></div>${!manual&&userSubscription?'<button class="btn secondary" onclick="openBillingPortal()">Управлять подпиской</button>':""}</div>`;
+    el.innerHTML=`<div class="pricing-status-row"><div><div class="tiny good">● PRO ACTIVE</div><h3>${proLabel()}</h3><div class="copy">${L("Доступ активен","Access is active")}${end?(LANG==="en"?" until ":" до ")+end:""}.</div></div>${!manual&&userSubscription?`<button class="btn secondary" onclick="openBillingPortal()">${L("Управлять подпиской","Manage subscription")}</button>`:""}</div>`;
   }else{
     el.innerHTML=`<div class="pricing-status-row"><div><div class="tiny">CURRENT PLAN</div><h3>Free</h3><div class="copy">${L("Базовый доступ остаётся бесплатным.","Core access stays free.")}</div></div><span class="pill" data-price-summary>${proPriceSummary()}</span></div>`;
   }
@@ -649,7 +650,7 @@ function choosePath(id,first=false){
   if(!first)closeModal();
 }
 function changePath(){
-  modal(`<div class="label">СМЕНИТЬ ТРАЕКТОРИЮ</div><h2>Выбери новый путь</h2><div class="copy">Прогресс, XP, изученные термины и кейсы не сбрасываются. Меняются рекомендации и порядок контента.</div><div class="goals">${C.paths.map(p=>`<div class="goal ${state.goal===p.id?"selected":""}" onclick="choosePath('${p.id}',false)"><b>${p.title}</b><div class="copy">${p.subtitle}</div></div>`).join("")}</div>`);
+  modal(`<div class="label">${L("СМЕНИТЬ ТРАЕКТОРИЮ","CHANGE PATH")}</div><h2>${L("Выбери новый путь","Choose a new path")}</h2><div class="copy">${L("Прогресс, XP, изученные термины и кейсы не сбрасываются. Меняются рекомендации и порядок контента.","Progress, XP, learned terms and cases are preserved. Recommendations and content order will change.")}</div><div class="goals">${C.paths.map(p=>`<div class="goal ${state.goal===p.id?"selected":""}" onclick="choosePath('${p.id}',false)"><b>${p.title}</b><div class="copy">${p.subtitle}</div></div>`).join("")}</div>`);
 }
 
 
@@ -706,7 +707,7 @@ function rateCaseDifficulty(id,rating){
   }
   localSave();
   const box=document.getElementById("caseRating");
-  if(box)box.innerHTML='<div class="tiny good">Спасибо. Следующие кейсы будут учитывать эту оценку.</div>';
+  if(box)box.innerHTML=`<div class="tiny good">${L("Спасибо. Следующие кейсы будут учитывать эту оценку.","Thanks. Future cases will take this rating into account.")}</div>`;
 }
 function adaptiveCasePool(){
   const level=state.adaptive.level||initialAdaptiveLevel(state.goal);
@@ -960,7 +961,7 @@ function findLesson(id){for(const m of C.modules){const l=m.lessons.find(x=>x[0]
 function openLesson(id){
   const {m,l}=findLesson(id),done=state.lessons.includes(id);
   trackEvent("lesson_opened",{lesson_id:id,module:m.id});
-  if(lessonIsPremium(m,l)&&!proAccess()){paywall("Этот урок");return}
+  if(lessonIsPremium(m,l)&&!proAccess()){paywall("Этот урок","This lesson");return}
   modal(`<div class="label">${m.icon} ${m.title}</div><h2>${l[1]}</h2><div class="copy">${l[2]}</div><div class="card soft section"><div class="tiny">КЛЮЧЕВАЯ МЫСЛЬ</div><div class="copy" style="margin-top:7px">${l[3]}</div></div><div class="card soft section"><div class="tiny">ПРИМЕР</div><div class="copy" style="margin-top:7px">${l[4]}</div></div><div class="card soft section"><div class="tiny">ПРАКТИЧЕСКИЙ ВЫВОД</div><div class="copy" style="margin-top:7px">${l[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson('${id}')">${done?"Уже завершено":"Завершить • +"+l[6]+" XP"}</button></div>`);
 }
 function completeLesson(id){
@@ -1010,7 +1011,7 @@ function renderCases(){
 function openCase(id){
   const c=C.cases.find(x=>x.id===id);
   trackEvent("case_opened",{case_id:id,category:c.category,difficulty:c.difficulty});
-  if(caseIsPremium(c)&&!proAccess()){paywall("Этот кейс");return}
+  if(caseIsPremium(c)&&!proAccess()){paywall("Этот кейс","This case");return}
   modal(`<div class="case-badges"><span class="label">CASE • ${c.tag}</span><span class="difficulty d${c.difficulty}">${difficultyName(c.difficulty)}</span></div><h2>${c.title}</h2><div class="copy">${c.copy}</div><div id="caseChoices" class="section">${c.choices.map((ch,i)=>`<button class="choice" onclick="answerCase('${id}',${i},this)">${ch.text}</button>`).join("")}</div><div id="caseFeedback" class="feedback"></div><div id="caseRating"></div>`);
 }
 function answerCase(id,i,el){
@@ -1029,7 +1030,7 @@ function answerCase(id,i,el){
 }
 
 function selectSimulator(id){
-  if(id!=="coffee"&&!proAccess()){paywall("Этот бизнес-симулятор");return}
+  if(id!=="coffee"&&!proAccess()){paywall("Этот бизнес-симулятор","This business simulator");return}
   trackEvent("simulator_opened",{simulator_id:id});
   activeSimulator=id;resetSimulator(false);renderSimulator()
 }
@@ -1072,7 +1073,7 @@ function renderCoach(){
 }
 function setCoachMode(id){
   const i=C.coach.findIndex(x=>x.id===id);
-  if(i>0&&!proAccess()){paywall("Этот режим Business Coach");return}
+  if(i>0&&!proAccess()){paywall("Этот режим Business Coach","This Business Coach mode");return}
   coachMode=id;renderCoach();resetCoach()
 }
 function resetCoach(){
@@ -1131,7 +1132,7 @@ function renderCertificates(){
   localizeUI(grid);
 }
 async function claimCertificate(type){
-  if(!proAccess()){paywall("Выдача сертификатов");return}
+  if(!proAccess()){paywall("Выдача сертификатов","Certificate issuing");return}
   if(!session){openAuth();return}
   await pushCloud(true);
   const {data,error}=await sb.functions.invoke("issue-certificate",{body:{type}});
