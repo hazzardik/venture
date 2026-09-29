@@ -876,42 +876,60 @@ function answerDuel(i,el){
   localSave();
 }
 const DIAG=LANG==="en"?[
-  ["What is your current experience?",["Just starting","I have launched projects","I already run a business","Learning for general understanding"]],
-  ["What is hardest right now?",["Knowing where to start","Getting customers","Growing and managing systematically","Making strong decisions"]],
-  ["What do you want to improve first?",["Business foundations","Marketing and sales","Finance and management","Strategic thinking"]],
-  ["How do you prefer to learn?",["Step by step from zero","Through sales practice","Through real management situations","Through difficult cases"]],
-  ["Do you have a real business now?",["No","I have an idea/project","Yes, it has revenue","Not important — I want the skill"]],
-  ["Main goal for the next 90 days?",["Launch","Find growth","Build a system","Become stronger at business thinking"]]
+  {kind:"profile",q:"What is your current experience?",opts:["Just starting","I have launched projects","I already run a business","Learning for general understanding"]},
+  {kind:"profile",q:"Main goal for the next 90 days?",opts:["Launch something","Find growth","Build a stronger system","Improve business judgment"]},
+  {kind:"skill",skill:"finance",q:"A company is profitable on the P&L, but customers pay in 60 days while payroll is due every 30. What is the main risk?",opts:["Low brand awareness","A cash-flow gap","Too little social media content"],correct:1},
+  {kind:"skill",skill:"marketing",q:"A channel brings 100 customers for $5,000. What should you calculate first before scaling?",opts:["CAC and contribution margin","Follower growth","Number of ad creatives"],correct:0},
+  {kind:"skill",skill:"strategy",q:"A team has nine 'top priorities' at the same time. What is the strongest diagnosis?",opts:["The team needs more meetings","There is no real prioritization","The company should hire faster"],correct:1},
+  {kind:"skill",skill:"economics",q:"A project promises a 20% return, but blocks the team from a safer project returning 35%. What concept matters most?",opts:["Brand equity","Churn","Opportunity cost"],correct:2}
 ]:[
-  ["Твой опыт сейчас?",["Только начинаю","Уже запускал проекты","Уже управляю бизнесом","Изучаю для общего развития"]],
-  ["Что сложнее всего?",["Понять с чего начать","Получать клиентов","Системно расти и управлять","Принимать сильные решения"]],
-  ["Что хочешь прокачать первым?",["Базу бизнеса","Маркетинг и продажи","Финансы и менеджмент","Стратегическое мышление"]],
-  ["Как тебе удобнее учиться?",["С нуля по шагам","Через практику продаж","Через реальные управленческие ситуации","Через сложные кейсы"]],
-  ["Есть ли сейчас реальный бизнес?",["Нет","Есть идея/проект","Да, есть выручка","Неважно — хочу навык"]],
-  ["Главная цель на 90 дней?",["Запустить","Найти рост","Навести систему","Стать сильнее в бизнес-мышлении"]]
-]
+  {kind:"profile",q:"Твой опыт сейчас?",opts:["Только начинаю","Уже запускал проекты","Уже управляю бизнесом","Изучаю для общего развития"]},
+  {kind:"profile",q:"Главная цель на 90 дней?",opts:["Что-то запустить","Найти рост","Навести систему","Стать сильнее в бизнес-мышлении"]},
+  {kind:"skill",skill:"finance",q:"Компания прибыльна по P&L, но клиенты платят через 60 дней, а зарплаты — каждые 30. Главный риск?",opts:["Слабая узнаваемость бренда","Кассовый разрыв","Слишком мало контента в соцсетях"],correct:1},
+  {kind:"skill",skill:"marketing",q:"Канал привёл 100 клиентов за 500 000 ₽. Что нужно посчитать первым перед масштабированием?",opts:["CAC и contribution margin","Рост подписчиков","Количество рекламных креативов"],correct:0},
+  {kind:"skill",skill:"strategy",q:"У команды одновременно девять «главных приоритетов». Какой диагноз сильнее?",opts:["Нужно больше совещаний","Настоящей приоритизации нет","Нужно быстрее нанимать людей"],correct:1},
+  {kind:"skill",skill:"economics",q:"Проект обещает 20% доходности, но занимает команду вместо более надёжного проекта с 35%. Какое понятие важнее?",opts:["Brand equity","Churn","Opportunity cost"],correct:2}
+];
 function startDiagnostic(){
-  state.diagnostic.answers=[];renderDiagStep(0);
+  state.diagnostic.answers=[];state.diagnostic.skillSeed={};renderDiagStep(0);
 }
 function renderDiagStep(step){
   const q=DIAG[step];
   if(!q){finishDiagnostic();return;}
-  modal(`<div class="label">BIZONIQ DIAGNOSTIC • ${step+1}/${DIAG.length}</div><h2>${q[0]}</h2><div class="copy">${L("Это не психологический тест. Он лишь рекомендует учебную траекторию по твоим ответам.","This is not a psychological test. It only recommends a learning path based on your answers.")}</div><div class="section">${q[1].map((o,i)=>`<button class="choice" onclick="pickDiag(${step},${i})">${o}</button>`).join("")}</div>`);
+  const isTask=q.kind==="skill";
+  modal(`<div class="label">BIZONIQ DIAGNOSTIC • ${step+1}/${DIAG.length}</div><h2>${q.q}</h2><div class="copy">${isTask?L("Это уже не анкета — выбери решение, которое считаешь сильнее.","This is a real decision task — choose the strongest answer."):L("Сначала два коротких вопроса о твоём опыте и цели.","First, two short questions about your experience and goal.")}</div><div class="section">${q.opts.map((o,i)=>`<button class="choice" onclick="pickDiag(${step},${i})">${o}</button>`).join("")}</div>`);
 }
 function pickDiag(step,i){state.diagnostic.answers[step]=i;renderDiagStep(step+1)}
 function finishDiagnostic(){
-  const a=state.diagnostic.answers,score=[0,0,0,0];
-  a.forEach(v=>{if(v!=null)score[v]++});
-  let idx=score.indexOf(Math.max(...score));
-  const ids=["first","run","run","mind"];
-  let rec=ids[idx]||"curious";
-  if(a[0]===3&&a[4]===3)rec="curious";
-  state.diagnostic={completed:true,answers:a,recommended:rec};
+  const a=state.diagnostic.answers;
+  const skillSeed={basics:45,startup:45,finance:45,marketing:45,sales:45,strategy:45,management:45,economics:45};
+  let correct=0,total=0;
+  DIAG.forEach((q,i)=>{
+    if(q.kind!=="skill")return;
+    total++;
+    const ok=a[i]===q.correct;if(ok)correct++;
+    skillSeed[q.skill]=ok?78:32;
+    if(q.skill==="marketing")skillSeed.sales=ok?68:38;
+    if(q.skill==="strategy")skillSeed.management=ok?66:40;
+  });
+  const experience=Number(a[0]??0),goal=Number(a[1]??0);
+  let rec="first";
+  if(experience===3&&goal===3)rec="curious";
+  else if(goal===1||goal===2||experience>=1)rec="run";
+  if((correct>=3&&goal===3)||(correct===total&&experience>=1))rec="mind";
+  if(goal===0&&experience===0&&correct<=2)rec="first";
+  skillSeed.basics=experience===0?38:experience===1?58:experience===2?72:50;
+  skillSeed.startup=goal===0?70:experience>=1?60:45;
+  state.diagnostic={completed:true,answers:a,recommended:rec,knowledgeScore:correct,knowledgeTotal:total,skillSeed};
   localSave();
   const p=C.paths.find(x=>x.id===rec);
-  modal(`<div class="label">${L("РЕКОМЕНДАЦИЯ","RECOMMENDATION")}</div><h2>${p.title}</h2><div class="copy">${p.subtitle}</div><div class="btnrow"><button class="btn primary" onclick="choosePath('${rec}',false)">${L("Выбрать этот путь","Choose this path")}</button><button class="btn ghost" onclick="changePath()">${L("Выбрать вручную","Choose manually")}</button></div>`);
+  modal(`<div class="label">${L("РЕЗУЛЬТАТ ДИАГНОСТИКИ","DIAGNOSTIC RESULT")}</div><h2>${p.title}</h2><div class="copy">${p.subtitle}</div><div class="diagnostic-result"><b>${correct}/${total}</b><span>${L("практических задач решено сильным вариантом","decision tasks answered with the strongest option")}</span></div><div class="btnrow"><button class="btn primary" onclick="choosePath('${rec}',false)">${L("Начать по этому пути","Start this path")}</button><button class="btn ghost" onclick="changePath()">${L("Выбрать вручную","Choose manually")}</button></div>`);
 }
 function startChallenge(){
+  if(state.cases.length<3){
+    modal(`<div class="label">30-DAY FOUNDER CHALLENGE</div><h2>${L("Сначала получи первый реальный результат.","Get your first real result first.")}</h2><div class="copy">${L("Реши минимум 3 бизнес-кейса. После этого откроется 30-дневный челлендж — так он не превращается в пустую геймификацию.","Solve at least 3 business cases. Then the 30-day challenge unlocks, so it starts after you have experienced the core product.")}</div><div class="btnrow"><button class="btn primary" onclick="closeModal();go('cases')">${L("Решить кейсы","Solve cases")}</button></div>`,true);
+    return;
+  }
   if(!state.challenge.started){state.challenge={started:true,startDate:todayKey(),completedDays:[]};}
   if(state.duel.date===todayKey()&&state.duel.answered&&!state.challenge.completedDays.includes(todayKey()))state.challenge.completedDays.push(todayKey());
   localSave();
@@ -999,7 +1017,7 @@ function renderLessons(){
   document.getElementById("lessons").innerHTML=lessons.map(({m,l})=>{
     const done=state.lessons.includes(l[0]);
     const locked=lessonIsPremium(m,l)&&!proAccess();
-    return `<div class="card item ${locked?"pro-locked":""}"><div class="label">${m.icon} ${m.title}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${l[1]}</h3><div class="copy">${l[2]}</div><div class="meta"><span>3–5 ${L("мин","min")}</span><span>${locked?"Pro":done?L("✓ завершено","✓ completed"):"+"+l[6]+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openLesson('${l[0]}')">${locked?L("Открыть с Pro","Unlock with Pro"):done?L("Повторить","Review"):L("Открыть урок","Open lesson")}</button></div></div>`;
+    return `<div class="card item ${locked?"pro-locked":""}"><div class="label">${m.icon} ${m.title}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${l[1]}</h3><div class="copy">${l[2]}</div><div class="meta"><span>3–5 ${L("мин","min")}</span><span>${locked?"Pro":done?L("✓ завершено","✓ completed"):"+"+lessonXp(l)+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openLesson('${l[0]}')">${locked?L("Открыть с Pro","Unlock with Pro"):done?L("Повторить","Review"):L("Открыть урок","Open lesson")}</button></div></div>`;
   }).join("");
   localizeUI(document.getElementById("learn"));
 }
@@ -1008,7 +1026,7 @@ function openLesson(id){
   const {m,l}=findLesson(id),done=state.lessons.includes(id);
   trackEvent("lesson_opened",{lesson_id:id,module:m.id});
   if(lessonIsPremium(m,l)&&!proAccess()){paywall("Этот урок","This lesson");return}
-  modal(`<div class="label">${m.icon} ${m.title}</div><h2>${l[1]}</h2><div class="copy">${l[2]}</div><div class="card soft section"><div class="tiny">${L("КЛЮЧЕВАЯ МЫСЛЬ","KEY IDEA")}</div><div class="copy" style="margin-top:7px">${l[3]}</div></div><div class="card soft section"><div class="tiny">${L("ПРИМЕР","EXAMPLE")}</div><div class="copy" style="margin-top:7px">${l[4]}</div></div><div class="card soft section"><div class="tiny">${L("ПРАКТИЧЕСКИЙ ВЫВОД","PRACTICAL TAKEAWAY")}</div><div class="copy" style="margin-top:7px">${l[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson('${id}')">${done?L("Уже завершено","Completed"):L("Завершить","Complete")+" • +"+l[6]+" XP"}</button></div>`);
+  modal(`<div class="label">${m.icon} ${m.title}</div><h2>${l[1]}</h2><div class="copy">${l[2]}</div><div class="card soft section"><div class="tiny">${L("КЛЮЧЕВАЯ МЫСЛЬ","KEY IDEA")}</div><div class="copy" style="margin-top:7px">${l[3]}</div></div><div class="card soft section"><div class="tiny">${L("ПРИМЕР","EXAMPLE")}</div><div class="copy" style="margin-top:7px">${l[4]}</div></div><div class="card soft section"><div class="tiny">${L("ПРАКТИЧЕСКИЙ ВЫВОД","PRACTICAL TAKEAWAY")}</div><div class="copy" style="margin-top:7px">${l[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="completeLesson('${id}')">${done?L("Уже завершено","Completed"):L("Завершить","Complete")+" • +"+lessonXp(l)+" XP"}</button></div>`);
 }
 function completeLesson(id){
   const {m,l}=findLesson(id),xp=lessonXp(l);
@@ -1024,13 +1042,13 @@ function renderTerms(){
   });
   document.getElementById("terms").innerHTML=list.map(t=>{
     const learned=state.terms.includes(t[0]),saved=state.saved.includes(t[0]);
-    return `<div class="card item"><div class="termhead"><div><div class="termname">${t[0]}</div><div class="tiny">${t[2]}</div></div><button class="star ${saved?"on":""}" onclick="toggleSave('${t[0]}')">${saved?"★":"☆"}</button></div><div class="copy" style="margin-top:10px">${t[3]}</div><div class="meta"><span>${L("Связано:","Related:")} ${t[6]}</span><span>${learned?L("✓ изучено","✓ learned"):"+25 XP"}</span></div><div class="btnrow"><button class="btn ghost" onclick="openTerm('${t[0]}')">${L("Открыть","Open")}</button><button class="btn ${learned?"secondary":"primary"}" onclick="learnTerm('${t[0]}')">${learned?L("Понял","Got it"):L("Понял","Got it")+" • +25 XP"}</button></div></div>`;
+    return `<div class="card item"><div class="termhead"><div><div class="termname">${t[0]}</div><div class="tiny">${t[2]}</div></div><button class="star ${saved?"on":""}" onclick="toggleSave('${t[0]}')">${saved?"★":"☆"}</button></div><div class="copy" style="margin-top:10px">${t[3]}</div><div class="meta"><span>${L("Связано:","Related:")} ${t[6]}</span><span>${learned?L("✓ изучено","✓ learned"):"+"+termXp()+" XP"}</span></div><div class="btnrow"><button class="btn ghost" onclick="openTerm('${t[0]}')">${L("Открыть","Open")}</button><button class="btn ${learned?"secondary":"primary"}" onclick="learnTerm('${t[0]}')">${learned?L("Понял","Got it"):L("Понял","Got it")+" • +"+termXp()+" XP"}</button></div></div>`;
   }).join("");
   localizeUI(document.getElementById("dictionary"));
 }
 function openTerm(name){
   const t=C.terms.find(x=>x[0]===name);
-  modal(`<div class="label">${t[2]}</div><h2>${t[0]}</h2><div class="card soft section"><div class="tiny">${L("ПО-ПРОСТОМУ","IN SIMPLE TERMS")}</div><div class="copy" style="margin-top:7px">${t[3]}</div></div><div class="card soft section"><div class="tiny">${L("ЗАЧЕМ ПРЕДПРИНИМАТЕЛЮ","WHY IT MATTERS")}</div><div class="copy" style="margin-top:7px">${t[4]}</div></div><div class="card soft section"><div class="tiny">${L("ПРИМЕР","EXAMPLE")}</div><div class="copy" style="margin-top:7px">${t[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="learnTerm('${t[0]}');closeModal()">${L("Понял","Got it")} • +25 XP</button></div>`);
+  modal(`<div class="label">${t[2]}</div><h2>${t[0]}</h2><div class="card soft section"><div class="tiny">${L("ПО-ПРОСТОМУ","IN SIMPLE TERMS")}</div><div class="copy" style="margin-top:7px">${t[3]}</div></div><div class="card soft section"><div class="tiny">${L("ЗАЧЕМ ПРЕДПРИНИМАТЕЛЮ","WHY IT MATTERS")}</div><div class="copy" style="margin-top:7px">${t[4]}</div></div><div class="card soft section"><div class="tiny">${L("ПРИМЕР","EXAMPLE")}</div><div class="copy" style="margin-top:7px">${t[5]}</div></div><div class="btnrow"><button class="btn primary" onclick="learnTerm('${t[0]}');closeModal()">${L("Понял","Got it")} • +${termXp()} XP</button></div>`);
 }
 function learnTerm(name){if(!state.terms.includes(name)){state.terms.push(name);state.xp+=termXp();localSave()}}
 function toggleSave(name){state.saved=state.saved.includes(name)?state.saved.filter(x=>x!==name):[...state.saved,name];localSave()}
