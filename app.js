@@ -156,7 +156,7 @@ function localSave(sync=true){
 }
 function scheduleCloudSync(){
   clearTimeout(cloudTimer);
-  setSyncStatus("Синхронизация…",false);
+  setSyncStatus(L("Синхронизация…","Syncing…"),false);
   cloudTimer=setTimeout(pushCloud,550);
 }
 function setSyncStatus(text,on){
@@ -233,7 +233,7 @@ async function initAuth(){
       userSubscription=null;
       userEntitlement=null;
       creatorAccount=null;
-      setSyncStatus("Локальный режим",false);
+      setSyncStatus(L("Локальный режим","Local mode"),false);
       renderAll();
     }
   });
@@ -327,7 +327,7 @@ function renderAuthState(){
 
 async function mergeCloud(){
   if(!session||syncBusy)return;
-  syncBusy=true; setSyncStatus("Загружаю облако…",false);
+  syncBusy=true; setSyncStatus(L("Загружаю облако…","Loading cloud data…"),false);
   const uid=session.user.id;
   try{
     const [p,l,t,c,s]=await Promise.all([
@@ -339,7 +339,7 @@ async function mergeCloud(){
     ]);
     const remote=p.data;
     if(remote){
-      state.name=remote.display_name||state.name||session.user.user_metadata?.display_name||"Пользователь";
+      state.name=remote.display_name||state.name||session.user.user_metadata?.display_name||L("Пользователь","User");
       state.goal=remote.learning_path||state.goal||"curious";
       state.onboarded=true;
       state.xp=Math.max(state.xp||0,remote.xp||0);
@@ -361,7 +361,7 @@ async function mergeCloud(){
         }
       }
     }else{
-      state.name=state.name||session.user.user_metadata?.display_name||"Пользователь";
+      state.name=state.name||session.user.user_metadata?.display_name||L("Пользователь","User");
       state.goal=state.goal||"curious";
       state.onboarded=true;
     }
@@ -373,8 +373,8 @@ async function mergeCloud(){
     await updateCloudStreak();
     await pushCloud(true);
     localStorage.setItem("forge_v3_state",JSON.stringify(state));
-    renderAll(); setSyncStatus("Синхронизировано",true);
-  }catch(e){setSyncStatus("Ошибка синхронизации",false);console.error(e)}
+    renderAll(); setSyncStatus(L("Синхронизировано","Synced"),true);
+  }catch(e){setSyncStatus(L("Ошибка синхронизации","Sync error"),false);console.error(e)}
   syncBusy=false;
 }
 async function updateCloudStreak(){
@@ -391,10 +391,10 @@ async function updateCloudStreak(){
 async function pushCloud(force=false){
   if(!session||(!force&&syncBusy))return;
   const uid=session.user.id;
-  setSyncStatus("Сохраняю…",false);
+  setSyncStatus(L("Сохраняю…","Saving…"),false);
   try{
     await sb.from("profiles").upsert({
-      user_id:uid,display_name:state.name||"Пользователь",learning_path:state.goal||"curious",
+      user_id:uid,display_name:state.name||L("Пользователь","User"),learning_path:state.goal||"curious",
       xp:state.xp||0,streak:state.streak||1,last_active_date:todayKey(),
       simulator_finished:Object.values(state.simDone||{}).some(Boolean),
       extras:{diagnostic:state.diagnostic,challenge:state.challenge,duel:state.duel,weekly:state.weekly,adaptive:state.adaptive},
@@ -407,8 +407,8 @@ async function pushCloud(force=false){
     const simRows=Object.keys(state.simDone||{}).filter(id=>state.simDone[id]).map(id=>({user_id:uid,simulator_id:id,result:{completed:true}}));
     if(simRows.length) await sb.from("simulator_runs").upsert(simRows,{onConflict:"user_id,simulator_id"});
     await sb.from("daily_activity").upsert({user_id:uid,activity_date:todayKey(),xp_earned:0},{onConflict:"user_id,activity_date"});
-    setSyncStatus("Синхронизировано",true);
-  }catch(e){setSyncStatus("Ошибка облака",false);console.error(e)}
+    setSyncStatus(L("Синхронизировано","Synced"),true);
+  }catch(e){setSyncStatus(L("Ошибка облака","Cloud error"),false);console.error(e)}
 }
 
 function manualProActive(){
@@ -1191,7 +1191,7 @@ function editName(){
 function cleanPlainText(value,max=80){
   return String(value??"").replace(/[\u0000-\u001F\u007F]/g," ").replace(/\s+/g," ").trim().slice(0,max);
 }
-function saveName(){state.name=cleanPlainText(document.getElementById("nameEdit").value,80)||"Пользователь";localSave();closeModal()}
+function saveName(){state.name=cleanPlainText(document.getElementById("nameEdit").value,80)||L("Пользователь","User");localSave();closeModal()}
 function exportProgress(){
   const blob=new Blob([JSON.stringify({bizoniq_version:10,exported_at:new Date().toISOString(),state},null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="bizoniq-progress.json";a.click();URL.revokeObjectURL(a.href);
@@ -1232,9 +1232,9 @@ function sanitizeImportedState(raw){
 }
 function importProgressFile(ev){
   const file=ev.target.files[0];if(!file)return;
-  if(file.size>1024*1024){alert("Backup слишком большой. Максимум 1 МБ.");ev.target.value="";return}
+  if(file.size>1024*1024){alert(L("Backup слишком большой. Максимум 1 МБ.","Backup is too large. Maximum size is 1 MB."));ev.target.value="";return}
   const reader=new FileReader();
-  reader.onload=()=>{try{const data=JSON.parse(reader.result);state=sanitizeImportedState(data.state||data);localSave();alert("Прогресс импортирован.");}catch(e){alert("Backup повреждён или имеет неподдерживаемый формат.")}};
+  reader.onload=()=>{try{const data=JSON.parse(reader.result);state=sanitizeImportedState(data.state||data);localSave();alert(L("Прогресс импортирован.","Progress imported."));}catch(e){alert(L("Backup повреждён или имеет неподдерживаемый формат.","The backup is damaged or has an unsupported format."))}};
   reader.readAsText(file);ev.target.value="";
 }
 
