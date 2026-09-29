@@ -998,17 +998,17 @@ function renderCases(){
   const q=(search?.value||"").toLowerCase();
   const info=document.getElementById("caseAdaptiveInfo");
   if(info)info.innerHTML=`
-    <div><div class="tiny">ТВОЙ УРОВЕНЬ КЕЙСОВ</div><b>${difficultyName()}</b><span class="adaptive-path"> · ${pathObj().title}</span></div>
+    <div><div class="tiny">${L("ТВОЙ УРОВЕНЬ КЕЙСОВ","YOUR CASE LEVEL")}</div><b>${difficultyName()}</b><span class="adaptive-path"> · ${pathObj().title}</span></div>
     <div class="adaptive-actions">
-      <button class="modulechip ${caseMode==="adaptive"?"active":""}" onclick="caseMode='adaptive';renderCases()">Для меня</button>
-      <button class="modulechip ${caseMode==="all"?"active":""}" onclick="caseMode='all';renderCases()">Все 32</button>
+      <button class="modulechip ${caseMode==="adaptive"?"active":""}" onclick="caseMode='adaptive';renderCases()">${L("Для меня","For me")}</button>
+      <button class="modulechip ${caseMode==="all"?"active":""}" onclick="caseMode='all';renderCases()">${L("Все 32","All 32")}</button>
     </div>`;
   let list=q?C.cases.filter(c=>(c.title+" "+c.copy+" "+c.tag).toLowerCase().includes(q)):(caseMode==="adaptive"?adaptiveCasePool():[...C.cases]);
   document.getElementById("caseGrid").innerHTML=list.map(c=>{
     const done=state.cases.includes(c.id);
     const locked=caseIsPremium(c)&&!proAccess();
     const recommended=c.paths.includes(state.goal)&&c.difficulty===state.adaptive.level;
-    return `<div class="card item case-card ${locked?"pro-locked":""}"><div class="case-badges"><span class="label">${c.tag}</span><span class="difficulty d${c.difficulty}">${difficultyName(c.difficulty)}</span>${recommended?'<span class="recommended-badge">Для тебя</span>':""}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${c.title}</h3><div class="copy">${c.copy}</div><div class="meta"><span>${SKILL_LABELS[c.category]||c.category}</span><span>${locked?"Pro":done?"✓ решено":"+"+c.xp+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openCase('${c.id}')">${locked?"Открыть с Pro":done?"Разобрать снова":"Открыть кейс"}</button></div></div>`;
+    return `<div class="card item case-card ${locked?"pro-locked":""}"><div class="case-badges"><span class="label">${c.tag}</span><span class="difficulty d${c.difficulty}">${difficultyName(c.difficulty)}</span>${recommended?`<span class="recommended-badge">${L("Для тебя","For you")}</span>`:""}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${c.title}</h3><div class="copy">${c.copy}</div><div class="meta"><span>${SKILL_LABELS[c.category]||c.category}</span><span>${locked?"Pro":done?L("✓ решено","✓ solved"):"+"+c.xp+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openCase('${c.id}')">${locked?L("Открыть с Pro","Unlock with Pro"):done?L("Разобрать снова","Review again"):L("Открыть кейс","Open case")}</button></div></div>`;
   }).join("");
   localizeUI(document.getElementById("cases"));
 }
@@ -1029,7 +1029,7 @@ function answerCase(id,i,el){
   const f=document.getElementById("caseFeedback");f.textContent=ch.feedback+(ch.correct&&!state.cases.includes(id)?" +"+c.xp+" XP":"");f.classList.add("show");
   if(ch.correct&&!state.cases.includes(id)){state.cases.push(id);state.xp+=c.xp}
   const rating=document.getElementById("caseRating");
-  if(rating&&!state.adaptive.caseRatings[id])rating.innerHTML=`<div class="difficulty-rating"><div class="tiny">КАК БЫЛО ПО СЛОЖНОСТИ?</div><div class="btnrow"><button class="btn ghost" onclick="rateCaseDifficulty('${id}','easy')">Слишком легко</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','normal')">Нормально</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','hard')">Сложно</button></div></div>`;
+  if(rating&&!state.adaptive.caseRatings[id])rating.innerHTML=`<div class="difficulty-rating"><div class="tiny">${L("КАК БЫЛО ПО СЛОЖНОСТИ?","HOW DID THE DIFFICULTY FEEL?")}</div><div class="btnrow"><button class="btn ghost" onclick="rateCaseDifficulty('${id}','easy')">${L("Слишком легко","Too easy")}</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','normal')">${L("Нормально","About right")}</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','hard')">${L("Сложно","Hard")}</button></div></div>`;
   localSave();
 }
 
@@ -1043,22 +1043,22 @@ function resetSimulator(render=true){
 }
 function renderSimulator(){
   const sims=Object.values(C.simulators);
-  document.getElementById("simSelect").innerHTML=sims.map(s=>{const locked=s.id!=="coffee"&&!proAccess();return `<div class="card simtile ${s.id===activeSimulator?"active":""} ${locked?"pro-locked":""}" onclick="selectSimulator('${s.id}')"><div style="font-size:25px">${s.icon}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${s.title}</h3><div class="copy">${s.description}</div><div class="meta"><span>3 решения</span><span>${locked?"Pro":state.simDone[s.id]?"✓ завершено":""}</span></div></div>`}).join("");
+  document.getElementById("simSelect").innerHTML=sims.map(s=>{const locked=s.id!=="coffee"&&!proAccess();return `<div class="card simtile ${s.id===activeSimulator?"active":""} ${locked?"pro-locked":""}" onclick="selectSimulator('${s.id}')"><div style="font-size:25px">${s.icon}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${s.title}</h3><div class="copy">${s.description}</div><div class="meta"><span>3 ${L("решения","decisions")}</span><span>${locked?"Pro":state.simDone[s.id]?L("✓ завершено","✓ completed"):""}</span></div></div>`}).join("");
   if(!sim)resetSimulator(false);
   const s=C.simulators[activeSimulator];
   document.getElementById("simTitleMain").textContent=s.icon+" "+s.title;
-  document.getElementById("simStats").innerHTML=[["Cash",rub(sim.cash)],["Revenue / мес",rub(sim.revenue)],["Profit / мес",rub(sim.profit)],["Customers",Math.round(sim.customers).toLocaleString("ru-RU")]].map(x=>`<div class="simstat"><div class="tiny">${x[0]}</div><b>${x[1]}</b></div>`).join("");
+  document.getElementById("simStats").innerHTML=[["Cash",rub(sim.cash)],[L("Revenue / мес","Revenue / mo"),rub(sim.revenue)],[L("Profit / мес","Profit / mo"),rub(sim.profit)],["Customers",Math.round(sim.customers).toLocaleString(LANG==="en"?"en-US":"ru-RU")]].map(x=>`<div class="simstat"><div class="tiny">${x[0]}</div><b>${x[1]}</b></div>`).join("");
   const fb=document.getElementById("simFeedback");fb.classList.remove("show");
   if(sim.step>=s.steps.length){
-    document.getElementById("simStep").textContent="ФИНАЛ";
-    document.getElementById("simEvent").textContent="Сценарий завершён";
-    document.getElementById("simText").textContent="Ты увидел trade-offs на цифрах. Сильный основатель не ищет магическую кнопку — он управляет системой.";
-    document.getElementById("simChoices").innerHTML=`<div class="card soft section"><div class="copy">Итог: ${rub(sim.cash)} cash • ${rub(sim.revenue)} revenue • ${rub(sim.profit)} profit</div></div>`;
+    document.getElementById("simStep").textContent=L("ФИНАЛ","FINISH");
+    document.getElementById("simEvent").textContent=L("Сценарий завершён","Scenario complete");
+    document.getElementById("simText").textContent=L("Ты увидел trade-offs на цифрах. Сильный основатель не ищет магическую кнопку — он управляет системой.","You saw the trade-offs in the numbers. A strong founder does not look for a magic button — they manage the system.");
+    document.getElementById("simChoices").innerHTML=`<div class="card soft section"><div class="copy">${L("Итог","Result")}: ${rub(sim.cash)} cash • ${rub(sim.revenue)} revenue • ${rub(sim.profit)} profit</div></div>`;
     if(!state.simDone[s.id]){state.simDone[s.id]=true;state.xp+=120;localSave()}
     localizeUI(document.getElementById("simulator"));
     return;
   }
-  const step=s.steps[sim.step];document.getElementById("simStep").textContent="Шаг "+(sim.step+1)+" / "+s.steps.length;document.getElementById("simEvent").textContent=step[0];document.getElementById("simText").textContent=step[1];
+  const step=s.steps[sim.step];document.getElementById("simStep").textContent=L("Шаг ","Step ")+(sim.step+1)+" / "+s.steps.length;document.getElementById("simEvent").textContent=step[0];document.getElementById("simText").textContent=step[1];
   document.getElementById("simChoices").innerHTML=step[2].map((o,i)=>`<button class="choice" onclick="chooseSim(${i},this)">${o[0]}</button>`).join("");
   localizeUI(document.getElementById("simulator"));
 }
