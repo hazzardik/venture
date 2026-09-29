@@ -5,6 +5,22 @@ const PREFS=window.BIZONIQ_PREFS||{lang:"ru",currency:"RUB",money:n=>Math.round(
 const LANG=PREFS.lang||"ru";
 const C=(LANG==="en"&&window.BIZONIQ_CONTENT_EN)?window.BIZONIQ_CONTENT_EN:window.FORGE_CONTENT;
 const L=(ru,en)=>LANG==="en"?en:ru;
+const T=(text)=>PREFS.t?PREFS.t(text):text;
+let localizeQueued=false;
+function localizeUI(root=document.body){
+  if(LANG!=="en")return;
+  if(root&&root!==document.body){
+    PREFS.translateTree?.(root);
+    PREFS.updatePricingUI?.();
+    return;
+  }
+  if(localizeQueued)return;
+  localizeQueued=true;
+  queueMicrotask(()=>{
+    localizeQueued=false;
+    PREFS.refreshUI?.(document.body);
+  });
+}
 
 const NAV=[
   ["dashboard","home",L("Главная","Home")],
@@ -135,7 +151,7 @@ function scheduleCloudSync(){
 function setSyncStatus(text,on){
   const dot=document.getElementById("syncDot"),label=document.getElementById("syncText");
   if(dot) dot.classList.toggle("on",!!on);
-  if(label) label.textContent=text;
+  if(label) label.textContent=T(text);
 }
 
 async function initAuth(){
@@ -196,10 +212,10 @@ function renderAuthState(){
   const btn=document.getElementById("accountButton");
   if(!btn)return;
   if(session){
-    btn.textContent="☁ Аккаунт";
+    btn.textContent=L("☁ Аккаунт","☁ Account");
     btn.onclick=()=>go("profile");
   }else{
-    btn.textContent="Войти";
+    btn.textContent=L("Войти","Sign in");
     btn.onclick=openAuth;
   }
   setSyncStatus(session?"Облако подключено":"Локальный режим",!!session);
@@ -446,6 +462,7 @@ function renderPricing(){
   }else{
     el.innerHTML=`<div class="pricing-status-row"><div><div class="tiny">CURRENT PLAN</div><h3>Free</h3><div class="copy">${L("Базовый доступ остаётся бесплатным.","Core access stays free.")}</div></div><span class="pill" data-price-summary>${proPriceSummary()}</span></div>`;
   }
+  localizeUI(el);
 }
 
 function level(){
@@ -458,7 +475,13 @@ function pathObj(){return C.paths.find(p=>p.id===state.goal)||C.paths[3]}
 function rub(n){return PREFS.money?PREFS.money(n):Math.round(n).toLocaleString("ru-RU")+" ₽"}
 function proPrice(plan){return PREFS.price?PREFS.price(plan):(plan==="yearly"?"799 ₽":"99 ₽")}
 function proPriceSummary(){return PREFS.priceSummary?PREFS.priceSummary():"99 ₽/мес · 799 ₽/год"}
-function modal(html,small=false){document.getElementById("modalBody").innerHTML=html;document.getElementById("modalDialog").classList.toggle("small",small);document.getElementById("modal").classList.remove("hidden")}
+function modal(html,small=false){
+  const body=document.getElementById("modalBody");
+  body.innerHTML=html;
+  document.getElementById("modalDialog").classList.toggle("small",small);
+  document.getElementById("modal").classList.remove("hidden");
+  localizeUI(body);
+}
 function closeModal(){document.getElementById("modal").classList.add("hidden")}
 function openAuth(){document.getElementById("auth").classList.remove("hidden")}
 function closeAuth(){document.getElementById("auth").classList.add("hidden")}
@@ -484,7 +507,9 @@ function go(page){
     pricing:["BIZONIQ Pro",L("Полный доступ по месячному или годовому тарифу.","Full access with monthly or yearly billing.")],
     profile:["Профиль и синхронизация","Смена пути, аккаунт, backup и прогресс."]
   };
-  document.getElementById("pageTitle").textContent=meta[page][0];document.getElementById("pageSub").textContent=meta[page][1];
+  document.getElementById("pageTitle").textContent=T(meta[page][0]);
+  document.getElementById("pageSub").textContent=T(meta[page][1]);
+  localizeUI(document.querySelector(".topbar")||document.body);
   trackEvent("page_view",{page});
   if(page==="pricing")trackEvent("pricing_viewed",{source:"navigation"});
   scrollTo({top:0,behavior:"smooth"});
@@ -809,6 +834,7 @@ function renderLessons(){
     const locked=lessonIsPremium(m,l)&&!proAccess();
     return `<div class="card item ${locked?"pro-locked":""}"><div class="label">${m.icon} ${m.title}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${l[1]}</h3><div class="copy">${l[2]}</div><div class="meta"><span>3–5 мин</span><span>${locked?"Pro":done?"✓ завершено":"+"+l[6]+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openLesson('${l[0]}')">${locked?"Открыть с Pro":done?"Повторить":"Открыть урок"}</button></div></div>`;
   }).join("");
+  localizeUI(document.getElementById("learn"));
 }
 function findLesson(id){for(const m of C.modules){const l=m.lessons.find(x=>x[0]===id);if(l)return{m,l}}}
 function openLesson(id){
@@ -833,6 +859,7 @@ function renderTerms(){
     const learned=state.terms.includes(t[0]),saved=state.saved.includes(t[0]);
     return `<div class="card item"><div class="termhead"><div><div class="termname">${t[0]}</div><div class="tiny">${t[2]}</div></div><button class="star ${saved?"on":""}" onclick="toggleSave('${t[0]}')">${saved?"★":"☆"}</button></div><div class="copy" style="margin-top:10px">${t[3]}</div><div class="meta"><span>Связано: ${t[6]}</span><span>${learned?"✓ изучено":"+25 XP"}</span></div><div class="btnrow"><button class="btn ghost" onclick="openTerm('${t[0]}')">Открыть</button><button class="btn ${learned?"secondary":"primary"}" onclick="learnTerm('${t[0]}')">${learned?"Понял":"Понял • +25 XP"}</button></div></div>`;
   }).join("");
+  localizeUI(document.getElementById("dictionary"));
 }
 function openTerm(name){
   const t=C.terms.find(x=>x[0]===name);
@@ -858,6 +885,7 @@ function renderCases(){
     const recommended=c.paths.includes(state.goal)&&c.difficulty===state.adaptive.level;
     return `<div class="card item case-card ${locked?"pro-locked":""}"><div class="case-badges"><span class="label">${c.tag}</span><span class="difficulty d${c.difficulty}">${difficultyName(c.difficulty)}</span>${recommended?'<span class="recommended-badge">Для тебя</span>':""}</div>${locked?'<span class="pro-badge">PRO</span>':""}<h3>${c.title}</h3><div class="copy">${c.copy}</div><div class="meta"><span>${SKILL_LABELS[c.category]||c.category}</span><span>${locked?"Pro":done?"✓ решено":"+"+c.xp+" XP"}</span></div><div class="btnrow"><button class="btn ${locked?"secondary":done?"secondary":"ghost"}" onclick="openCase('${c.id}')">${locked?"Открыть с Pro":done?"Разобрать снова":"Открыть кейс"}</button></div></div>`;
   }).join("");
+  localizeUI(document.getElementById("cases"));
 }
 function openCase(id){
   const c=C.cases.find(x=>x.id===id);
@@ -902,10 +930,12 @@ function renderSimulator(){
     document.getElementById("simText").textContent="Ты увидел trade-offs на цифрах. Сильный основатель не ищет магическую кнопку — он управляет системой.";
     document.getElementById("simChoices").innerHTML=`<div class="card soft section"><div class="copy">Итог: ${rub(sim.cash)} cash • ${rub(sim.revenue)} revenue • ${rub(sim.profit)} profit</div></div>`;
     if(!state.simDone[s.id]){state.simDone[s.id]=true;state.xp+=120;localSave()}
+    localizeUI(document.getElementById("simulator"));
     return;
   }
   const step=s.steps[sim.step];document.getElementById("simStep").textContent="Шаг "+(sim.step+1)+" / "+s.steps.length;document.getElementById("simEvent").textContent=step[0];document.getElementById("simText").textContent=step[1];
   document.getElementById("simChoices").innerHTML=step[2].map((o,i)=>`<button class="choice" onclick="chooseSim(${i},this)">${o[0]}</button>`).join("");
+  localizeUI(document.getElementById("simulator"));
 }
 function chooseSim(i,el){
   const s=C.simulators[activeSimulator],o=s.steps[sim.step][2][i],d=o[1];
@@ -918,6 +948,7 @@ function chooseSim(i,el){
 function renderCoach(){
   document.getElementById("coachModes").innerHTML=C.coach.map((m,i)=>{const locked=i>0&&!proAccess();return `<div class="card coach-mode ${m.id===coachMode?"active":""} ${locked?"pro-locked":""}" onclick="setCoachMode('${m.id}')">${locked?'<span class="pro-badge">PRO</span>':""}<h3>${m.title}</h3><div class="copy">${m.prompt}</div></div>`}).join("");
   if(!document.getElementById("messages").children.length)resetCoach();
+  localizeUI(document.getElementById("coach"));
 }
 function setCoachMode(id){
   const i=C.coach.findIndex(x=>x.id===id);
@@ -934,11 +965,12 @@ function sendCoach(){
   box.insertAdjacentHTML("beforeend",`<div class="msg user">${escapeHtml(text)}</div>`);
   const next=m.follow[Math.min(step,m.follow.length-1)];
   let insight="";
-  if(coachMode==="idea"&&step===0) insight=" Хорошо. Теперь не расширяй идею — сузь клиента.";
-  if(coachMode==="finance"&&step===0) insight=" Смотри на contribution margin, а не только на выручку.";
-  if(coachMode==="marketing"&&step===0) insight=" Канал без CAC и retention — просто поток цифр.";
+  if(coachMode==="idea"&&step===0) insight=L(" Хорошо. Теперь не расширяй идею — сузь клиента."," Good. Now do not broaden the idea — narrow the customer.");
+  if(coachMode==="finance"&&step===0) insight=L(" Смотри на contribution margin, а не только на выручку."," Focus on contribution margin, not revenue alone.");
+  if(coachMode==="marketing"&&step===0) insight=L(" Канал без CAC и retention — просто поток цифр."," A channel without CAC and retention is just a stream of numbers.");
   box.insertAdjacentHTML("beforeend",`<div class="msg bot">${insight}${next}</div>`);
   box.dataset.step=String(step+1);input.value="";box.scrollTop=box.scrollHeight;
+  localizeUI(box);
 }
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}
 
@@ -976,6 +1008,7 @@ function renderCertificates(){
         `<div class="btnrow"><button class="btn ${proRequired?"secondary":p.eligible?"primary":"secondary"}" ${(!proRequired&&p.eligible)?"":"disabled"} onclick="claimCertificate('${def.id}')">${proRequired?"Доступно в Pro":p.eligible?"Получить сертификат":"Сначала выполни критерии"}</button>${proRequired?'<button class="btn ghost" onclick="go(\'pricing\')">Посмотреть Pro</button>':""}</div>`}
     </div>`;
   }).join("");
+  localizeUI(grid);
 }
 async function claimCertificate(type){
   if(!proAccess()){paywall("Выдача сертификатов");return}
@@ -1080,13 +1113,14 @@ function importProgressFile(ev){
 function renderAll(){
   renderStats();renderDashboard();renderLessons();renderTerms();renderCases();renderSimulator();renderCoach();renderCertificates();renderPricing();renderProfile();renderAuthState();renderInstallButton();
   localStorage.setItem("forge_v3_state",JSON.stringify(state));
+  localizeUI();
 }
 document.addEventListener("DOMContentLoaded",async()=>{
   buildNav();renderOnboarding();
   document.getElementById("termSearch").oninput=renderTerms;document.getElementById("termFilter").onchange=renderTerms;
   document.getElementById("caseSearch").oninput=renderCases;
   document.getElementById("coachInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendCoach()});
-  resetSimulator(false);renderAll();setupInstall();PREFS.injectControls?.();PREFS.updatePricingUI?.();await initAuth();
+  resetSimulator(false);renderAll();setupInstall();PREFS.injectControls?.();localizeUI();await initAuth();
   trackEvent("page_view",{page:"dashboard",initial:true});
   const requested=new URLSearchParams(location.search).get("page");
   if(["dashboard","learn","dictionary","practice","cases","simulator","coach","certificates","pricing","profile"].includes(requested))go(requested);
