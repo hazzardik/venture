@@ -783,28 +783,28 @@ function renderTodayPlan(){
   const c=nextAdaptiveCase(weak.id);
   target.innerHTML=`
     <div class="card today-card primary-plan">
-      <div class="tiny">1 · ${L("УРОК","LESSON")}</div>
-      <h3>${lesson?lesson.l[1]:L("Все уроки пройдены","All lessons completed")}</h3>
-      <div class="copy">${lesson?L("Усиль навык: ","Build this skill: ")+(SKILL_LABELS[lesson.m.id]||lesson.m.title):L("Переходи к практике.","Move on to practice.")}</div>
-      <div class="btnrow"><button class="btn primary" onclick="${lesson?`activeModule='${lesson.m.id}';go('learn');setTimeout(()=>openLesson('${lesson.l[0]}'),100)`:"go('cases')"}">${L("Начать","Start")}</button></div>
+      <div class="tiny">1 · ${L("РЕШЕНИЕ","DECISION")}</div>
+      <h3>${c?c.title:L("Адаптивный кейс","Adaptive case")}</h3>
+      <div class="copy">${c?difficultyName(c.difficulty)+" · "+(SKILL_LABELS[c.category]||c.category):L("Подберём кейс по твоему уровню.","We’ll select a case for your level.")}</div>
+      <div class="btnrow"><button class="btn primary" onclick="${c?`go('cases');setTimeout(()=>openCase('${c.id}'),100)`:"go('cases')"}">${L("Принять решение","Make a decision")}</button></div>
     </div>
     <div class="card today-card">
-      <div class="tiny">2 · ${L("АДАПТИВНЫЙ КЕЙС","ADAPTIVE CASE")}</div>
-      <h3>${c?c.title:L("Практика","Practice")}</h3>
-      <div class="copy">${c?difficultyName(c.difficulty)+" · "+(SKILL_LABELS[c.category]||c.category):L("Подберём кейс по уровню.","We’ll select a case for your level.")}</div>
-      <div class="btnrow"><button class="btn ghost" onclick="${c?`go('cases');setTimeout(()=>openCase('${c.id}'),100)`:"go('cases')"}">${L("Решить","Solve")}</button></div>
+      <div class="tiny">2 · ${L("МИКРО-УРОК","MICRO LESSON")}</div>
+      <h3>${lesson?lesson.l[1]:L("База пройдена","Knowledge base completed")}</h3>
+      <div class="copy">${lesson?L("Точечно подтяни слабый навык: ","Patch the weak skill: ")+(SKILL_LABELS[lesson.m.id]||lesson.m.title):L("Теория больше не блокирует практику.","Theory no longer blocks practice.")}</div>
+      <div class="btnrow"><button class="btn ghost" onclick="${lesson?`activeModule='${lesson.m.id}';go('learn');setTimeout(()=>openLesson('${lesson.l[0]}'),100)`:"go('cases')"}">${L("Разобрать","Review")}</button></div>
     </div>
     <div class="card today-card">
       <div class="tiny">3 · DAILY DUEL</div>
       <h3>${state.duel.date===todayKey()&&state.duel.answered?L("Сегодня выполнено ✓","Completed today ✓"):L("60 секунд на решение","60 seconds to decide")}</h3>
-      <div class="copy">${L("Один короткий управленческий выбор, чтобы держать мышление в тонусе.","One short management decision to keep your thinking sharp.")}</div>
+      <div class="copy">${L("Один короткий выбор + сравнение с решениями других пользователей.","One short decision + comparison with other users.")}</div>
       <div class="btnrow"><button class="btn ghost" onclick="dailyDuel()">${L("Открыть","Open")}</button></div>
     </div>`;
 }
 function renderWeakAreas(){
   const el=document.getElementById("weakAreas");if(!el)return;
   const weak=weakSkills().slice(0,3);
-  el.innerHTML=weak.map((s,i)=>`<div class="weak-row"><div><span class="weak-rank">0${i+1}</span><b>${s.icon} ${s.label}</b><div class="tiny">${s.attempts?`${s.correct}/${s.attempts} ${L("кейсов правильно","cases correct")}`:L("Нужно больше практики для точной оценки","More practice is needed for an accurate score")}</div></div><div class="weak-score">${s.score}</div><button class="btn ghost" onclick="activeModule='${s.id}';go('learn');renderLessons()">${L("Прокачать","Improve")}</button></div>`).join("");
+  el.innerHTML=weak.map((s,i)=>{const next=nextAdaptiveCase(s.id);return `<div class="weak-row"><div><span class="weak-rank">0${i+1}</span><b>${s.icon} ${s.label}</b><div class="tiny">${s.attempts?`${s.correct}/${s.attempts} ${L("сильных решений","strong decisions")} · ${L("покрытие","coverage")} ${s.coverage}%`:L("Нужно больше практических решений для точной оценки","More real decisions are needed for an accurate score")}</div></div><div class="weak-score">${s.score}</div><button class="btn ghost" onclick="${next?`go('cases');setTimeout(()=>openCase('${next.id}'),100)`:`activeModule='${s.id}';go('learn');renderLessons()`}">${L("Тренировать","Train")}</button></div>`}).join("");
 }
 function openBetaFeedback(category){
   trackEvent("feedback_opened",{category});
@@ -841,10 +841,11 @@ function renderStats(){
   ].map((s,i)=>`<div class="card metric"><div class="tiny">${s[0]}</div><b>${s[1]}</b><div class="tiny">${s[2]}</div>${i===0?`<div class="progress" style="margin-top:10px"><span style="width:${l.pct}%"></span></div>`:""}</div>`).join("");
 }
 function continueLearning(){
+  const nextCase=nextAdaptiveCase(weakSkills()[0]?.id||null);
+  if(nextCase){go("cases");setTimeout(()=>openCase(nextCase.id),120);return}
   const ordered=moduleOrder().flatMap(m=>m.lessons.map(l=>({m,l})));
   const next=ordered.find(x=>!state.lessons.includes(x.l[0]));
   if(next){activeModule=next.m.id;go("learn");renderLessons();setTimeout(()=>openLesson(next.l[0]),120);}
-  else{go("cases");}
 }
 const DUELS=LANG==="en"?[
   {q:"Revenue grew 40%, but cash in the bank fell. What do you check first?",opts:["Follower count","Receivables and payment timing","Ad creative colors"],correct:1,why:"Sales growth can consume cash when money gets trapped in receivables or working capital."},
@@ -967,7 +968,7 @@ function renderGrowthHub(){
   document.getElementById("growthHub").innerHTML=`
     <div class="card growth-card duel-card"><div class="growth-icon">⚔️</div><div class="label">DAILY DUEL</div><h3>${L("60 секунд на бизнес-решение","60 seconds for a business decision")}</h3><div class="copy">${L("Один новый управленческий выбор каждый день.","One new management decision every day.")}</div><div class="btnrow"><button class="btn primary" onclick="dailyDuel()">${state.duel.date===todayKey()&&state.duel.answered?L("Посмотреть","View"):L("Принять вызов","Take the challenge")}</button></div></div>
     <div class="card growth-card"><div class="growth-icon">🧭</div><div class="label">PATH DIAGNOSTIC</div><h3>${state.diagnostic.completed?L("Путь уже рассчитан","Your path is ready"):L("Найди свою траекторию","Find your path")}</h3><div class="copy">${L("6 вопросов → рекомендация учебного пути. Можно изменить вручную.","6 questions → a recommended learning path. You can change it manually.")}</div><div class="btnrow"><button class="btn ghost" onclick="startDiagnostic()">${state.diagnostic.completed?L("Пройти заново","Retake"):L("Начать","Start")}</button></div></div>
-    <div class="card growth-card"><div class="growth-icon">🔥</div><div class="label">30-DAY CHALLENGE</div><h3>${challenge}/30 ${L("дней","days")}</h3><div class="progress"><span style="width:${Math.min(100,challenge/30*100)}%"></span></div><div class="btnrow"><button class="btn ghost" onclick="startChallenge()">${state.challenge.started?L("Продолжить","Continue"):L("Войти в челлендж","Join challenge")}</button></div></div>
+    <div class="card growth-card ${state.cases.length<3?"challenge-locked":""}"><div class="growth-icon">🔥</div><div class="label">30-DAY CHALLENGE</div><h3>${state.cases.length<3?L("Откроется после 3 кейсов","Unlocks after 3 cases"):challenge+"/30 "+L("дней","days")}</h3><div class="progress"><span style="width:${state.cases.length<3?Math.min(100,state.cases.length/3*100):Math.min(100,challenge/30*100)}%"></span></div><div class="btnrow"><button class="btn ghost" onclick="startChallenge()">${state.cases.length<3?L("Сначала практика","Practice first"):state.challenge.started?L("Продолжить","Continue"):L("Войти в челлендж","Join challenge")}</button></div></div>
     <div class="card growth-card"><div class="growth-icon">◈</div><div class="label">WEEKLY TARGET</div><h3>${wp}/${target} XP</h3><div class="progress"><span style="width:${pct}%"></span></div><div class="meta"><span>${Math.round(pct)}%</span><button class="linkbtn" onclick="setWeeklyTarget()">${L("изменить","change")}</button></div></div>
   `;
 }
@@ -990,10 +991,10 @@ function renderDashboard(){
   document.getElementById("pathSummary").innerHTML=`<div class="label">${L("ТВОЯ ТРАЕКТОРИЯ","YOUR PATH")}</div><h3>${p.title}</h3><div class="copy">${p.subtitle}</div><div class="btnrow"><button class="btn ghost" onclick="changePath()">${L("Сменить путь","Change path")}</button></div>`;
   document.getElementById("recommended").innerHTML=recommended.map(m=>`<div class="card item"><div style="font-size:25px">${m.icon}</div><h3>${m.title}</h3><div class="copy">${m.description}</div><div class="btnrow"><button class="btn ghost" onclick="activeModule='${m.id}';go('learn');renderLessons()">${L("Открыть","Open")}</button></div></div>`).join("");
   const tasks=[
-    [L("Урок дня","Lesson of the day"),state.lessons.length?L("Продолжи следующий непройденный урок","Continue your next incomplete lesson"):L("Начни первый урок","Start your first lesson"),()=>go("learn")],
     [L("Кейс дня","Case of the day"),state.cases.length+"/32 "+L("решено","solved"),()=>go("cases")],
-    [L("Симуляция","Simulation"),L("Прими 3 управленческих решения","Make 3 management decisions"),()=>go("simulator")],
-    ["Coach",L("Разбери одну бизнес-гипотезу","Break down one business hypothesis"),()=>go("coach")]
+    [L("Симуляция","Simulation"),L("Прими серию взаимосвязанных решений","Make a chain of connected decisions"),()=>go("simulator")],
+    ["AI Coach",L("Разбери один аргумент, гипотезу или цифры","Analyze one argument, hypothesis or set of numbers"),()=>go("coach")],
+    [L("Микро-урок","Micro lesson"),L("Теория только под конкретный слабый навык","Theory only for a specific weak skill"),()=>go("learn")]
   ];
   const scores=skillScores();
   document.getElementById("skillMap").innerHTML=C.modules.map(m=>{
@@ -1003,7 +1004,7 @@ function renderDashboard(){
   renderTodayPlan();
   renderWeakAreas();
   renderGrowthHub();
-  document.getElementById("daily").innerHTML=tasks.map((t,i)=>`<div class="card item"><div class="tiny">DAILY ${i+1}</div><h3>${t[0]}</h3><div class="copy">${t[1]}</div><div class="btnrow"><button class="btn ghost" onclick="${["go('learn')","go('cases')","go('simulator')","go('coach')"][i]}">${L("Выполнить","Do it")}</button></div></div>`).join("");
+  document.getElementById("daily").innerHTML=tasks.map((t,i)=>`<div class="card item"><div class="tiny">DAILY ${i+1}</div><h3>${t[0]}</h3><div class="copy">${t[1]}</div><div class="btnrow"><button class="btn ghost" onclick="${["go('cases')","go('simulator')","go('coach')","go('learn')"][i]}">${L("Выполнить","Do it")}</button></div></div>`).join("");
 }
 
 function moduleOrder(){
