@@ -291,9 +291,9 @@ async function updateRecoveredPassword(){
   status.textContent=L("Сохраняю новый пароль…","Saving new password…");
   const {error}=await sb.auth.updateUser({password:p1});
   if(error){status.textContent=authErrorMessage(error,"recovery");return}
-  const panel=document.getElementById("authNewPasswordPanel");
-  if(panel)panel.innerHTML=`<div class="tiny good">✓ ${L("Пароль изменён. Аккаунт восстановлен.","Password updated. Account recovered.")}</div><div class="btnrow"><button class="btn primary" onclick="closeAuth();go('dashboard')">${L("Продолжить","Continue")}</button></div>`;
-  status.textContent="";
+  document.getElementById("recoveryNewPassword").value="";
+  document.getElementById("recoveryNewPassword2").value="";
+  status.textContent=L("Пароль изменён. Аккаунт восстановлен — можно продолжать работу.","Password updated. Account recovered — you can continue.");
   const u=new URL(location.href);u.searchParams.delete("recovery");history.replaceState(null,"",u.pathname+u.search+u.hash);
   renderAuthState();
 }
@@ -1217,6 +1217,10 @@ document.addEventListener("DOMContentLoaded",async()=>{
   document.getElementById("termSearch").oninput=renderTerms;document.getElementById("termFilter").onchange=renderTerms;
   document.getElementById("caseSearch").oninput=renderCases;
   document.getElementById("coachInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendCoach()});
+  document.getElementById("loginPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")signInUser()});
+  document.getElementById("registerPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")registerUser()});
+  document.getElementById("recoveryEmail")?.addEventListener("keydown",e=>{if(e.key==="Enter")sendPasswordReset()});
+  document.getElementById("recoveryNewPassword2")?.addEventListener("keydown",e=>{if(e.key==="Enter")updateRecoveredPassword()});
   resetSimulator(false);renderAll();setupInstall();PREFS.injectControls?.();localizeUI();await initAuth();
   trackEvent("page_view",{page:"dashboard",initial:true});
   const requested=new URLSearchParams(location.search).get("page");
