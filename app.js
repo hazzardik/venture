@@ -181,6 +181,9 @@ function setSyncStatus(text,on){
 function authErrorMessage(error,context="login"){
   const code=String(error?.code||"").toLowerCase();
   const msg=String(error?.message||"").toLowerCase();
+  if(code.includes("email_not_confirmed")||msg.includes("email not confirmed")||msg.includes("email_not_confirmed")){
+    return L("Сначала подтверди email по ссылке из письма. Если письмо не пришло, отправь его ещё раз ниже.","Confirm your email using the link we sent first. If the email did not arrive, resend it below.");
+  }
   if(code.includes("invalid_credentials")||msg.includes("invalid login credentials")){
     return L("Почта или пароль введены неверно. Проверь данные или восстанови пароль.","Email or password is incorrect. Check your details or reset your password.");
   }
@@ -211,6 +214,7 @@ function setAuthMode(mode="login"){
   document.getElementById("authLoginTab")?.classList.toggle("active",mode==="login");
   document.getElementById("authRegisterTab")?.classList.toggle("active",mode==="register");
   const status=document.getElementById("authStatus");if(status)status.textContent="";
+  document.getElementById("authConfirmHelp")?.classList.add("hidden");
   const title=document.getElementById("authTitle"),intro=document.getElementById("authIntro");
   if(title)title.textContent=mode==="register"?L("Создание аккаунта","Create account"):mode==="recovery"?L("Восстановление аккаунта","Account recovery"):mode==="new-password"?L("Новый пароль","New password"):L("Вход в аккаунт","Sign in");
   if(intro)intro.textContent=mode==="register"
@@ -279,8 +283,24 @@ async function registerUser(){
   if(data.session){
     session=data.session; status.textContent=L("Аккаунт создан и вход выполнен.","Account created and signed in."); await mergeCloud(); await claimPendingReferral(); closeAuth();
   }else{
-    status.textContent=L("Аккаунт создан. Проверь почту и подтверди email, затем войди.","Account created. Check your email, confirm it, then sign in.");
+    status.textContent=L("Аккаунт создан. Мы отправили письмо для подтверждения email. Перейди по ссылке из письма, затем войди.","Account created. We sent a confirmation email. Open the link in that email, then sign in.");
+    document.getElementById("authConfirmHelp")?.classList.remove("hidden");
   }
+}
+
+async function resendSignupConfirmation(){
+  const status=document.getElementById("authStatus");
+  const email=(document.getElementById("registerEmail")?.value||document.getElementById("loginEmail")?.value||"").trim().toLowerCase();
+  if(!email||!email.includes("@")){if(status)status.textContent=L("Укажи email, на который зарегистрирован аккаунт.","Enter the email address used for this account.");return}
+  if(status)status.textContent=L("Отправляю письмо подтверждения…","Sending confirmation email…");
+  const {error}=await sb.auth.resend({
+    type:"signup",
+    email,
+    options:{emailRedirectTo:new URL("./",location.href).href}
+  });
+  if(error){if(status)status.textContent=authErrorMessage(error,"register");return}
+  if(status)status.textContent=L("Письмо отправлено повторно. Проверь входящие и папку «Спам».","Confirmation email sent again. Check your inbox and spam folder.");
+  document.getElementById("authConfirmHelp")?.classList.remove("hidden");
 }
 
 async function signInUser(){
@@ -290,7 +310,15 @@ async function signInUser(){
   if(!email||!password){status.textContent=L("Введи почту и пароль.","Enter your email and password.");return}
   status.textContent=L("Вхожу…","Signing in…");
   const {data,error}=await sb.auth.signInWithPassword({email,password});
-  if(error){status.textContent=authErrorMessage(error,"login");return}
+  if(error){
+    status.textContent=authErrorMessage(error,"login");
+    const code=String(error?.code||"").toLowerCase(),msg=String(error?.message||"").toLowerCase();
+    if(code.includes("email_not_confirmed")||msg.includes("email not confirmed")){
+      const reg=document.getElementById("registerEmail");if(reg&&!reg.value)reg.value=email;
+      document.getElementById("authConfirmHelp")?.classList.remove("hidden");
+    }
+    return
+  }
   session=data.session; status.textContent=L("Вход выполнен.","Signed in."); await mergeCloud(); await claimPendingReferral(); closeAuth();
 }
 
