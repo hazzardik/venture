@@ -232,6 +232,19 @@ function setAuthMode(mode="login"){
   localizeUI(document.getElementById("auth"));
 }
 
+function captureAuthLanding(){
+  const hash=new URLSearchParams((location.hash||"").replace(/^#/,""));
+  const query=new URLSearchParams(location.search);
+  const type=hash.get("type")||query.get("type")||"";
+  if(type==="signup"||type==="email"){
+    sessionStorage.setItem("bizoniq_email_confirmed_landing","1");
+  }
+}
+function showEmailConfirmedWelcome(){
+  if(sessionStorage.getItem("bizoniq_email_confirmed_landing")!=="1")return;
+  sessionStorage.removeItem("bizoniq_email_confirmed_landing");
+  modal(`<div class="label">BIZONIQ ACCOUNT</div><h2>${L("Email подтверждён","Email confirmed")}</h2><div class="copy">${L("Аккаунт активирован. Теперь прогресс будет синхронизироваться между устройствами, а реферальные бонусы смогут засчитываться после первого решённого кейса.","Your account is active. Progress can now sync across devices, and referral bonuses can qualify after your first completed case.")}</div><div class="btnrow"><button class="btn primary" onclick="closeModal();go('practice')">${L("Перейти к практике","Start practicing")}</button><button class="btn ghost" onclick="closeModal()">${L("Закрыть","Close")}</button></div>`,true);
+}
 async function initAuth(){
   const {data:{session:s}}=await sb.auth.getSession();
   session=s;
@@ -244,6 +257,7 @@ async function initAuth(){
     }
     if(sess&&(event==="SIGNED_IN"||event==="INITIAL_SESSION"||event==="TOKEN_REFRESHED")){
       await mergeCloud(); await Promise.all([loadCertificates(),loadSubscription()]); await claimPendingReferral();
+      if(event==="SIGNED_IN"||event==="INITIAL_SESSION")showEmailConfirmedWelcome();
     }
     if(event==="SIGNED_OUT"){
       userCertificates=[];
@@ -1776,7 +1790,7 @@ function renderAll(){
   localizeUI();
 }
 document.addEventListener("DOMContentLoaded",async()=>{
-  captureReferral();buildNav();renderOnboarding();
+  captureAuthLanding();captureReferral();buildNav();renderOnboarding();
   document.getElementById("termSearch").oninput=renderTerms;document.getElementById("termFilter").onchange=renderTerms;
   document.getElementById("caseSearch").oninput=renderCases;
   document.getElementById("coachInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendCoach()});
