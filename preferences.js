@@ -509,6 +509,10 @@
     "Для приглашений BIZONIQ хранит персональный referral-код, связь между пригласившим и новым аккаунтом, статус подтверждения и историю выданных наград. Для защиты от массовой накрутки при активации также могут сохраняться односторонние хэши сетевого адреса и User-Agent; исходные значения в таблицу рефералов не записываются. Приглашение засчитывается после подтверждения email и первого решённого бизнес-кейса.":"For referrals, BIZONIQ stores a personal referral code, the relationship between referrer and new account, qualification status, and reward history. To protect against mass abuse, one-way hashes of network address and User-Agent may also be stored during activation; the original values are not written to the referral table. A referral qualifies after email confirmation and the first completed business case."
   });
 
+  Object.assign(STATIC_EN,{
+    "Отправить письмо подтверждения ещё раз":"Resend confirmation email"
+  });
+
   const REPLACERS_EN=[
     [/^Завершить • \+(\d+) XP$/,"Complete • +$1 XP"],
     [/^Связано: (.+)$/,"Related: $1"],
