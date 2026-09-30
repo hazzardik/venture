@@ -499,6 +499,11 @@
     "Последнее обновление: 29 сентября 2026.":"Last updated: September 29, 2026."
   });
 
+  Object.assign(STATIC_EN,{
+    "Реферальная программа BIZONIQ":"BIZONIQ Referral Program",
+    "Приглашай друзей, помогай им попробовать Pro и открывай награды за подтверждённые приглашения.":"Invite friends, help them try Pro, and unlock rewards for qualified referrals."
+  });
+
   const REPLACERS_EN=[
     [/^Завершить • \+(\d+) XP$/,"Complete • +$1 XP"],
     [/^Связано: (.+)$/,"Related: $1"],
