@@ -504,6 +504,11 @@
     "Приглашай друзей, помогай им попробовать Pro и открывай награды за подтверждённые приглашения.":"Invite friends, help them try Pro, and unlock rewards for qualified referrals."
   });
 
+  Object.assign(STATIC_EN,{
+    "В профиле есть персональная ссылка. Приглашение становится подтверждённым, когда новый пользователь регистрируется по этой ссылке, подтверждает email и решает первый бизнес-кейс. После этого новый пользователь получает 3 дня Pro, а пригласившему засчитывается приглашение. Награды пригласившего: 1 друг — 3 дня Pro суммарно, 3 — 14 дней, 5 — 30 дней, 10 — 90 дней. Саморефералы, повторные активации и массовые регистрации с одной сети ограничены.":"Your profile contains a personal link. A referral qualifies when the new user registers through it, confirms their email, and completes their first business case. The new user then receives 3 days of Pro and the referrer gets a qualified referral. Referrer rewards: 1 friend — 3 total Pro days, 3 — 14 days, 5 — 30 days, 10 — 90 days. Self-referrals, duplicate claims, and mass registrations from one network are restricted.",
+    "Для приглашений BIZONIQ хранит персональный referral-код, связь между пригласившим и новым аккаунтом, статус подтверждения и историю выданных наград. Для защиты от массовой накрутки при активации также могут сохраняться односторонние хэши сетевого адреса и User-Agent; исходные значения в таблицу рефералов не записываются. Приглашение засчитывается после подтверждения email и первого решённого бизнес-кейса.":"For referrals, BIZONIQ stores a personal referral code, the relationship between referrer and new account, qualification status, and reward history. To protect against mass abuse, one-way hashes of network address and User-Agent may also be stored during activation; the original values are not written to the referral table. A referral qualifies after email confirmation and the first completed business case."
+  });
+
   const REPLACERS_EN=[
     [/^Завершить • \+(\d+) XP$/,"Complete • +$1 XP"],
     [/^Связано: (.+)$/,"Related: $1"],
