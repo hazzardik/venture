@@ -433,6 +433,7 @@ async function pushCloud(force=false){
     if(simRows.length) await sb.from("simulator_runs").upsert(simRows,{onConflict:"user_id,simulator_id"});
     await sb.from("daily_activity").upsert({user_id:uid,activity_date:todayKey(),xp_earned:0},{onConflict:"user_id,activity_date"});
     setSyncStatus(L("Синхронизировано","Synced"),true);
+    if(referralState?.claim_status==="pending")await refreshReferralQualification();
   }catch(e){setSyncStatus(L("Ошибка облака","Cloud error"),false);console.error(e)}
 }
 
@@ -1066,26 +1067,129 @@ function captureReferral(){
   const u=new URL(location.href),code=(u.searchParams.get("ref")||"").trim().toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,20);
   if(code){localStorage.setItem("bizoniq_ref",code);trackEvent("referral_opened",{code_hint:code.slice(-4)});}
 }
+function referralLink(){
+  if(!referralState?.code)return "";
+  const link=new URL(location.origin+location.pathname);link.searchParams.set("ref",referralState.code);
+  return link.toString();
+}
+function referralShareMessage(){
+  const days=Math.max(1,Number(referralState?.welcome_days)||3);
+  return LANG==="en"
+    ?`I use BIZONIQ — a business decision trainer with cases, simulations and AI Coach. Join through my link: after confirming your email and completing your first case, you get ${days} days of Pro.`
+    :`Я пользуюсь BIZONIQ — тренажёром бизнес-мышления с кейсами, симуляциями и AI Coach. Регистрируйся по моей ссылке: после подтверждения почты и первого кейса ты получишь ${days} дня Pro.`;
+}
+function referralTierName(count){
+  if(count>=10)return L("BIZONIQ Ambassador","BIZONIQ Ambassador");
+  if(count>=5)return L("Growth Partner","Growth Partner");
+  if(count>=3)return L("Connector","Connector");
+  return L("First Invite","First Invite");
+}
 async function claimPendingReferral(){
   if(!session)return;
   const code=localStorage.getItem("bizoniq_ref");if(!code)return;
   const {data,error}=await sb.functions.invoke("referral-system",{body:{action:"claim",code}});
-  if(!error&&data?.ok){localStorage.removeItem("bizoniq_ref");trackEvent("referral_claimed",{already_claimed:!!data.already_claimed});await loadReferralPanel();}
+  if(!error&&data?.ok){
+    localStorage.removeItem("bizoniq_ref");
+    referralState=data;
+    trackEvent("referral_claimed",{status:data.claim_status||"pending"});
+    renderReferralPanelData(data);
+  }
+}
+function renderReferralPanelData(data){
+  const box=document.getElementById("referralPanel");if(!box)return;
+  referralState=data;
+  const qualified=Math.max(0,Number(data.qualified_referrals)||0);
+  const pending=Math.max(0,Number(data.pending_referrals)||0);
+  const days=Math.max(1,Number(data.welcome_days)||3);
+  const milestones=(Array.isArray(data.milestones)?data.milestones:[]).map(x=>({
+    count:Math.max(1,Number(x.count)||1),total_days:Math.max(1,Number(x.total_days)||1)
+  })).sort((a,b)=>a.count-b.count);
+  const next=milestones.find(x=>x.count>qualified)||null;
+  const target=next?.count||milestones.at(-1)?.count||1;
+  const pct=next?Math.min(100,Math.round(qualified/target*100)):100;
+  const left=next?Math.max(0,next.count-qualified):0;
+  const link=referralLink();
+  const rewardCards=milestones.map((m,i)=>{
+    const unlocked=qualified>=m.count,active=next?.count===m.count;
+    return `<div class="referral-tier ${unlocked?"unlocked":active?"next":""}">
+      <div class="referral-tier-icon">${unlocked?"✓":i===0?"01":String(i+1).padStart(2,"0")}</div>
+      <div><b>${m.count} ${L(m.count===1?"друг":"друзей",m.count===1?"friend":"friends")}</b><small>${referralTierName(m.count)}</small></div>
+      <strong>${m.total_days} ${L("дн. Pro","days Pro")}</strong>
+    </div>`;
+  }).join("");
+  const claimStatus=data.claim_status==="pending"
+    ?`<div class="referral-claim-status pending"><b>${L("Твой бонус ожидает активации","Your referral bonus is pending")}</b><div class="referral-checks"><span class="${data.qualification?.email_verified?"done":""}">${data.qualification?.email_verified?"✓":"○"} ${L("Почта подтверждена","Email confirmed")}</span><span class="${data.qualification?.first_case_completed?"done":""}">${data.qualification?.first_case_completed?"✓":"○"} ${L("Первый кейс решён","First case completed")}</span></div></div>`
+    :data.claim_status==="qualified"
+      ?`<div class="referral-claim-status qualified">✓ ${L("Твой реферальный Pro-бонус активирован","Your referral Pro bonus is active")}</div>`
+      :"";
+  box.innerHTML=`
+    <div class="referral-hero">
+      <div class="referral-hero-copy"><div class="referral-eyebrow">BIZONIQ REFERRAL PROGRAM</div><h3>${L("Приглашай друзей. Открывай Pro.","Invite friends. Unlock Pro.")}</h3><p>${L("Друг получает","Your friend gets")} <b>${days} ${L("дня Pro","days of Pro")}</b> ${L("после подтверждения почты и первого решённого кейса. Твои подтверждённые приглашения открывают всё больше Pro-дней.","after confirming email and completing the first case. Your qualified referrals unlock more Pro days.")}</p></div>
+      <div class="referral-score"><span>${L("Подтверждено","Qualified")}</span><strong>${qualified}</strong><small>${pending?L("+"+pending+" ожидают подтверждения","+"+pending+" pending"):""}</small></div>
+    </div>
+    ${claimStatus}
+    <div class="referral-progress-card">
+      <div class="referral-progress-top"><div><span>${next?L("Следующая награда","Next reward"):L("Максимальный уровень открыт","Top tier unlocked")}</span><b>${next?`${next.total_days} ${L("дней Pro суммарно","days Pro total")}`:L("BIZONIQ Ambassador","BIZONIQ Ambassador")}</b></div><strong>${next?`${qualified}/${next.count}`:"✓"}</strong></div>
+      <div class="referral-progress"><span style="width:${pct}%"></span></div>
+      <div class="referral-progress-note">${next?L(`Осталось подтверждённых приглашений: ${left}`,`Qualified referrals remaining: ${left}`):L("Ты прошёл всю текущую шкалу наград.","You completed the current reward ladder.")}</div>
+    </div>
+    <div class="referral-tiers"><div class="referral-block-title">${L("Шкала наград","Reward ladder")}</div>${rewardCards}</div>
+    <div class="referral-how">
+      <div class="referral-block-title">${L("Как засчитывается приглашение","How a referral qualifies")}</div>
+      <div class="referral-how-grid"><div><b>1</b><span>${L("Друг регистрируется по твоей ссылке","Friend registers through your link")}</span></div><div><b>2</b><span>${L("Подтверждает email","Confirms email")}</span></div><div><b>3</b><span>${L("Решает первый бизнес-кейс","Completes the first business case")}</span></div><div><b>4</b><span>${L("Pro начисляется автоматически","Pro is granted automatically")}</span></div></div>
+      <div class="referral-security-note">🔒 ${L("Саморефералы, повторные активации и массовые регистрации с одной сети ограничены.","Self-referrals, duplicate claims and mass registrations from one network are restricted.")}</div>
+    </div>
+    <div class="referral-share">
+      <div class="referral-block-title">${L("Твоя персональная ссылка","Your personal link")}</div>
+      <div class="referral-link"><input class="input" readonly value="${escapeHtml(link)}"><button class="btn primary" onclick="copyReferralLink()">${L("Копировать","Copy")}</button></div>
+      <div class="referral-share-buttons"><button class="btn referral-main-share" onclick="shareReferral()">↗ ${L("Поделиться","Share")}</button><button class="btn ghost" onclick="shareReferralTo('telegram')">Telegram</button><button class="btn ghost" onclick="shareReferralTo('whatsapp')">WhatsApp</button></div>
+      <div class="referral-message-card"><span>${L("Готовое сообщение","Ready-to-send message")}</span><p>${escapeHtml(referralShareMessage())}</p><button class="btn ghost" onclick="copyReferralMessage()">${L("Скопировать сообщение","Copy message")}</button></div>
+    </div>`;
 }
 async function loadReferralPanel(){
   const box=document.getElementById("referralPanel");if(!box)return;
-  if(!session){box.innerHTML=`<div class="tiny">${L("Войди в аккаунт, чтобы получить персональную ссылку.","Sign in to get your personal referral link.")}</div>`;return}
+  if(!session){box.innerHTML=`<div class="referral-login-empty"><b>${L("Войди, чтобы получить персональную ссылку","Sign in to get your personal referral link")}</b><span>${L("За подтверждённые приглашения начисляются дни BIZONIQ Pro.","Qualified referrals unlock BIZONIQ Pro days.")}</span></div>`;return}
   const {data,error}=await sb.functions.invoke("referral-system",{body:{action:"status"}});
-  if(error||!data?.ok){box.innerHTML=`<div class="tiny">${L("Не удалось загрузить реферальную систему.","Could not load referral system.")}</div>`;return}
-  referralState=data;
-  const link=new URL(location.origin+location.pathname);link.searchParams.set("ref",data.code);
-  const next=(data.milestones||[]).find(x=>Number(x.count)>Number(data.qualified_referrals||0));
-  box.innerHTML=`<div class="referral-head"><div><div class="tiny good">● REFERRAL</div><b>${L("Приглашай друзей — получай Pro","Invite friends — earn Pro")}</b></div><strong>${data.qualified_referrals||0}</strong></div><div class="copy">${L("Новый пользователь получает ","A new user gets ")}${data.welcome_days} ${L("дня Pro. Твои награды растут по milestones.","days of Pro. Your rewards grow with milestones.")}</div><div class="referral-link"><input class="input" readonly value="${escapeHtml(link.toString())}"><button class="btn primary" onclick="copyReferralLink()">${L("Копировать","Copy")}</button></div>${next?`<div class="tiny">${L("Следующая награда: ","Next reward: ")}${next.total_days} ${L("дней суммарно при ","days total at ")}${next.count} ${L("приглашениях","referrals")}.</div>`:""}`;
+  if(error||!data?.ok){box.innerHTML=`<div class="tiny">${L("Не удалось загрузить реферальную программу.","Could not load the referral program.")}</div>`;return}
+  renderReferralPanelData(data);
+}
+async function refreshReferralQualification(){
+  if(!session||referralState?.claim_status!=="pending")return;
+  const before=referralState.claim_status;
+  const {data,error}=await sb.functions.invoke("referral-system",{body:{action:"refresh"}});
+  if(error||!data?.ok)return;
+  renderReferralPanelData(data);
+  if(before==="pending"&&data.claim_status==="qualified"){
+    trackEvent("referral_qualified",{});
+    await loadSubscription();
+  }
 }
 async function copyReferralLink(){
-  if(!referralState)return;
-  const link=new URL(location.origin+location.pathname);link.searchParams.set("ref",referralState.code);
-  try{await navigator.clipboard.writeText(link.toString());trackEvent("referral_link_copied",{});alert(L("Реферальная ссылка скопирована.","Referral link copied."));}catch{}
+  const link=referralLink();if(!link)return;
+  try{await navigator.clipboard.writeText(link);trackEvent("referral_link_copied",{});alert(L("Реферальная ссылка скопирована.","Referral link copied."));}catch{}
+}
+async function copyReferralMessage(){
+  const link=referralLink();if(!link)return;
+  const text=referralShareMessage()+"\n\n"+link;
+  try{await navigator.clipboard.writeText(text);trackEvent("referral_message_copied",{});alert(L("Сообщение для приглашения скопировано.","Referral message copied."));}catch{}
+}
+async function shareReferral(){
+  const url=referralLink();if(!url)return;
+  const text=referralShareMessage();
+  trackEvent("referral_share_clicked",{channel:"native"});
+  try{
+    if(navigator.share){await navigator.share({title:"BIZONIQ",text,url});return}
+    await navigator.clipboard.writeText(text+"\n\n"+url);
+    alert(L("Сообщение и ссылка скопированы.","Message and link copied."));
+  }catch{}
+}
+function shareReferralTo(channel){
+  const url=referralLink();if(!url)return;
+  const text=referralShareMessage();
+  let target="";
+  if(channel==="telegram")target="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(text);
+  if(channel==="whatsapp")target="https://wa.me/?text="+encodeURIComponent(text+"\n\n"+url);
+  if(target){trackEvent("referral_share_clicked",{channel});window.open(target,"_blank","noopener,noreferrer")}
 }
 function shareCardData(type){
   const scores=Object.values(skillScores()).sort((a,b)=>b.score-a.score);
