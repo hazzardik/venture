@@ -812,17 +812,27 @@ function skillScores(){
   const seeds=state.diagnostic?.skillSeed||{};
   C.modules.forEach(m=>{
     const done=m.lessons.filter(l=>state.lessons.includes(l[0])).length;
-    const lessonScore=done/m.lessons.length*100;
+    const lessonScore=m.lessons.length?done/m.lessons.length*100:0;
     const results=Object.values(state.adaptive.caseResults||{}).filter(r=>r.category===m.id);
+    const availableCases=Math.max(1,C.cases.filter(c=>c.category===m.id).length);
     const weightedTotal=results.reduce((s,r)=>s+(Number(r.difficulty)||1),0);
     const weightedCorrect=results.reduce((s,r)=>s+(r.correct?(Number(r.difficulty)||1):0),0);
-    const caseScore=weightedTotal?weightedCorrect/weightedTotal*100:lessonScore;
-    const coverage=Math.min(100,results.length/4*100);
+    const caseScore=weightedTotal?weightedCorrect/weightedTotal*100:50;
+    const coverage=Math.min(100,results.length/availableCases*100);
+    const hasDiagnostic=Object.prototype.hasOwnProperty.call(seeds,m.id);
     const seed=Number(seeds[m.id]??50);
     const score=results.length
-      ?Math.round(lessonScore*.25+caseScore*.45+coverage*.20+seed*.10)
-      :Math.round(lessonScore*.55+seed*.45);
-    out[m.id]={id:m.id,label:SKILL_LABELS[m.id]||m.title,icon:m.icon,score,lessons:done,total:m.lessons.length,attempts:results.length,correct:results.filter(r=>r.correct).length,caseScore:Math.round(caseScore),coverage:Math.round(coverage)};
+      ?Math.round(caseScore*.55+coverage*.15+lessonScore*.20+seed*.10)
+      :Math.round(lessonScore*.35+seed*.65);
+    let confidence="low";
+    if(results.length>=4&&coverage>=75)confidence="high";
+    else if(results.length>=2&&coverage>=35)confidence="medium";
+    out[m.id]={
+      id:m.id,label:SKILL_LABELS[m.id]||m.title,icon:m.icon,score,
+      lessons:done,total:m.lessons.length,attempts:results.length,
+      correct:results.filter(r=>r.correct).length,caseScore:Math.round(caseScore),
+      coverage:Math.round(coverage),availableCases,confidence,hasDiagnostic
+    };
   });
   return out;
 }
@@ -1241,7 +1251,7 @@ function shareCardData(type){
   }
   if(type==="challenge")return {kicker:"30-DAY FOUNDER CHALLENGE",title:`${state.challenge.completedDays.length}/30 ${L("дней","days")}`,sub:L("Тренирую бизнес-решения каждый день","Training business decisions every day")};
   if(type==="duel")return {kicker:"DAILY BUSINESS DUEL",title:L("Решение принято","Decision made"),sub:learningArchetype()[0]};
-  return {kicker:"BIZONIQ SKILL MAP",title:`${scores[0]?.label||"Business"} · ${scores[0]?.score||0}`,sub:L("Мой прогресс в тренажёре бизнес-решений","My progress in the business decision trainer")};
+  return {kicker:"BIZONIQ SKILL MAP",title:`${scores[0]?.label||"Business"} · ≈${scores[0]?.score||0}`,sub:L("Мой прогресс в тренажёре бизнес-решений","My progress in the business decision trainer")};
 }
 function roundRect(ctx,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath()}
 function drawShareCard(type){
@@ -1309,29 +1319,33 @@ async function installTyqon(){
   modal(`<div class="label">${L("УСТАНОВКА BIZONIQ","INSTALL BIZONIQ")}</div><h2>${L("Добавь приложение на экран","Add the app to your screen")}</h2><div class="copy">${L("На iPhone открой сайт в Safari → «Поделиться» → «На экран Домой». На поддерживаемых браузерах используй пункт «Установить приложение».","On iPhone, open the site in Safari → Share → Add to Home Screen. In supported browsers, use Install app.")}</div>`);
 }
 function renderDashboard(){
-  const p=pathObj(),recommended=p.recommended.slice(0,3).map(id=>C.modules.find(m=>m.id===id)).filter(Boolean);
-  document.getElementById("pathSummary").innerHTML=`<div class="label">${L("ТВОЯ ТРАЕКТОРИЯ","YOUR PATH")}</div><h3>${p.title}</h3><div class="copy">${p.subtitle}</div><div class="btnrow"><button class="btn ghost" onclick="changePath()">${L("Сменить путь","Change path")}</button></div>`;
-  document.getElementById("recommended").innerHTML=recommended.map(m=>`<div class="card item"><div style="font-size:25px">${m.icon}</div><h3>${m.title}</h3><div class="copy">${m.description}</div><div class="btnrow"><button class="btn ghost" onclick="activeModule='${m.id}';go('learn');renderLessons()">${L("Открыть","Open")}</button></div></div>`).join("");
-  const tasks=[
-    [L("Кейс дня","Case of the day"),state.cases.length+"/32 "+L("решено","solved"),()=>go("cases")],
-    [L("Симуляция","Simulation"),L("Прими серию взаимосвязанных решений","Make a chain of connected decisions"),()=>go("simulator")],
-    ["AI Coach",L("Разбери один аргумент, гипотезу или цифры","Analyze one argument, hypothesis or set of numbers"),()=>go("coach")],
-    [L("Микро-урок","Micro lesson"),L("Теория только под конкретный слабый навык","Theory only for a specific weak skill"),()=>go("learn")]
-  ];
-  const scores=skillScores();
-  document.getElementById("skillMap").innerHTML=C.modules.map(m=>{
-    const x=scores[m.id];
-    const detail=x.attempts
-      ?`Decision Score · ${x.caseScore}% ${L("по кейсам","case quality")} · ${x.coverage}% ${L("покрытие","coverage")}`
-      :L("Стартовая оценка: диагностика + освоенная база","Baseline: diagnostic + covered knowledge");
-    return `<div class="card skill-card"><div class="skill-top"><span>${m.icon} ${m.title}</span><b>${x.score}</b></div><div class="progress"><span style="width:${x.score}%"></span></div><div class="tiny" style="margin-top:8px">${detail}</div></div>`;
-  }).join("");
-  renderTodayPlan();
-  renderWeakAreas();
-  renderGrowthHub();
-  document.getElementById("daily").innerHTML=tasks.map((t,i)=>`<div class="card item"><div class="tiny">DAILY ${i+1}</div><h3>${t[0]}</h3><div class="copy">${t[1]}</div><div class="btnrow"><button class="btn ghost" onclick="${["go('cases')","go('simulator')","go('coach')","go('learn')"][i]}">${L("Выполнить","Do it")}</button></div></div>`).join("");
-}
+  const p=pathObj(),weak=weakSkills()[0]||{id:"basics",label:L("Бизнес-база","Business foundations")};
+  const focus=nextAdaptiveCase(weak.id)||nextAdaptiveCase();
+  const title=document.getElementById("dashboardFocusTitle"),copy=document.getElementById("dashboardFocusCopy"),meta=document.getElementById("dashboardFocusMeta"),button=document.getElementById("dashboardFocusButton");
+  if(title)title.textContent=focus?focus.title:L("Следующий бизнес-кейс","Next business case");
+  if(copy)copy.textContent=focus?focus.copy:L("BIZONIQ подберёт следующее решение по твоему уровню и слабым навыкам.","BIZONIQ will select the next decision based on your level and weaker skills.");
+  if(meta)meta.textContent=focus?`${difficultyName(focus.difficulty)} · ${SKILL_LABELS[focus.category]||focus.category} · ${L("следующий шаг","next step")}`:L("Адаптивная практика","Adaptive practice");
+  if(button){
+    button.textContent=L("Продолжить тренировку","Continue training");
+    button.onclick=()=>{go("cases");if(focus)setTimeout(()=>openCase(focus.id),100)};
+  }
 
+  const pathSummary=document.getElementById("pathSummary");
+  if(pathSummary)pathSummary.innerHTML=`<div class="label">${L("ТВОЯ ТРАЕКТОРИЯ","YOUR PATH")}</div><h3>${p.title}</h3><div class="copy">${p.subtitle}</div><div class="focus-side-meta"><span>${L("Слабее всего сейчас","Current focus")}</span><b>${weak.icon||""} ${weak.label}</b></div><div class="btnrow"><button class="btn ghost" onclick="changePath()">${L("Сменить путь","Change path")}</button></div>`;
+
+  const scores=skillScores(),skillMap=document.getElementById("skillMap");
+  if(skillMap)skillMap.innerHTML=C.modules.map(m=>{
+    const x=scores[m.id];
+    const confidenceLabel=x.confidence==="high"?L("данных достаточно","strong evidence"):x.confidence==="medium"?L("данных становится больше","growing evidence"):L("мало данных","limited evidence");
+    const value=x.attempts?`≈${x.score}`:L("Старт","Baseline");
+    const evidence=x.attempts
+      ?`${x.attempts} ${L("реш.","dec.")} · ${x.coverage}% ${L("покрытия кейсов","case coverage")} · ${x.lessons}/${x.total} ${L("уроков","lessons")}`
+      :`${L("Практических решений пока нет","No practical decisions yet")} · ${x.lessons}/${x.total} ${L("уроков","lessons")}`;
+    return `<div class="card skill-card evidence-${x.confidence}"><div class="skill-top"><span>${m.icon} ${m.title}</span><b>${value}</b></div><div class="skill-evidence-row"><span class="evidence-badge ${x.confidence}">${confidenceLabel}</span><span>${evidence}</span></div><div class="progress"><span style="width:${x.attempts?x.score:Math.min(35,x.lessons/Math.max(1,x.total)*100)}%"></span></div><div class="tiny skill-method">${x.attempts?L("Индекс учитывает качество решений, сложность, покрытие и освоенную базу.","Index uses decision quality, difficulty, coverage and learned foundations."):L("Пока это стартовый ориентир из диагностики и базы знаний.","For now this is only a baseline from diagnostics and covered knowledge.")}</div></div>`;
+  }).join("");
+
+  renderGrowthHub();
+}
 function moduleOrder(){
   const p=pathObj();
   return [...C.modules].sort((a,b)=>p.recommended.indexOf(b.id)-p.recommended.indexOf(a.id));
@@ -1441,6 +1455,52 @@ function caseReview(c,ch,strongest){
     <div class="tiny">${L("В реальном бизнесе контекст может изменить сильнейшее решение. Здесь оценивается логика при условиях кейса.","In a real business, context can change the strongest decision. This case evaluates reasoning under the stated assumptions.")}</div>
   </div>`;
 }
+function caseReasoningPrompt(c,ch){
+  if(!session){
+    return `<div class="case-reasoning"><div class="case-reasoning-head"><div><div class="label">AI DECISION REVIEW</div><h3>${L("Почему ты так решил?","Why did you choose this?")}</h3></div><span class="reasoning-badge">${L("ЛОГИКА","REASONING")}</span></div><div class="copy">${L("После решения объясни ход мысли в 1–3 предложениях. AI Coach разберёт предположения, trade-off и то, что ты мог упустить.","After deciding, explain your reasoning in 1–3 sentences. AI Coach will critique assumptions, trade-offs and what you may have missed.")}</div><textarea id="caseReasoningInput" class="textarea case-reasoning-input" maxlength="1000" placeholder="${L("Например: я выбрал это, потому что сейчас важнее сохранить денежный поток, даже если рост замедлится…","Example: I chose this because protecting cash flow matters more right now, even if growth slows…")}"></textarea><div class="btnrow"><button class="btn primary" onclick="submitCaseReasoning('${c.id}',${c.choices.indexOf(ch)})">${L("Войти и получить AI-разбор","Sign in for AI critique")}</button></div><div id="caseReasoningStatus" class="auth-status"></div></div>`;
+  }
+  return `<div class="case-reasoning"><div class="case-reasoning-head"><div><div class="label">AI DECISION REVIEW</div><h3>${L("Почему ты так решил?","Why did you choose this?")}</h3></div><span class="reasoning-badge">AI</span></div><div class="copy">${L("Не угадывай «правильный ответ». Объясни свою логику: что ты считаешь главным риском, ограничением или метрикой?","Do not guess the “correct answer.” Explain your logic: what risk, constraint or metric matters most?")}</div><textarea id="caseReasoningInput" class="textarea case-reasoning-input" maxlength="1000" placeholder="${L("1–3 предложения о том, почему ты выбрал именно это решение…","1–3 sentences explaining why you chose this decision…")}"></textarea><div class="btnrow"><button id="caseReasoningButton" class="btn primary" onclick="submitCaseReasoning('${c.id}',${c.choices.indexOf(ch)})">${L("Разобрать мою логику","Critique my reasoning")}</button><span class="tiny">${L("Считается в дневной лимит AI Coach","Counts toward your daily AI Coach limit")}</span></div><div id="caseReasoningStatus" class="auth-status"></div><div id="caseReasoningResult"></div></div>`;
+}
+async function submitCaseReasoning(caseId,choiceIndex){
+  if(!session){openAuth();return}
+  const c=C.cases.find(x=>x.id===caseId),ch=c?.choices?.[choiceIndex];
+  const input=document.getElementById("caseReasoningInput"),status=document.getElementById("caseReasoningStatus"),button=document.getElementById("caseReasoningButton"),result=document.getElementById("caseReasoningResult");
+  const rationale=(input?.value||"").trim();
+  if(!c||!ch)return;
+  if(rationale.length<12){if(status)status.textContent=L("Объясни решение чуть подробнее — хотя бы одно полноценное предложение.","Explain your reasoning in a little more detail — at least one complete sentence.");return}
+  if(status)status.textContent=L("AI Coach проверяет предположения и trade-offs…","AI Coach is checking assumptions and trade-offs…");
+  if(button)button.disabled=true;if(input)input.disabled=true;
+  trackEvent("case_reasoning_submitted",{case_id:caseId,category:c.category,choice:choiceIndex,strongest:!!ch.correct});
+  try{
+    const context={
+      ...coachContext(),
+      decision_context:{
+        case_id:c.id,title:c.title,situation:c.copy,category:c.category,difficulty:c.difficulty,
+        selected_choice:ch.text,case_feedback:ch.feedback,strongest_under_case_assumptions:!!ch.correct
+      }
+    };
+    const {data,error}=await sb.functions.invoke("ai-coach",{body:{message:rationale,mode:"critique",lang:LANG,context}});
+    let payload=data;
+    if(error?.context){try{payload=await error.context.clone().json()}catch{}}
+    if(error||!payload?.ok){
+      const code=payload?.error||"";
+      const msg=code==="AI_DAILY_LIMIT"
+        ?L("Дневной лимит AI Coach достигнут. Разбор будет снова доступен завтра.","Your daily AI Coach limit has been reached. Critique will be available again tomorrow.")
+        :L("Не удалось получить AI-разбор. Попробуй ещё раз.","Could not get the AI critique. Try again.");
+      if(status)status.textContent=msg;
+      return;
+    }
+    if(status)status.textContent="";
+    const training=coachTrainingCta(payload.skill,payload.training_action);
+    if(result)result.innerHTML=`<div class="reasoning-result"><div class="reasoning-result-title"><span>AI CRITIQUE</span><small>${escapeHtml(payload.confidence||"")}</small></div><div class="copy reasoning-main">${escapeHtml(payload.reply)}</div>${payload.insight?`<div class="reasoning-point"><span>${L("Что мог упустить","Possible blind spot")}</span><b>${escapeHtml(payload.insight)}</b></div>`:""}${payload.next_action?`<div class="reasoning-point"><span>${L("Что проверить дальше","Check next")}</span><b>${escapeHtml(payload.next_action)}</b></div>`:""}<div class="tiny reasoning-note">${L("AI-разбор помогает тренировать аргументацию, но сам по себе не повышает Skill Index.","AI critique trains your reasoning, but does not directly increase the Skill Index.")}</div>${training}</div>`;
+    trackEvent("case_reasoning_critiqued",{case_id:caseId,category:c.category,skill:payload.skill,confidence:payload.confidence});
+  }catch{
+    if(status)status.textContent=L("Ошибка соединения с AI Coach. Попробуй ещё раз.","AI Coach connection error. Try again.");
+  }finally{
+    if(button)button.disabled=false;if(input)input.disabled=false;
+  }
+}
+
 function answerCase(id,i,el){
   const c=C.cases.find(x=>x.id===id),ch=c.choices[i];
   document.querySelectorAll("#caseChoices .choice").forEach(b=>b.disabled=true);el.classList.add(ch.correct?"good":"bad");
@@ -1451,13 +1511,12 @@ function answerCase(id,i,el){
   }
   const f=document.getElementById("caseFeedback");
   const earned=ch.correct&&!state.cases.includes(id)?c.xp:0;
-  f.innerHTML=caseReview(c,ch,!!ch.correct)+(earned?`<div class="tiny case-xp">+${earned} XP</div>`:"");f.classList.add("show");
+  f.innerHTML=caseReview(c,ch,!!ch.correct)+(earned?`<div class="tiny case-xp">+${earned} XP</div>`:"")+caseReasoningPrompt(c,ch);f.classList.add("show");
   if(ch.correct&&!state.cases.includes(id)){state.cases.push(id);state.xp+=c.xp;if(state.cases.length===1)trackEvent("first_case_completed",{case_id:id});if(state.cases.length===3)trackEvent("three_cases_completed",{case_id:id})}
   const rating=document.getElementById("caseRating");
   if(rating&&!state.adaptive.caseRatings[id])rating.innerHTML=`<div class="difficulty-rating"><div class="tiny">${L("КАК БЫЛО ПО СЛОЖНОСТИ?","HOW DID THE DIFFICULTY FEEL?")}</div><div class="btnrow"><button class="btn ghost" onclick="rateCaseDifficulty('${id}','easy')">${L("Слишком легко","Too easy")}</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','normal')">${L("Нормально","About right")}</button><button class="btn ghost" onclick="rateCaseDifficulty('${id}','hard')">${L("Сложно","Hard")}</button></div></div>`;
   localSave();
 }
-
 function selectSimulator(id){
   if(id!=="coffee"&&!proAccess()){paywall("Этот бизнес-симулятор","This business simulator");return}
   trackEvent("simulator_opened",{simulator_id:id});
@@ -1616,7 +1675,7 @@ async function sendCoach(){
     if(error||!payload?.ok){
       const code=payload?.error||"";
       const msg=code==="AI_NOT_CONFIGURED"
-        ?L("AI Coach подготовлен, но в Supabase ещё не добавлен OPENAI_API_KEY.","AI Coach is ready, but OPENAI_API_KEY has not been added to Supabase yet.")
+        ?L("AI Coach временно не подключён к AI-провайдеру.","AI Coach is temporarily not connected to the AI provider.")
         :code==="AI_DAILY_LIMIT"
           ?L("Лимит AI Coach на сегодня достигнут.","You have reached today's AI Coach limit.")
           :L("AI Coach сейчас недоступен. Попробуй ещё раз.","AI Coach is unavailable right now. Try again.");
