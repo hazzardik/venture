@@ -513,6 +513,17 @@
     "Отправить письмо подтверждения ещё раз":"Resend confirmation email"
   });
 
+  Object.assign(STATIC_EN,{
+    "Следующий бизнес-кейс":"Next business case",
+    "BIZONIQ подберёт следующее решение по твоему уровню.":"BIZONIQ will select the next decision for your level.",
+    "Продолжить тренировку":"Continue training",
+    "Приблизительный профиль практики, а не экзаменационная оценка. Чем больше реальных решений, тем надёжнее индекс.":"An approximate practice profile, not an exam score. The more real decisions you make, the more reliable the index becomes.",
+    "Знак ≈ означает ориентировочную оценку. Индекс строится из практических решений, их сложности, покрытия кейсов, диагностики и освоенной базы; он не является профессиональной квалификацией.":"The ≈ sign marks an approximate estimate. The index uses practical decisions, difficulty, case coverage, diagnostics and learned foundations; it is not a professional qualification.",
+    "Другие режимы BIZONIQ":"Other BIZONIQ modes",
+    "Weekly Lab, Daily Duel, Challenge и недельная цель":"Weekly Lab, Daily Duel, Challenge and weekly target",
+    "Ответь на один короткий вопрос. Сейчас реальные замечания пользователей полезнее ещё одной новой функции.":"Answer one short question. Right now, real user feedback is more valuable than another new feature."
+  });
+
   const REPLACERS_EN=[
     [/^Завершить • \+(\d+) XP$/,"Complete • +$1 XP"],
     [/^Связано: (.+)$/,"Related: $1"],
