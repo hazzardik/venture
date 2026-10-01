@@ -16,7 +16,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icon.svg">
-<link rel="stylesheet" href="./styles.css?v=12.3.2">
+<link rel="stylesheet" href="./styles.css?v=12.4.0">
 </head>
 <body>
 <div id="onboard" class="overlay hidden">
@@ -137,51 +137,40 @@
   </div>
 
   <section id="dashboard" class="page active">
-    <div id="stats" class="grid g4"></div>
-    <div class="hero">
-      <div class="card hero-main">
-        <div class="label">BUSINESS DECISION TRAINER</div>
-        <h2>Тренируй решения, а не запоминай бизнес-термины.</h2>
-        <div class="copy">Главное в BIZONIQ — реальные выборы и последствия: бизнес-кейсы, многоходовые симуляции и AI Coach, который разбирает именно твои аргументы и ошибки.</div>
-        <div class="btnrow">
-          <button class="btn primary" onclick="go('cases')">Решить кейс</button>
-          <button class="btn secondary" onclick="go('simulator')">Запустить симуляцию</button>
-          <button class="btn ghost" onclick="go('coach')">Открыть AI Coach</button>
-        </div>
+    <div class="dashboard-focus">
+      <div class="card hero-main focus-card">
+        <div class="focus-kicker"><span class="label">NEXT DECISION</span><span id="dashboardFocusMeta" class="tiny"></span></div>
+        <h2 id="dashboardFocusTitle">Следующий бизнес-кейс</h2>
+        <div id="dashboardFocusCopy" class="copy">BIZONIQ подберёт следующее решение по твоему уровню.</div>
+        <div class="btnrow"><button id="dashboardFocusButton" class="btn primary">Продолжить тренировку</button></div>
       </div>
-      <div id="pathSummary" class="card"></div>
+      <div id="pathSummary" class="card focus-side"></div>
     </div>
+
+    <div id="stats" class="grid g4 dashboard-metrics"></div>
+
     <div class="section">
-      <div class="sectionhead"><div><div class="sectiontitle">Твой план на сегодня</div><div class="sectioncopy">BIZONIQ сам подбирает следующий шаг по слабым навыкам и текущей сложности.</div></div></div>
-      <div id="todayPlan" class="today-plan"></div>
-    </div>
-    <div class="section mobile-secondary">
-      <div class="sectionhead"><div><div class="sectiontitle">Рекомендуемые направления</div><div class="sectioncopy">Сначала то, что даст тебе максимальную отдачу на текущем уровне.</div></div></div>
-      <div id="recommended" class="grid g3"></div>
-    </div>
-    <div class="section">
-      <div class="sectionhead"><div><div class="sectiontitle">Decision Skill Map</div><div class="sectioncopy">Навыки оцениваются по сочетанию практических решений, сложности кейсов и освоенной базы.</div></div></div>
+      <div class="sectionhead"><div>
+        <div class="sectiontitle">BIZONIQ Skill Map</div>
+        <div class="sectioncopy">Приблизительный профиль практики, а не экзаменационная оценка. Чем больше реальных решений, тем надёжнее индекс.</div>
+      </div></div>
       <div id="skillMap" class="skillmap"></div>
-      <div class="skill-disclaimer">Skill Score — внутренняя оценка активности в BIZONIQ. Это не профессиональная квалификация и не обещание реальной бизнес-эффективности.</div>
+      <div class="skill-disclaimer">Знак ≈ означает ориентировочную оценку. Индекс строится из практических решений, их сложности, покрытия кейсов, диагностики и освоенной базы; он не является профессиональной квалификацией.</div>
     </div>
-    <div class="section">
-      <div class="sectionhead"><div><div class="sectiontitle">Слабые места</div><div class="sectioncopy">Навыки с самым низким текущим Skill Score.</div></div></div>
-      <div id="weakAreas" class="card weak-areas"></div>
-    </div>
-    <div class="section">
-      <div class="sectionhead"><div><div class="sectiontitle">BIZONIQ Arena</div><div class="sectioncopy">Механики, ради которых хочется вернуться завтра.</div></div></div>
-      <div id="growthHub" class="growth-grid"></div>
-    </div>
-    <div class="section mobile-secondary">
-      <div class="sectionhead"><div><div class="sectiontitle">Daily BIZONIQ</div><div class="sectioncopy">Четыре коротких действия вместо бесконечного чтения.</div></div></div>
-      <div id="daily" class="grid g4"></div>
-    </div>
+
+    <details class="dashboard-more">
+      <summary><span><b>Другие режимы BIZONIQ</b><small>Weekly Lab, Daily Duel, Challenge и недельная цель</small></span><strong>+</strong></summary>
+      <div class="dashboard-more-body">
+        <div id="growthHub" class="growth-grid"></div>
+      </div>
+    </details>
+
     <div class="section">
       <div class="card beta-card">
         <div>
           <div class="label">BETA • НАМ НУЖНА КРИТИКА</div>
           <h3>Помоги сделать BIZONIQ полезнее.</h3>
-          <div class="copy">У нас уже есть первые реальные пользователи. Ответь на один вопрос — это сильнее влияет на продукт, чем ещё десять случайных функций.</div>
+          <div class="copy">Ответь на один короткий вопрос. Сейчас реальные замечания пользователей полезнее ещё одной новой функции.</div>
         </div>
         <div class="feedback-actions">
           <button class="btn ghost" onclick="openBetaFeedback('confusing')">Где непонятно?</button>
@@ -192,7 +181,6 @@
       </div>
     </div>
   </section>
-
   <section id="learn" class="page">
     <div class="sectionhead"><div><div class="sectiontitle">База знаний • 56 микро-уроков</div><div class="sectioncopy">Теория здесь не цель: бери понятие, понимай механику и сразу применяй её в кейсе.</div></div></div>
     <div class="learn-tools card soft"><div><b>Business Dictionary</b><div class="tiny">Справочник терминов остаётся доступным, но не занимает место главного продукта.</div></div><button class="btn ghost" onclick="go('dictionary')">Открыть словарь</button></div>
@@ -438,14 +426,14 @@
 <nav id="mobileNav" class="mobile"></nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="./preferences.js?v=12.3.2"></script>
+<script src="./preferences.js?v=12.4.0"></script>
 <script src="./billing-config.js"></script>
-<script src="./content.js?v=12.3.2"></script>
-<script src="./content-en.js?v=12.3.2"></script>
-<script src="./simulations-v2.js?v=12.3.2"></script>
-<script src="./app.js?v=12.3.2"></script>
+<script src="./content.js?v=12.4.0"></script>
+<script src="./content-en.js?v=12.4.0"></script>
+<script src="./simulations-v2.js?v=12.4.0"></script>
+<script src="./app.js?v=12.4.0"></script>
 <script>
-if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=12.3.2").catch(()=>{}));
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=12.4.0").catch(()=>{}));
 </script>
 </body>
 </html>
